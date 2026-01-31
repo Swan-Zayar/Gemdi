@@ -1,0 +1,7 @@
+{
+  "name": "Gemdi - AI Study Companion",
+  "description": "A chic, minimalist AI study app that transforms your notes into tailored study plans and interactive flashcards using Gemini.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

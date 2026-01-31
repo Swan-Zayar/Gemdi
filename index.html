@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gemdi | AI Study Companion</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- KaTeX for Math Notation -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4338ca;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fbfcfe;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            transition: background-color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .dark body {
+            background-color: #0f172a;
+        }
+        .chic-shadow {
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+        }
+        .dark .chic-shadow {
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        /* 3D Shapes */
+        .shape-3d {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+            filter: blur(60px);
+            animation: float 12s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            50% { transform: translateY(-30px) rotate(5deg) scale(1.05); }
+        }
+        .tilt-card {
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        @media (min-width: 768px) {
+            .tilt-card:hover {
+                transform: rotateX(4deg) rotateY(-4deg) translateZ(20px);
+            }
+        }
+        
+        .perspective-2000 {
+            perspective: 2000px;
+        }
+
+        /* Forced Cambria Math for KaTeX with Responsive Handling */
+        .katex-display {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 1rem 0;
+        }
+        .katex {
+            font-size: 1.1em;
+        }
+        .dark .katex {
+            color: #f1f5f9;
+        }
+
+        /* Base64 Image Mixin */
+        .backface-hidden {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "@tensorflow/tfjs": "https://esm.sh/@tensorflow/tfjs@^4.22.0"
+  }
+}
+</script>
+</head>
+<body class="text-slate-900 dark:text-slate-50 antialiased overflow-x-hidden">
+    <!-- Global 3D Background Elements -->
+    <div class="shape-3d w-64 h-64 sm:w-96 sm:h-96 bg-indigo-400/30 -top-20 -left-20 rounded-full"></div>
+    <div class="shape-3d w-64 h-64 sm:w-80 sm:h-80 bg-purple-300/30 bottom-0 -right-20 rounded-full" style="animation-delay: -2s;"></div>
+    
+    <div id="root" class="relative z-10"></div>
+</body>
+</html>
