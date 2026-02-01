@@ -19,7 +19,7 @@ const Footer: React.FC = () => {
                 AI study app compatible for anyone around the world. <br/> Engineered for equality, built for dreamers.
               </p>
               <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-300 dark:text-slate-600">
-                &copy; {currentYear} Swan's Lab.
+                {currentYear} Swan's Lab.
               </p>
             </div>
           </div>

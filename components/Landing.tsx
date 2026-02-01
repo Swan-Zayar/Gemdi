@@ -10,20 +10,20 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted }) => {
     <div className="flex flex-col items-center justify-center py-8 sm:py-16 lg:py-24 text-center relative overflow-hidden px-4">
       
       {/* Background Decorative Shapes */}
-      <div className="absolute top-0 right-0 w-32 sm:w-64 h-32 sm:h-64 border-[15px] sm:border-[30px] border-slate-100 dark:border-slate-800/30 rounded-[2rem] sm:rounded-[4rem] rotate-12 -z-10 opacity-30 translate-x-1/2"></div>
+      <div className="absolute top-0 right-0 w-32 sm:w-64 h-32 sm:h-64 border-15 sm:border-30 border-slate-100 dark:border-slate-800/30 rounded-4xl sm:rounded-[4rem] rotate-12 -z-10 opacity-30 translate-x-1/2"></div>
 
       <div className="inline-block px-4 py-1.5 mb-6 sm:mb-8 text-[9px] sm:text-[10px] font-black tracking-[0.2em] text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-50 dark:bg-indigo-900/30 rounded-xl border border-indigo-100 dark:border-indigo-800/50 relative z-10">
         Neural Study Engine
       </div>
       
-      <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-slate-900 dark:text-white mb-6 sm:mb-8 tracking-tighter leading-[1.1] sm:leading-[1.0] relative z-10 max-w-5xl">
+      <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-slate-900 dark:text-white mb-6 sm:mb-8 tracking-tighter leading-[1.1] sm:leading-none relative z-10 max-w-5xl">
         Master notes <br className="hidden sm:block" /> with
         <span className="text-indigo-600 dark:text-indigo-400"> Gemdi.</span>
       </h1>
       
       <p className="text-base sm:text-lg lg:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mb-10 sm:mb-14 leading-relaxed font-bold relative z-10">
         Gemdi architecturally transforms course materials into deep-dive study plans 
-        and interactive sessions. Engineered with Gemini 3 Pro.
+        and interactive sessions. Engineered with Gemini 3.
       </p>
       
       <div className="flex flex-col sm:flex-row gap-4 mb-20 sm:mb-32 relative z-10 w-full sm:w-auto">
@@ -40,12 +40,12 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted }) => {
           {
             icon: <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>,
             title: "Deep Extraction",
-            desc: "Neural analysis that scans structure and logic."
+            desc: "Neural analysis that scans structure and logic, producing quality materials - powered by Gemini 3."
           },
           {
             icon: <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>,
             title: "Roadmap Logic",
-            desc: "Structured phases for actionable study steps."
+            desc: "Structured phases for feasible study steps."
           },
           {
             icon: <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>,

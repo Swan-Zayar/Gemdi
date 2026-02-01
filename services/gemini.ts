@@ -52,7 +52,7 @@ export const geminiService = {
           ]
         },
         config: {
-          thinkingConfig: { thinkingBudget: 24576 },
+          thinkingConfig: { thinkingBudget: 24576 }, // 24,576 tokens limit can be scaled as needed
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,

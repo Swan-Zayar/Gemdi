@@ -31,13 +31,13 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<ThemeMode>(storageService.getTheme());
 
   useEffect(() => {
+    // Always start at LANDING screen, even if user is saved
+    // User will need to log in again to access dashboard
     const savedUser = storageService.getUser();
     if (savedUser) {
       setUser(savedUser);
-      setAppState(AppState.DASHBOARD);
-      const userSessions = storageService.getSessionsForUser(savedUser.id);
-      setSessions(userSessions);
-      intelligenceService.learnFromSessions(userSessions).then(setNeuralInsight);
+      // Don't auto-login, always show LANDING screen
+      setAppState(AppState.LANDING);
     }
   }, []);
 
@@ -69,6 +69,7 @@ const App: React.FC = () => {
     }
   }, [appState, activeSession, isQuizReady, isQuizLoading, prefetchQuiz]);
 
+// Mock Login Handler
   const handleLogin = (mockUser: User) => {
     setUser(mockUser);
     storageService.saveUser(mockUser);
@@ -76,12 +77,14 @@ const App: React.FC = () => {
     setAppState(AppState.DASHBOARD);
     const userSessions = storageService.getSessionsForUser(mockUser.id);
     setSessions(userSessions);
+    intelligenceService.learnFromSessions(userSessions).then(setNeuralInsight);
   };
 
   const handleLogout = () => {
     setUser(null);
     storageService.saveUser(null);
     setAppState(AppState.LANDING);
+    setActiveSession(null);
     setSessions([]);
   };
 

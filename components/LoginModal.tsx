@@ -45,48 +45,28 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
     special: /[^A-Za-z0-9]/.test(password)
   };
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setStep('EMAIL');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setError('');
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen && isConfigured && step === 'EMAIL') {
       const interval = setInterval(() => {
         if ((window as any).google?.accounts?.id) {
           clearInterval(interval);
-          initializeGoogleSignIn();
         }
       }, 100);
       return () => clearInterval(interval);
     }
   }, [isOpen, isConfigured, step]);
 
-  const initializeGoogleSignIn = () => {
-    const google = (window as any).google;
-    if (!google) return;
-    try {
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleCredentialResponse,
-      });
-      if (googleBtnRef.current) {
-        google.accounts.id.renderButton(googleBtnRef.current, {
-          theme: 'outline',
-          size: 'large',
-          shape: 'pill',
-          width: googleBtnRef.current.offsetWidth,
-        });
-      }
-    } catch (err) { console.warn(err); }
-  };
-
-  const handleGoogleCredentialResponse = (response: any) => {
-    try {
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      onLogin({
-        id: payload.sub,
-        name: payload.name,
-        email: payload.email,
-        avatar: payload.picture,
-      });
-    } catch (error) { console.error(error); }
-  };
 
   const handleEmailNext = () => {
     setError('');
@@ -168,7 +148,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn" onClick={onClose}>
+    <div className="fixed inset-0 z-1000 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn" onClick={onClose}>
       <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[2.5rem] p-8 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp overflow-hidden" onClick={e => e.stopPropagation()}>
         
         <div className="text-center mb-8">
@@ -176,21 +156,21 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
             <GemdiLogoIcon className="w-full h-full" />
           </div>
           <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            {step === 'EMAIL' ? 'Welcome' : step === 'PASSWORD_ENTRY' ? 'Identity Verified' : 'New Vault'}
+            {step === 'EMAIL' ? 'Welcome' : step === 'PASSWORD_ENTRY' ? 'Welcome Back!' : 'New Vault'}
           </h2>
           <p className="text-slate-400 dark:text-slate-500 font-bold mt-1 text-[10px] uppercase tracking-widest">
-            {step === 'EMAIL' ? 'Secure Academic Access' : step === 'PASSWORD_ENTRY' ? 'Enter Access Key' : 'Configure Security'}
+            {step === 'EMAIL' ? 'Secure Academic Access' : step === 'PASSWORD_ENTRY' ? 'Enter Password' : 'Authenticate & Create Vault'}
           </p>
         </div>
 
         <div className="space-y-5">
           {step === 'EMAIL' && (
             <>
-              {isConfigured && <div ref={googleBtnRef} className="w-full min-h-[44px]"></div>}
+              {isConfigured && <div ref={googleBtnRef} className="w-full min-h-11"></div>}
               <div className="relative flex items-center py-2">
-                <div className="flex-grow border-t border-slate-100 dark:border-slate-700"></div>
-                <span className="mx-3 text-[8px] font-black text-slate-300 uppercase tracking-widest">Or Identity</span>
-                <div className="flex-grow border-t border-slate-100 dark:border-slate-700"></div>
+                <div className="grow border-t border-slate-100 dark:border-slate-700"></div>
+                <span className="mx-3 text-[8px] font-black text-slate-300 uppercase tracking-widest">Or Login with</span>
+                <div className="grow border-t border-slate-100 dark:border-slate-700"></div>
               </div>
               <input 
                 type="email" 
@@ -204,7 +184,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
               </button>
               
               <div className="relative flex items-center pt-2">
-                <div className="flex-grow border-t border-slate-100 dark:border-slate-700/50 border-dashed"></div>
+                <div className="grow border-t border-slate-100 dark:border-slate-700/50 border-dashed"></div>
               </div>
 
               <button 
@@ -220,7 +200,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           {step === 'PASSWORD_ENTRY' && (
             <>
               <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center gap-3 border border-indigo-100 dark:border-indigo-800/50">
-                 <div className="w-8 h-8 rounded-full bg-indigo-600 flex-shrink-0 flex items-center justify-center text-white font-black text-xs">
+                 <div className="w-8 h-8 rounded-full bg-indigo-600 shrink-0 flex items-center justify-center text-white font-black text-xs">
                     {email[0].toUpperCase()}
                  </div>
                  <div className="overflow-hidden">
@@ -289,7 +269,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
               </div>
 
               <button onClick={handleSignup} className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl tracking-widest text-[11px] uppercase hover:bg-slate-900 transition-all">
-                Encrypt & Create Vault
+                Create Vault
               </button>
               <button onClick={() => setStep('EMAIL')} className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-500">Change Email</button>
             </>

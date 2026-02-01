@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLoginClick, onLogout, onDashboa
 
   return (
     <nav className="sticky top-0 z-50 px-3 sm:px-6 py-3 sm:py-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between glass-panel px-4 sm:px-8 py-2 sm:py-3 rounded-[1.5rem] sm:rounded-[2.5rem] chic-shadow border border-slate-200/50 dark:border-slate-700/50">
+      <div className="max-w-7xl mx-auto flex items-center justify-between glass-panel px-4 sm:px-8 py-2 sm:py-3 rounded-3xl sm:rounded-[2.5rem] chic-shadow border border-slate-200/50 dark:border-slate-700/50">
         <div className="flex items-center gap-2 sm:gap-4 cursor-pointer group" onClick={onLogoClick}>
           <GemdiLogo className="w-8 h-8 sm:w-10 sm:h-10 transform-gpu transition-all duration-500 group-hover:scale-110" />
           <div className="flex flex-col">
@@ -46,10 +46,10 @@ const Header: React.FC<HeaderProps> = ({ user, onLoginClick, onLogout, onDashboa
 
         <div className="flex items-center gap-3 sm:gap-8">
           {/* Refined Theme Switcher */}
-          <div className="relative bg-slate-100/50 dark:bg-slate-900/50 p-1 rounded-full flex items-center w-[60px] sm:w-[88px] h-8 sm:h-9">
+          <div className="relative bg-slate-100/50 dark:bg-slate-900/50 p-1 rounded-full flex items-center w-15 sm:w-22 h-8 sm:h-9">
             <div 
-              className={`absolute h-6 sm:h-7 w-[26px] sm:w-[38px] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 z-0 ${
-                activeIndex === 1 ? 'translate-x-[26px] sm:translate-x-[40px]' : 'translate-x-0'
+              className={`absolute h-6 sm:h-7 w-6.5 sm:w-9.5 bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 z-0 ${
+                activeIndex === 1 ? 'translate-x-6.5 sm:translate-x-10' : 'translate-x-0'
               }`}
             ></div>
             {modes.map(mode => (
