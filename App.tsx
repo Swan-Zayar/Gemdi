@@ -146,7 +146,7 @@ const App: React.FC = () => {
         currentTheme={theme}
         onThemeChange={setTheme}
       />
-      <main className="flex-grow w-full max-w-7xl mx-auto px-4">
+      <main className="grow w-full max-w-7xl mx-auto px-4">
         {appState === AppState.LANDING && <Landing onGetStarted={() => setIsLoginModalOpen(true)} />}
         {appState === AppState.DASHBOARD && <Dashboard sessions={sessions} onUpload={handleFileUpload} onOpenSession={(s) => { setActiveSession(s); setAppState(AppState.STUDY_PLAN); }} onDeleteSession={(id) => { storageService.deleteSession(id); if(user) setSessions(storageService.getSessionsForUser(user.id)); }} neuralInsight={neuralInsight} />}
         {appState === AppState.STUDY_PLAN && activeSession && (

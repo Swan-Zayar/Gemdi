@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
 
   return (
     <footer className="w-full mt-12 pb-8 px-6">
-      <div className="max-w-7xl mx-auto glass-panel rounded-[2rem] p-8 chic-shadow">
+      <div className="max-w-7xl mx-auto glass-panel rounded-4xl p-8 chic-shadow">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-4 space-y-4">
             <div className="flex items-center gap-2">
@@ -23,7 +23,7 @@ const Footer: React.FC = () => {
               </p>
             </div>
           </div>
-        </div>
+        </div>   
       </div>
     </footer>
   );
