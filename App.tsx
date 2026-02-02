@@ -36,7 +36,6 @@ const App: React.FC = () => {
     const savedUser = storageService.getUser();
     if (savedUser) {
       setUser(savedUser);
-      // Don't auto-login, always show LANDING screen
       setAppState(AppState.LANDING);
     }
   }, []);
