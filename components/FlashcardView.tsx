@@ -122,7 +122,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
       </div>
 
       <div 
-        className="perspective-2000 cursor-pointer h-[50vh] sm:h-[60vh] w-full flex-grow relative"
+        className="perspective-2000 cursor-pointer h-[50vh] sm:h-[60vh] w-full grow relative"
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
@@ -151,7 +151,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
             </div>
             
-            <div className="flex-grow flex flex-col items-center justify-center py-10">
+            <div className="grow flex flex-col items-center justify-center py-10">
               <h3 className="text-lg sm:text-2xl lg:text-3xl font-bold text-white leading-relaxed max-w-lg mb-8"
                   dangerouslySetInnerHTML={{ __html: formatMath(card.answer) }}>
               </h3>
@@ -174,14 +174,14 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
         <button 
           onClick={(e) => { e.stopPropagation(); handlePrev(); }} 
           disabled={isFirstCard}
-          className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[2rem] flex items-center justify-center text-slate-600 dark:text-slate-300 chic-shadow border border-slate-100 dark:border-slate-700 transition-all ${isFirstCard ? 'opacity-20 cursor-not-allowed' : 'bg-white dark:bg-slate-800 hover:bg-slate-900 dark:hover:bg-indigo-600 hover:text-white active:scale-95'}`}
+          className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-4xl flex items-center justify-center text-slate-600 dark:text-slate-300 chic-shadow border border-slate-100 dark:border-slate-700 transition-all ${isFirstCard ? 'opacity-20 cursor-not-allowed' : 'bg-white dark:bg-slate-800 hover:bg-slate-900 dark:hover:bg-indigo-600 hover:text-white active:scale-95'}`}
         >
           <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M15 19l-7-7 7-7"></path></svg>
         </button>
         <button 
           onClick={(e) => { e.stopPropagation(); handleNext(); }} 
           disabled={isLastCard} 
-          className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[2rem] flex items-center justify-center text-white chic-shadow transition-all ${isLastCard ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'bg-indigo-600 hover:bg-slate-900 dark:hover:bg-indigo-500 active:scale-95 shadow-xl'}`}>
+          className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-4xl flex items-center justify-center text-white chic-shadow transition-all ${isLastCard ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'bg-indigo-600 hover:bg-slate-900 dark:hover:bg-indigo-500 active:scale-95 shadow-xl'}`}>
           <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"></path></svg>
         </button>
       </div>

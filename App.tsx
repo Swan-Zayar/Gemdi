@@ -1,9 +1,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, StudySession, AppState, QuizQuestion, StudyStep } from './types';
-import { storageService, ThemeMode } from './services/storage';
+import { UserLocal, StudySession, AppState, QuizQuestion, StudyStep } from './types';
+import { storageService as localStorageService, ThemeMode } from './services/storage';
 import { geminiService } from './services/gemini';
 import { intelligenceService } from './services/intelligence';
+import * as sessionStorageService from './firebaseStorageService';
+import { auth } from './firebaseCLI';
+import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 import Header from './components/Header';
 import Landing from './components/Landing';
 import LoginModal from './components/LoginModal';
@@ -28,23 +31,53 @@ const App: React.FC = () => {
   const [currentQuiz, setCurrentQuiz] = useState<QuizQuestion[]>([]);
   const [isQuizReady, setIsQuizReady] = useState(false);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
-  const [theme, setTheme] = useState<ThemeMode>(storageService.getTheme());
+  const [theme, setTheme] = useState<ThemeMode>(localStorageService.getTheme());
+  const [loading, setLoading] = useState(true);
 
+  // Monitor Firebase Auth state
   useEffect(() => {
-    // Always start at LANDING screen, even if user is saved
-    // User will need to log in again to access dashboard
-    const savedUser = storageService.getUser();
-    if (savedUser) {
-      setUser(savedUser);
-      setAppState(AppState.LANDING);
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        // Load user sessions
+        const userSessions = await sessionStorageService.getSessionsForUser(firebaseUser.uid);
+        setSessions(userSessions);
+        intelligenceService.learnFromSessions(userSessions).then(setNeuralInsight);
+        setAppState(AppState.DASHBOARD);
+      } else {
+        setUser(null);
+        setAppState(AppState.LANDING);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
+  // Check if user info exists in Firebase and set state accordingly
+
+
+
+  // If existing user in Firebase Auth, load their info
+  useEffect(() => {
+    if (loading) return;
+    const firebaseUser = auth.currentUser;
+    if (firebaseUser) {
+      setUser(firebaseUser);
+      sessionStorageService.getSessionsForUser(firebaseUser.uid).then((userSessions) => {
+        setSessions(userSessions);
+        intelligenceService.learnFromSessions(userSessions).then(setNeuralInsight);
+      });
+      setAppState(AppState.DASHBOARD);
+    }
+  }, [loading]);
+
+
+
 
   useEffect(() => {
     const root = window.document.documentElement;
     if (theme === 'dark') root.classList.add('dark');
     else root.classList.remove('dark');
-    storageService.saveTheme(theme);
+    localStorageService.saveTheme(theme);
   }, [theme]);
 
   const prefetchQuiz = useCallback(async (session: StudySession) => {
@@ -68,28 +101,37 @@ const App: React.FC = () => {
     }
   }, [appState, activeSession, isQuizReady, isQuizLoading, prefetchQuiz]);
 
-// Mock Login Handler
-  const handleLogin = (mockUser: User) => {
-    setUser(mockUser);
-    storageService.saveUser(mockUser);
+  // Login handler (called after Firebase Auth succeeds in LoginModal)
+  const handleLogin = async (loggedInUser: UserLocal) => {
+    setUser(loggedInUser);
+    // Persist basic user info locally (no password) for UX only
+    localStorageService.saveUser(loggedInUser);
     setIsLoginModalOpen(false);
     setAppState(AppState.DASHBOARD);
-    const userSessions = storageService.getSessionsForUser(mockUser.id);
+
+    // Load this user's study sessions from Firestore
+    const userSessions = await sessionStorageService.getSessionsForUser(loggedInUser.id);
     setSessions(userSessions);
     intelligenceService.learnFromSessions(userSessions).then(setNeuralInsight);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Sign out from Firebase auth session
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.warn('Error signing out from Firebase', e);
+    }
     setUser(null);
-    storageService.saveUser(null);
+    localStorageService.saveUser(null);
     setAppState(AppState.LANDING);
     setActiveSession(null);
     setSessions([]);
   };
 
-  const handleProfileUpdate = (updated: User) => {
+  const handleProfileUpdate = (updated: UserLocal) => {
     setUser(updated);
-    storageService.saveUser(updated);
+    localStorageService.saveUser(updated);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,7 +143,12 @@ const App: React.FC = () => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const base64Data = (e.target?.result as string).split(',')[1];
-        const { studyPlan, flashcards, isStudyMaterial, validityWarning } = await geminiService.processStudyContent(base64Data, file.name, file.type);
+        const {
+          studyPlan,
+          flashcards,
+          isStudyMaterial,
+          validityWarning,
+        } = await geminiService.processStudyContent(base64Data, file.name, file.type);
         const newSession: StudySession = {
           id: crypto.randomUUID(),
           userId: user.id,
@@ -115,8 +162,8 @@ const App: React.FC = () => {
           isPotentiallyInvalid: !isStudyMaterial,
           validityWarning: validityWarning
         };
-        storageService.saveSession(newSession);
-        const updatedSessions = storageService.getSessionsForUser(user.id);
+        await sessionStorageService.saveSession(newSession);
+        const updatedSessions = await sessionStorageService.getSessionsForUser(user.id);
         setSessions(updatedSessions);
         setActiveSession(newSession);
         setAppState(AppState.STUDY_PLAN);
@@ -132,8 +179,14 @@ const App: React.FC = () => {
 
   const updateActiveSession = (updated: StudySession) => {
     setActiveSession(updated);
-    storageService.saveSession(updated);
-    if (user) setSessions(storageService.getSessionsForUser(user.id));
+    // Persist updates to Firestore and refresh the session list for this user
+    sessionStorageService.saveSession(updated).catch(console.error);
+    if (user) {
+      sessionStorageService
+        .getSessionsForUser(user.id)
+        .then(setSessions)
+        .catch(console.error);
+    }
   };
 
   return (
@@ -150,7 +203,24 @@ const App: React.FC = () => {
       />
       <main className="grow w-full max-w-7xl mx-auto px-4">
         {appState === AppState.LANDING && <Landing onGetStarted={() => setIsLoginModalOpen(true)} />}
-        {appState === AppState.DASHBOARD && <Dashboard sessions={sessions} onUpload={handleFileUpload} onOpenSession={(s) => { setActiveSession(s); setAppState(AppState.STUDY_PLAN); }} onDeleteSession={(id) => { storageService.deleteSession(id); if(user) setSessions(storageService.getSessionsForUser(user.id)); }} neuralInsight={neuralInsight} />}
+        {appState === AppState.DASHBOARD && (
+          <Dashboard
+            sessions={sessions}
+            onUpload={handleFileUpload}
+            onOpenSession={(s) => {
+              setActiveSession(s);
+              setAppState(AppState.STUDY_PLAN);
+            }}
+            onDeleteSession={async (id) => {
+              await sessionStorageService.deleteSession(id);
+              if (user) {
+                const updated = await sessionStorageService.getSessionsForUser(user.id);
+                setSessions(updated);
+              }
+            }}
+            neuralInsight={neuralInsight}
+          />
+        )}
         {appState === AppState.STUDY_PLAN && activeSession && (
           <StudyPlanView 
             session={activeSession} 

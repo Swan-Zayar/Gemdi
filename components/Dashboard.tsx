@@ -16,7 +16,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
   return (
     <div className="space-y-6 sm:space-y-10 animate-fadeIn py-4 px-1 sm:px-2">
       <div className="relative group">
-        <div className="bg-slate-900 dark:bg-black rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 md:p-12 text-white relative overflow-hidden shadow-2xl transition-all duration-700">
+        <div className="bg-slate-900 dark:bg-black rounded-4xl sm:rounded-[2.5rem] p-6 sm:p-8 md:p-12 text-white relative overflow-hidden shadow-2xl transition-all duration-700">
           <div className="relative z-10 max-w-xl text-center sm:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/10 text-indigo-300 text-[9px] font-black uppercase tracking-[0.15em] mb-4 sm:mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_10px_#6366f1]"></span>
@@ -50,7 +50,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
           </div>
           
           <div className="absolute top-0 right-0 h-full w-1/4 pointer-events-none hidden lg:block overflow-hidden">
-             <div className="absolute top-1/2 right-4 w-48 h-48 border-[20px] border-white/5 rounded-[3rem] rotate-45"></div>
+             <div className="absolute top-1/2 right-4 w-48 h-48 border-20 border-white/5 rounded-[3rem] rotate-45"></div>
           </div>
         </div>
       </div>
@@ -67,7 +67,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
         </div>
 
         {sessions.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800/20 rounded-[2rem] sm:rounded-[2.5rem] p-10 sm:p-16 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 chic-shadow mx-2">
+          <div className="bg-white dark:bg-slate-800/20 rounded-4xl sm:rounded-[2.5rem] p-10 sm:p-16 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 chic-shadow mx-2">
             <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 rounded-2xl flex items-center justify-center mb-6 mx-auto">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
             </div>
@@ -79,7 +79,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
             {sessions.map((session) => (
               <div 
                 key={session.id}
-                className={`group relative p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border transition-all md:tilt-card chic-shadow cursor-pointer flex flex-col min-h-[200px] sm:min-h-[250px] ${session.drillCompleted ? 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/30' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
+                className={`group relative p-5 sm:p-6 rounded-2xl sm:rounded-4xl border transition-all md:tilt-card chic-shadow cursor-pointer flex flex-col min-h-50 sm:min-h-62.5 ${session.drillCompleted ? 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/30' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
                 onClick={() => onOpenSession(session)}
               >
                 <div className="mb-auto">

@@ -38,7 +38,7 @@ const ProcessingOverlay: React.FC = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[1000] w-full h-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl flex items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 z-1000 w-full h-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl flex items-center justify-center overflow-hidden">
       <div className="flex flex-col items-center justify-center text-center p-4 w-full max-w-lg animate-fadeIn gap-10 sm:gap-14">
         
         {/* Logo Section - Perfectly Centered halo */}

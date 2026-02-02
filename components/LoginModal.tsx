@@ -1,12 +1,19 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { User } from '../types';
-import { storageService } from '../services/storage';
+import { UserLocal } from '../types';
+import { auth } from '../firebaseCLI';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  fetchSignInMethodsForEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendPasswordResetEmail,
+} from 'firebase/auth';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (user: User) => void;
+  onLogin: (user: UserLocal) => void;
 }
 
 const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
@@ -35,6 +42,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [providers, setProviders] = useState<string[]>([]);
   const googleBtnRef = useRef<HTMLDivElement>(null);
 
   const isConfigured = !GOOGLE_CLIENT_ID.startsWith("YOUR_GOOGLE");
@@ -53,6 +61,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
       setPassword('');
       setConfirmPassword('');
       setError('');
+      setProviders([]);
     }
   }, [isOpen]);
 
@@ -70,48 +79,92 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
   const handleEmailNext = () => {
     setError('');
-    if (!email || !email.includes('@')) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
       setError("Please enter a valid academic email.");
       return;
     }
-    const existing = storageService.findUserByEmail(email);
-    if (existing) {
-      setStep('PASSWORD_ENTRY');
-    } else {
-      setStep('SIGNUP');
-    }
+
+    fetchSignInMethodsForEmail(auth, normalizedEmail)
+      .then((methods) => {
+        setProviders(methods || []);
+        setEmail(normalizedEmail); // show normalized email in UI
+        // If any methods exist, show password entry (we'll provide guidance if password isn't available)
+        if (methods && methods.length > 0) {
+          setStep('PASSWORD_ENTRY');
+        } else {
+          setStep('SIGNUP');
+        }
+      })
+      .catch((err: any) => {
+        console.error(err);
+        setError(err.message || 'Unable to verify email.');
+      });
   };
 
   const handleMockLogin = () => {
+    // Demo login using a fixed Firebase user
     const mockEmail = 'scholar@gemdi.io';
-    const existing = storageService.findUserByEmail(mockEmail);
-    
-    if (existing) {
-      onLogin(existing);
-    } else {
-      const newUser: User = {
-        id: 'mock-user-123',
-        name: 'Gemdi Scholar',
-        email: mockEmail,
-        password: 'Password123!', // Pre-filled for mock
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=mock-scholar`
-      };
-      storageService.registerUser(newUser);
-      onLogin(newUser);
-    }
+    const mockPassword = 'Password123!';
+
+    signInWithEmailAndPassword(auth, mockEmail, mockPassword)
+      .then((cred) => {
+        const fbUser = cred.user;
+        const newUser: UserLocal = {
+          id: fbUser.uid,
+          name: 'Gemdi Scholar',
+          email: fbUser.email || mockEmail,
+          avatar: fbUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=mock-scholar`,
+        };
+        onLogin(newUser);
+      })
+      .catch(async (err: any) => {
+        // If user doesn't exist yet, create it
+        if (err?.code === 'auth/user-not-found') {
+          try {
+            const cred = await createUserWithEmailAndPassword(auth, mockEmail, mockPassword);
+            const fbUser = cred.user;
+            const newUser: UserLocal = {
+              id: fbUser.uid,
+              name: 'Gemdi Scholar',
+              email: fbUser.email || mockEmail,
+              avatar: fbUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=mock-scholar`,
+            };
+            onLogin(newUser);
+          } catch (signupErr: any) {
+            console.error(signupErr);
+            setError(signupErr.message || 'Mock login failed.');
+          }
+        } else {
+          console.error(err);
+          setError(err.message || 'Mock login failed.');
+        }
+      });
   };
 
-  const handlePasswordLogin = () => {
+  const handlePasswordLogin = async () => {
     setError('');
-    const existing = storageService.findUserByEmail(email);
-    if (existing && existing.password === password) {
-      onLogin(existing);
-    } else {
-      setError("Incorrect password for this vault.");
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      const fbUser = cred.user;
+
+      const appUser: UserLocal = {
+        id: fbUser.uid,
+        name: fbUser.displayName || email.split('@')[0],
+        email: fbUser.email || email,
+        avatar:
+          fbUser.photoURL ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email)}`,
+      };
+
+      onLogin(appUser);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Incorrect email or password.');
     }
   };
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     setError('');
     if (!requirements.length) {
       setError("Password must be at least 8 characters.");
@@ -126,15 +179,52 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
       return;
     }
 
-    const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: email.split('@')[0],
-      email: email.toLowerCase(),
-      password: password,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
-    };
-    storageService.registerUser(newUser);
-    onLogin(newUser);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      const fbUser = cred.user;
+
+      const newUser: UserLocal = {
+        id: fbUser.uid,
+        name: email.split('@')[0],
+        email: fbUser.email || email.trim().toLowerCase(),
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email)}`,
+      };
+
+      onLogin(newUser);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Signup failed.');
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const fbUser = result.user;
+      const appUser: UserLocal = {
+        id: fbUser.uid,
+        name: fbUser.displayName || fbUser.email?.split('@')[0] || 'User',
+        email: fbUser.email || undefined,
+        avatar: fbUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(fbUser.email || 'google')}`,
+      };
+      onLogin(appUser);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Google sign-in failed.');
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setError('');
+    try {
+      await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+      setError('Password reset email sent. Check your inbox.');
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to send password reset email.');
+    }
   };
 
   const getPasswordStrength = () => {
@@ -201,7 +291,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
             <>
               <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center gap-3 border border-indigo-100 dark:border-indigo-800/50">
                  <div className="w-8 h-8 rounded-full bg-indigo-600 shrink-0 flex items-center justify-center text-white font-black text-xs">
-                    {email[0].toUpperCase()}
+                    {email ? email[0].toUpperCase() : 'U'}
                  </div>
                  <div className="overflow-hidden">
                     <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Signed in as</p>
@@ -220,6 +310,21 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
               <button onClick={handlePasswordLogin} className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl tracking-widest text-[11px] uppercase hover:bg-indigo-600 transition-all">
                 Access Vault
               </button>
+
+              {providers.length > 0 && !providers.includes('password') && (
+                <p className="text-[11px] text-slate-500 mt-2">
+                  This account doesn't use a password. <button onClick={handleGoogleSignIn} className="underline">Sign in with Google</button>.
+                </p>
+              )}
+
+              {providers.includes('password') && (
+                <button onClick={handlePasswordReset} className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-500">Forgot Password?</button>
+              )}
+
+              {providers.includes('google.com') && isConfigured && (
+                <button onClick={handleGoogleSignIn} className="w-full mt-3 py-3 bg-white text-indigo-700 border rounded-2xl font-bold">Sign in with Google</button>
+              )}
+
               <button onClick={() => setStep('EMAIL')} className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-500">Back</button>
             </>
           )}

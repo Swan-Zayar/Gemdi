@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
-import { User } from '../types';
+import { UserLocal } from '../types';
 
 interface ProfileModalProps {
-  user: User;
+  user: UserLocal;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (updatedUser: User) => void;
+  onUpdate: (updatedUser: UserLocal) => void;
 }
 
 const AVATAR_OPTIONS = [

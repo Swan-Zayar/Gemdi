@@ -68,7 +68,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, onBack, onComplete }) =>
     return (
       <div className="max-w-2xl mx-auto py-8 sm:py-12 px-4 animate-fadeIn">
         <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] sm:rounded-[3rem] p-8 sm:p-12 text-center chic-shadow border border-slate-100 dark:border-slate-700 overflow-hidden relative">
-          <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-emerald-400 to-indigo-500"></div>
+          <div className="absolute top-0 inset-x-0 h-2 bg-linear-to-r from-emerald-400 to-indigo-500"></div>
           
           <div className="w-20 h-20 sm:w-24 sm:h-24 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-inner">
              <span className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">{percentage}%</span>
@@ -135,7 +135,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, onBack, onComplete }) =>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 md:p-16 border border-slate-100 dark:border-slate-700 chic-shadow min-h-[400px] sm:min-h-[500px] flex flex-col justify-between">
+      <div className="bg-white dark:bg-slate-800 rounded-4xl sm:rounded-[3rem] p-6 sm:p-10 md:p-16 border border-slate-100 dark:border-slate-700 chic-shadow min-h-100 sm:min-h-125 flex flex-col justify-between">
         <div>
           <div className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[8px] sm:text-[10px] font-black rounded-lg uppercase tracking-widest mb-6 sm:mb-8 border border-indigo-100 dark:border-indigo-800/50">
             Conceptual Inquiry

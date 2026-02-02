@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { User } from '../types';
+import { UserLocal } from '../types';
 import { ThemeMode } from '../services/storage';
 
 interface HeaderProps {
-  user: User | null;
+  user: UserLocal | null;
   onLoginClick: () => void;
   onLogout: () => void;
   onDashboardClick: () => void;

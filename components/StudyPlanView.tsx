@@ -56,7 +56,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
 
   const modalContent = selectedStep && (
     <div 
-      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-8 overflow-hidden" 
+      className="fixed inset-0 z-9999 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-8 overflow-hidden" 
       onClick={() => setSelectedStep(null)}
     >
       <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md"></div>
@@ -67,7 +67,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
       >
         <div className="p-6 sm:p-10 flex items-start justify-between bg-white dark:bg-slate-900 shrink-0">
           <div className="flex items-start gap-4 sm:gap-6">
-            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-lg sm:text-2xl flex-shrink-0">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-lg sm:text-2xl shrink-0">
               {plan.steps.indexOf(selectedStep) + 1}
             </div>
             <div className="pt-0.5">
@@ -85,13 +85,13 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
           </div>
           <button 
             onClick={() => setSelectedStep(null)}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all flex-shrink-0"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shrink-0"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
 
-        <div className="flex-grow overflow-y-auto px-6 sm:px-10 pb-10 custom-scrollbar scroll-smooth bg-white dark:bg-slate-900">
+        <div className="grow overflow-y-auto px-6 sm:px-10 pb-10 custom-scrollbar scroll-smooth bg-white dark:bg-slate-900">
           <div className="space-y-8 sm:space-y-12">
             <div className="prose prose-slate dark:prose-invert max-w-none">
               <div className="space-y-6">
@@ -135,7 +135,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
             <div className="py-10">
               <div className="bg-slate-900 dark:bg-black p-8 sm:p-14 rounded-[2.5rem] sm:rounded-[3.5rem] text-white text-center shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full -mr-32 -mt-32"></div>
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 dark:bg-slate-800 backdrop-blur-md rounded-[1.5rem] flex items-center justify-center mb-8 mx-auto border border-white/10">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 dark:bg-slate-800 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 mx-auto border border-white/10">
                    <svg className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
                 <h4 className="font-black text-2xl sm:text-3xl mb-4 tracking-tight">Active Recall Lab</h4>
@@ -158,7 +158,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
     <div className={`max-w-6xl mx-auto space-y-6 sm:space-y-10 animate-fadeIn pb-16 transition-all duration-500 ${selectedStep ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100 blur-0'}`}>
       {session.isPotentiallyInvalid && (
         <div className="mx-2 sm:mx-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex items-start gap-4 sm:gap-5 shadow-sm">
-           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
            </div>
            <div>
@@ -198,7 +198,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-2 sm:px-4">
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 dark:border-slate-700 chic-shadow relative overflow-hidden group">
+          <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-3xl sm:rounded-4xl border border-slate-100 dark:border-slate-700 chic-shadow relative overflow-hidden group">
             <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-50 mb-4 flex items-center gap-2">
               <span className="w-1 h-5 sm:w-1.5 sm:h-6 bg-indigo-600 rounded-full"></span>
               Overview
@@ -216,7 +216,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
           </div>
 
           {session.quizHistory && session.quizHistory.length > 0 && (
-            <div className="bg-slate-900 dark:bg-black p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] text-white chic-shadow relative overflow-hidden">
+            <div className="bg-slate-900 dark:bg-black p-6 sm:p-8 rounded-3xl sm:rounded-4xl text-white chic-shadow relative overflow-hidden">
                <h3 className="text-base sm:text-lg font-black mb-4 flex items-center gap-2">
                 <span className="w-1 h-4 sm:w-1.5 sm:h-4 bg-emerald-500 rounded-full"></span>
                 Mastery History
@@ -251,9 +251,9 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
                 <div 
                   key={index} 
                   onClick={() => setSelectedStep(step)}
-                  className={`group cursor-pointer p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border transition-all md:tilt-card flex items-center gap-4 sm:gap-6 chic-shadow ${completed ? 'border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/20 dark:bg-emerald-900/10' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-900/50'}`}
+                  className={`group cursor-pointer p-4 sm:p-6 rounded-3xl sm:rounded-4xl border transition-all md:tilt-card flex items-center gap-4 sm:gap-6 chic-shadow ${completed ? 'border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/20 dark:bg-emerald-900/10' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-900/50'}`}
                 >
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center font-black text-xl sm:text-2xl transition-all duration-500 shadow-inner ${completed ? 'bg-emerald-500 text-white' : 'bg-slate-50 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:text-white'}`}>
                       {completed ? (
                         <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
@@ -261,12 +261,12 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
                     </div>
                   </div>
                   
-                  <div className="flex-grow min-w-0">
+                  <div className="grow min-w-0">
                     <h4 className={`font-black text-base sm:text-lg tracking-tight transition-colors truncate ${completed ? 'text-emerald-900 dark:text-emerald-100' : 'text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>{step.title}</h4>
                     <p className="text-slate-400 dark:text-slate-500 text-[10px] sm:text-sm font-bold truncate">{step.description}</p>
                   </div>
                   
-                  <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-slate-50 dark:border-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-600 group-hover:border-indigo-200 dark:group-hover:border-indigo-900/50 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all">
+                  <div className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-slate-50 dark:border-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-600 group-hover:border-indigo-200 dark:group-hover:border-indigo-900/50 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 
-export interface User {
+export interface UserLocal {
   id: string;
   name: string;
   email: string;
