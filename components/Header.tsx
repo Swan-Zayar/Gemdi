@@ -81,7 +81,8 @@ const Header: React.FC<HeaderProps> = ({ user, onLoginClick, onLogout, onDashboa
                 onClick={onProfileClick}
               >
                 <img src={user.avatar} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover" alt="Profile" />
-                <span className="hidden sm:block text-xs font-bold text-slate-600 dark:text-slate-300">{user.name.split(' ')[0]}</span>
+                <span className="hidden sm:block text-xs font-bold text-slate-600 dark:text-slate-300">{user.name?.split(' ')[0] || 'User'}
+                </span>
               </div>
               <button onClick={onLogout} className="text-[10px] font-black text-slate-300 hover:text-red-500 uppercase tracking-widest transition-colors">
                 <span className="hidden sm:inline">Log Out</span>

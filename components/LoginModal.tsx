@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { UserLocal } from '../types';
+import { User } from 'firebase/auth';
 import { auth } from '../firebaseCLI';
 import {
   createUserWithEmailAndPassword,
@@ -13,7 +13,7 @@ import {
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (user: UserLocal) => void;
+  onLogin: (user: User) => void; // Changed to Firebase User instead of UserLocal
 }
 
 const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
@@ -44,7 +44,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   const [error, setError] = useState('');
   const [providers, setProviders] = useState<string[]>([]);
   const googleBtnRef = useRef<HTMLDivElement>(null);
-
   const isConfigured = !GOOGLE_CLIENT_ID.startsWith("YOUR_GOOGLE");
 
   const requirements = {
@@ -76,96 +75,80 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
     }
   }, [isOpen, isConfigured, step]);
 
-
-  const handleEmailNext = () => {
+  const handleEmailNext = async () => {
     setError('');
     const normalizedEmail = email.trim().toLowerCase();
+    
     if (!normalizedEmail || !normalizedEmail.includes('@')) {
-      setError("Please enter a valid academic email.");
+      setError("Please enter a valid email.");
       return;
     }
 
-    fetchSignInMethodsForEmail(auth, normalizedEmail)
-      .then((methods) => {
-        setProviders(methods || []);
-        setEmail(normalizedEmail); // show normalized email in UI
-        // If any methods exist, show password entry (we'll provide guidance if password isn't available)
-        if (methods && methods.length > 0) {
-          setStep('PASSWORD_ENTRY');
-        } else {
-          setStep('SIGNUP');
-        }
-      })
-      .catch((err: any) => {
-        console.error(err);
-        setError(err.message || 'Unable to verify email.');
-      });
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, normalizedEmail);
+      setProviders(methods || []);
+      setEmail(normalizedEmail);
+      
+      if (methods && methods.length > 0) {
+        // User exists, go to password entry
+        setStep('PASSWORD_ENTRY');
+      } else {
+        // New user, go to signup
+        setStep('SIGNUP');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Unable to verify email.');
+    }
   };
 
-  const handleMockLogin = () => {
-    // Demo login using a fixed Firebase user
+  const handleMockLogin = async () => {
     const mockEmail = 'scholar@gemdi.io';
     const mockPassword = 'Password123!';
-
-    signInWithEmailAndPassword(auth, mockEmail, mockPassword)
-      .then((cred) => {
-        const fbUser = cred.user;
-        const newUser: UserLocal = {
-          id: fbUser.uid,
-          name: 'Gemdi Scholar',
-          email: fbUser.email || mockEmail,
-          avatar: fbUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=mock-scholar`,
-        };
-        onLogin(newUser);
-      })
-      .catch(async (err: any) => {
-        // If user doesn't exist yet, create it
-        if (err?.code === 'auth/user-not-found') {
-          try {
-            const cred = await createUserWithEmailAndPassword(auth, mockEmail, mockPassword);
-            const fbUser = cred.user;
-            const newUser: UserLocal = {
-              id: fbUser.uid,
-              name: 'Gemdi Scholar',
-              email: fbUser.email || mockEmail,
-              avatar: fbUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=mock-scholar`,
-            };
-            onLogin(newUser);
-          } catch (signupErr: any) {
-            console.error(signupErr);
-            setError(signupErr.message || 'Mock login failed.');
-          }
-        } else {
-          console.error(err);
-          setError(err.message || 'Mock login failed.');
+    
+    try {
+      const cred = await signInWithEmailAndPassword(auth, mockEmail, mockPassword);
+      onLogin(cred.user); // Pass Firebase User directly
+    } catch (err: any) {
+      // If user doesn't exist yet, create it
+      if (err?.code === 'auth/user-not-found') {
+        try {
+          const cred = await createUserWithEmailAndPassword(auth, mockEmail, mockPassword);
+          onLogin(cred.user); // Pass Firebase User directly
+        } catch (signupErr: any) {
+          console.error(signupErr);
+          setError(signupErr.message || 'Mock login failed.');
         }
-      });
+      } else {
+        console.error(err);
+        setError(err.message || 'Mock login failed.');
+      }
+    }
   };
 
   const handlePasswordLogin = async () => {
     setError('');
     try {
       const cred = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
-      const fbUser = cred.user;
-
-      const appUser: UserLocal = {
-        id: fbUser.uid,
-        name: fbUser.displayName || email.split('@')[0],
-        email: fbUser.email || email,
-        avatar:
-          fbUser.photoURL ||
-          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email)}`,
-      };
-
-      onLogin(appUser);
+      onLogin(cred.user); // Pass Firebase User directly
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Incorrect email or password.');
+      if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password. Please try again.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please try again later.');
+      } else {
+        setError(err.message || 'Login failed.');
+      }
     }
   };
 
   const handleSignup = async () => {
     setError('');
+    
+    // Validate password requirements
     if (!requirements.length) {
       setError("Password must be at least 8 characters.");
       return;
@@ -180,20 +163,33 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
     }
 
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
-      const fbUser = cred.user;
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      // Double-check if user already exists
+      const methods = await fetchSignInMethodsForEmail(auth, normalizedEmail);
+      if (methods && methods.length > 0) {
+        setError("An account with this email already exists. Please sign in instead.");
+        setStep('PASSWORD_ENTRY');
+        return;
+      }
 
-      const newUser: UserLocal = {
-        id: fbUser.uid,
-        name: email.split('@')[0],
-        email: fbUser.email || email.trim().toLowerCase(),
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email)}`,
-      };
-
-      onLogin(newUser);
+      // Create new account
+      const cred = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+      onLogin(cred.user); // Pass Firebase User directly
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Signup failed.');
+      
+      // Handle specific Firebase errors
+      if (err.code === 'auth/email-already-in-use') {
+        setError("An account with this email already exists. Please sign in instead.");
+        setStep('PASSWORD_ENTRY');
+      } else if (err.code === 'auth/weak-password') {
+        setError("Password is too weak. Please use a stronger password.");
+      } else if (err.code === 'auth/invalid-email') {
+        setError("Invalid email address.");
+      } else {
+        setError(err.message || 'Signup failed.');
+      }
     }
   };
 
@@ -202,17 +198,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      const fbUser = result.user;
-      const appUser: UserLocal = {
-        id: fbUser.uid,
-        name: fbUser.displayName || fbUser.email?.split('@')[0] || 'User',
-        email: fbUser.email || undefined,
-        avatar: fbUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(fbUser.email || 'google')}`,
-      };
-      onLogin(appUser);
+      onLogin(result.user); // Pass Firebase User directly
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Google sign-in failed.');
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in cancelled.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Pop-up blocked. Please allow pop-ups for this site.');
+      } else {
+        setError(err.message || 'Google sign-in failed.');
+      }
     }
   };
 
@@ -220,10 +215,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
     setError('');
     try {
       await sendPasswordResetEmail(auth, email.trim().toLowerCase());
-      setError('Password reset email sent. Check your inbox.');
+      setError('✓ Password reset email sent. Check your inbox.');
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Failed to send password reset email.');
+      if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email.');
+      } else {
+        setError(err.message || 'Failed to send password reset email.');
+      }
     }
   };
 
@@ -240,7 +239,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   return (
     <div className="fixed inset-0 z-1000 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn" onClick={onClose}>
       <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[2.5rem] p-8 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp overflow-hidden" onClick={e => e.stopPropagation()}>
-        
         <div className="text-center mb-8">
           <div className="relative w-16 h-16 mx-auto mb-4 drop-shadow-xl">
             <GemdiLogoIcon className="w-full h-full" />
@@ -262,17 +260,20 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 <span className="mx-3 text-[8px] font-black text-slate-300 uppercase tracking-widest">Or Login with</span>
                 <div className="grow border-t border-slate-100 dark:border-slate-700"></div>
               </div>
+
               <input 
                 type="email" 
                 placeholder="Email Address" 
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleEmailNext()}
                 className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-sm"
               />
+
               <button onClick={handleEmailNext} className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl tracking-widest text-[11px] uppercase hover:bg-indigo-600 transition-all">
                 Continue
               </button>
-              
+
               <div className="relative flex items-center pt-2">
                 <div className="grow border-t border-slate-100 dark:border-slate-700/50 border-dashed"></div>
               </div>
@@ -290,14 +291,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           {step === 'PASSWORD_ENTRY' && (
             <>
               <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center gap-3 border border-indigo-100 dark:border-indigo-800/50">
-                 <div className="w-8 h-8 rounded-full bg-indigo-600 shrink-0 flex items-center justify-center text-white font-black text-xs">
-                    {email ? email[0].toUpperCase() : 'U'}
-                 </div>
-                 <div className="overflow-hidden">
-                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Signed in as</p>
-                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{email}</p>
-                 </div>
+                <div className="w-8 h-8 rounded-full bg-indigo-600 shrink-0 flex items-center justify-center text-white font-black text-xs">
+                  {email ? email[0].toUpperCase() : 'U'}
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Signed in as</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{email}</p>
+                </div>
               </div>
+
               <input 
                 type="password" 
                 placeholder="Vault Password" 
@@ -307,6 +309,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 onKeyDown={e => e.key === 'Enter' && handlePasswordLogin()}
                 className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-sm"
               />
+
               <button onClick={handlePasswordLogin} className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl tracking-widest text-[11px] uppercase hover:bg-indigo-600 transition-all">
                 Access Vault
               </button>
@@ -335,15 +338,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 <input 
                   type="password" 
                   placeholder="Create Password" 
+                  autoFocus
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-sm"
                 />
-                
+
                 {/* Vault Security Criteria */}
                 <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 space-y-2">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Security Requirements</p>
-                  
                   {[
                     { met: requirements.length, label: "Minimum 8 characters" },
                     { met: requirements.number, label: "Contains a number (0-9)" },
@@ -369,6 +372,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                   placeholder="Confirm Password" 
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSignup()}
                   className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-sm"
                 />
               </div>
@@ -376,11 +380,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
               <button onClick={handleSignup} className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl tracking-widest text-[11px] uppercase hover:bg-slate-900 transition-all">
                 Create Vault
               </button>
+
               <button onClick={() => setStep('EMAIL')} className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-500">Change Email</button>
             </>
           )}
 
-          {error && <p className="text-[10px] font-black text-red-500 uppercase tracking-widest text-center animate-pulse">{error}</p>}
+          {error && (
+            <div className={`p-3 rounded-xl text-center ${error.startsWith('✓') ? 'bg-green-50 dark:bg-green-900/20 text-green-600' : 'bg-red-50 dark:bg-red-900/20 text-red-600'}`}>
+              <p className="text-[10px] font-black uppercase tracking-widest">{error}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

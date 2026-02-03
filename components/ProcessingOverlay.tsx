@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 
 const MESSAGES = [
-  "Synthesizing architecture...",
-  "Scanning neural pathways...",
+  "Synthesizing study plan...",
+  "Scanning for key concepts...",
   "Distilling theorems...",
   "Mapping linguistic structures...",
-  "Generating recall nodes...",
+  "Generating recall flashcards...",
   "Preparing study vault...",
   "Finalizing extraction..."
 ];

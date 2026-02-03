@@ -7,8 +7,8 @@ import LoginModal from './components/LoginModal';
 import ProfileModal from './components/ProfileModal';
 import Dashboard from './components/Dashboard';
 import StudyPlanView from './components/StudyPlanView';
-import FlashcardView from './components/FlashcardView';
 import QuizView from './components/QuizView';
+import FlashcardView from './components/FlashcardView';
 import ProcessingOverlay from './components/ProcessingOverlay';
 import Footer from './components/Footer';
 import { AppState, StudySession, QuizQuestion } from './types';
@@ -37,22 +37,56 @@ const App: React.FC = () => {
 
   /** Listen to Firebase auth state changes */
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        setAppState(AppState.DASHBOARD);
-
-        const userSessions = await sessionStorageService.getSessionsForUser(firebaseUser.uid);
-        setSessions(userSessions);
-        intelligenceService.learnFromSessions(userSessions).then(setNeuralInsight);
-      } else {
-        setUser(null);
-        setAppState(AppState.LANDING);
-      }
+    console.log('Setting up Firebase auth listener...');
+    
+    const timeout = setTimeout(() => {
+      console.warn('Firebase auth initialization timed out after 5 seconds');
       setLoadingAuth(false);
-    });
-
-    return () => unsubscribe();
+    }, 5000);
+  
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (firebaseUser) => {
+        console.log('Auth state changed:', firebaseUser ? 'User logged in' : 'No user');
+        clearTimeout(timeout);
+        
+        if (firebaseUser) {
+          console.log('User authenticated:', firebaseUser.uid);
+          setUser(firebaseUser);
+          setAppState(AppState.DASHBOARD);
+          try {
+            const userSessions = await sessionStorageService.getSessionsForUser(firebaseUser.uid);
+            console.log('Sessions loaded:', userSessions.length);
+            setSessions(userSessions || []);
+            if (userSessions && userSessions.length > 0) {
+              intelligenceService.learnFromSessions(userSessions)
+                .then(setNeuralInsight)
+                .catch(err => console.warn('Intelligence service error:', err));
+            }
+          } catch (error) {
+            console.error('Error loading user sessions:', error);
+            setSessions([]);
+          }
+        } else {
+          console.log('No user, showing landing page');
+          setUser(null);
+          setAppState(AppState.LANDING);
+          setSessions([]);
+        }
+        setLoadingAuth(false);
+        console.log('Loading auth set to false');
+      },
+      (error) => {
+        console.error('Firebase auth error:', error);
+        clearTimeout(timeout);
+        setLoadingAuth(false);
+      }
+    );
+  
+    return () => {
+      clearTimeout(timeout);
+      unsubscribe();
+    };
   }, []);
 
   /** Theme persistence */
@@ -63,6 +97,33 @@ const App: React.FC = () => {
     localStorageService.saveTheme(theme);
   }, [theme]);
 
+  /** File upload handler */
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsProcessing(true);
+    
+    try {
+      // Process the file and create a session
+      // This is where you'd call your file processing service
+      const newSession = await sessionStorageService.processAndCreateSession(
+        file, 
+        user.uid
+      );
+      
+      // Add the new session to the list
+      setSessions(prev => [newSession, ...prev]);
+      
+    } catch (error) {
+      console.error('Error processing file:', error);
+      alert('Failed to process file. Please try again.');
+    } finally {
+      setIsProcessing(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
   /** Prefetch quiz */
   const prefetchQuiz = useCallback(async (session: StudySession) => {
     if (!session.studyPlan || isQuizLoading) return;
@@ -87,14 +148,25 @@ const App: React.FC = () => {
 
   /** Login handler (from LoginModal) */
   const handleLogin = async (loggedInUser: User) => {
+    console.log('handleLogin called for:', loggedInUser.uid);
     setUser(loggedInUser);
-    localStorageService.saveUser(loggedInUser);
     setIsLoginModalOpen(false);
     setAppState(AppState.DASHBOARD);
 
-    const userSessions = await sessionStorageService.getSessionsForUser(loggedInUser.uid);
-    setSessions(userSessions);
-    intelligenceService.learnFromSessions(userSessions).then(setNeuralInsight);
+    try {
+      const userSessions = await sessionStorageService.getSessionsForUser(loggedInUser.uid);
+      console.log('Sessions loaded in handleLogin:', userSessions?.length || 0);
+      setSessions(userSessions || []);
+      
+      if (userSessions && userSessions.length > 0) {
+        intelligenceService.learnFromSessions(userSessions)
+          .then(setNeuralInsight)
+          .catch(err => console.warn('Intelligence service error:', err));
+      }
+    } catch (error) {
+      console.error('Error loading user sessions after login:', error);
+      setSessions([]); // Set empty sessions on error
+    }
   };
 
   /** Logout handler */
@@ -127,7 +199,17 @@ const App: React.FC = () => {
     }
   };
 
-  if (loadingAuth) return <div>Loading...</div>;
+  // Better loading screen with spinner
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300">
@@ -148,9 +230,9 @@ const App: React.FC = () => {
           <>
             {appState === AppState.DASHBOARD && (
               <Dashboard
-                sessions={sessions}
-                onUpload={() => {}}
-                onOpenSession={(s) => {
+                  sessions={sessions}
+                  onUpload={handleFileUpload}
+                  onOpenSession={(s) => {
                   setActiveSession(s);
                   setAppState(AppState.STUDY_PLAN);
                 }}
