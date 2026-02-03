@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { StudySession } from '../types';
 
 interface DashboardProps {
@@ -7,11 +7,33 @@ interface DashboardProps {
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onOpenSession: (session: StudySession) => void;
   onDeleteSession: (id: string) => void;
+  onRenameSession: (id: string, newName: string) => void;
   neuralInsight: string;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession, onDeleteSession, neuralInsight }) => {
+const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession, onDeleteSession, onRenameSession, neuralInsight }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+
+  const startEditing = (e: React.MouseEvent, session: StudySession) => {
+    e.stopPropagation();
+    setEditingId(session.id);
+    setEditingName(session.sessionName || session.fileName);
+  };
+
+  const saveEdit = (sessionId: string) => {
+    if (editingName.trim()) {
+      onRenameSession(sessionId, editingName.trim());
+    }
+    setEditingId(null);
+    setEditingName('');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditingName('');
+  };
 
   return (
     <div className="space-y-6 sm:space-y-10 animate-fadeIn py-4 px-1 sm:px-2">
@@ -98,7 +120,46 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                       </button>
                     </div>
                   </div>
-                  <h4 className="font-black text-lg sm:text-xl text-slate-900 dark:text-slate-50 mb-1 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tight">{session.fileName}</h4>
+                  {editingId === session.id ? (
+                    <div className="flex items-center gap-2 mb-1" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEdit(session.id);
+                          if (e.key === 'Escape') cancelEdit();
+                        }}
+                        className="flex-1 font-black text-lg sm:text-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 px-2 py-1 rounded-lg border-2 border-indigo-500 focus:outline-none"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => saveEdit(session.id)}
+                        className="p-1 text-green-600 hover:text-green-700"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="p-1 text-slate-400 hover:text-slate-600"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-black text-lg sm:text-xl text-slate-900 dark:text-slate-50 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tight flex-1">
+                        {session.sessionName || session.fileName}
+                      </h4>
+                      <button
+                        onClick={(e) => startEditing(e, session)}
+                        className="p-1 text-slate-300 dark:text-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all opacity-0 group-hover:opacity-100"
+                        title="Rename session"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <span className="text-[7px] sm:text-[8px] font-black text-indigo-500 dark:text-indigo-400 uppercase bg-indigo-50 dark:bg-indigo-900/30 px-1.5 sm:px-2 py-0.5 rounded-full">{session.fileType.split('/')[1]?.toUpperCase() || 'DOC'}</span>
                     <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-500">{new Date(session.createdAt).toLocaleDateString()}</span>

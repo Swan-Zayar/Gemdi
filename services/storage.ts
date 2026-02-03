@@ -5,7 +5,7 @@ const USER_KEY = 'gemdi_current_user';
 const REGISTRY_KEY = 'gemdi_user_registry';
 const THEME_KEY = 'gemdi_theme';
 
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 export const storageService = {
   // --- User Auth ---

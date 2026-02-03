@@ -39,6 +39,7 @@ export interface StudySession {
   id: string;
   userId: string; // Scoped to user
   fileName: string;
+  sessionName?: string; // Custom name set by user
   fileType: string;
   createdAt: string;
   studyPlan?: StudyPlan;

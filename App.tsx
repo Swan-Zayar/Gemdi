@@ -12,8 +12,6 @@ import FlashcardView from './components/FlashcardView';
 import ProcessingOverlay from './components/ProcessingOverlay';
 import Footer from './components/Footer';
 import { AppState, StudySession, QuizQuestion } from './types';
-
-type ThemeMode = 'light' | 'dark';
 import { storageService as localStorageService } from './services/storage';
 import * as sessionStorageService from './firebaseStorageService';
 import { geminiService } from './services/gemini';
@@ -33,7 +31,6 @@ const App: React.FC = () => {
   const [currentQuiz, setCurrentQuiz] = useState<QuizQuestion[]>([]);
   const [isQuizReady, setIsQuizReady] = useState(false);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
-  const [theme, setTheme] = useState<ThemeMode>(localStorageService.getTheme());
 
   /** Listen to Firebase auth state changes */
   useEffect(() => {
@@ -89,13 +86,25 @@ const App: React.FC = () => {
     };
   }, []);
 
-  /** Theme persistence */
+  /** Always follow system theme preference */
   useEffect(() => {
     const root = window.document.documentElement;
-    if (theme === 'dark') root.classList.add('dark');
-    else root.classList.remove('dark');
-    localStorageService.saveTheme(theme);
-  }, [theme]);
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const applyTheme = (isDark: boolean) => {
+      if (isDark) root.classList.add('dark');
+      else root.classList.remove('dark');
+    };
+    
+    // Apply initial theme
+    applyTheme(mediaQuery.matches);
+    
+    // Listen for system theme changes
+    const handler = (e: MediaQueryListEvent) => applyTheme(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
 
   /** File upload handler */
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,6 +208,25 @@ const App: React.FC = () => {
     }
   };
 
+  /** Rename session */
+  const handleRenameSession = async (id: string, newName: string) => {
+    const session = sessions.find(s => s.id === id);
+    if (!session) return;
+
+    const updatedSession = { ...session, sessionName: newName };
+    await sessionStorageService.saveSession(updatedSession);
+    
+    if (user) {
+      const updated = await sessionStorageService.getSessionsForUser(user.uid);
+      setSessions(updated);
+    }
+
+    // Update active session if it's the one being renamed
+    if (activeSession?.id === id) {
+      setActiveSession(updatedSession);
+    }
+  };
+
   // Better loading screen with spinner
   if (loadingAuth) {
     return (
@@ -219,10 +247,8 @@ const App: React.FC = () => {
         onLoginClick={() => setIsLoginModalOpen(true)}
         onLogout={handleLogout}
         onDashboardClick={() => setAppState(AppState.DASHBOARD)}
-        onLogoClick={() => setAppState(AppState.LANDING)}
+        onLogoClick={() => setAppState(user ? AppState.DASHBOARD : AppState.LANDING)}
         onProfileClick={() => setIsProfileModalOpen(true)}
-        currentTheme={theme}
-        onThemeChange={setTheme}
       />
 
       <main className="grow w-full max-w-7xl mx-auto px-4">
@@ -243,6 +269,7 @@ const App: React.FC = () => {
                     setSessions(updated);
                   }
                 }}
+                onRenameSession={handleRenameSession}
                 neuralInsight={neuralInsight}
               />
             )}

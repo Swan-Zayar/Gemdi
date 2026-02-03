@@ -20,13 +20,25 @@ export async function saveSession(session: StudySession): Promise<void> {
 }
 
 export async function getSessionsForUser(userId: string): Promise<StudySession[]> {
-  const q = query(
-    collection(db, SESSIONS_COLLECTION),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data() as StudySession);
+  try {
+    console.log('Fetching sessions for user:', userId);
+    const q = query(
+      collection(db, SESSIONS_COLLECTION),
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc')
+    );
+    const snap = await getDocs(q);
+    const sessions = snap.docs.map((d) => d.data() as StudySession);
+    console.log('Found sessions:', sessions.length);
+    return sessions;
+  } catch (error: any) {
+    console.error('Error fetching sessions:', error);
+    // If it's an index error, provide helpful message
+    if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
+      console.error('Firestore index required. Please deploy indexes with: firebase deploy --only firestore:indexes');
+    }
+    throw error;
+  }
 }
 
 export async function deleteSession(id: string): Promise<void> {

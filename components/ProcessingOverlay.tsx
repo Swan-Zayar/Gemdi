@@ -67,7 +67,7 @@ const ProcessingOverlay: React.FC = () => {
           <div className="mx-auto max-w-xs px-6 py-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 chic-shadow">
             <p className="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-relaxed">
               Deeper analysis in progress <br />
-              <span className="text-indigo-500 dark:text-indigo-400">May take up to 60 seconds</span>
+              <span className="text-indigo-500 dark:text-indigo-400">May take up to 90 seconds for larger files</span>
             </p>
           </div>
         </div>

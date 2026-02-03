@@ -1,7 +1,6 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserLocal } from '../types';
-import { ThemeMode } from '../services/storage';
 
 interface HeaderProps {
   user: UserLocal | null;
@@ -10,8 +9,6 @@ interface HeaderProps {
   onDashboardClick: () => void;
   onLogoClick: () => void;
   onProfileClick: () => void;
-  currentTheme: ThemeMode;
-  onThemeChange: (theme: ThemeMode) => void;
 }
 
 export const GemdiLogo: React.FC<{ className?: string }> = ({ className = "w-10 h-10" }) => (
@@ -30,9 +27,24 @@ export const GemdiLogo: React.FC<{ className?: string }> = ({ className = "w-10 
   </svg>
 );
 
-const Header: React.FC<HeaderProps> = ({ user, onLoginClick, onLogout, onDashboardClick, onLogoClick, onProfileClick, currentTheme, onThemeChange }) => {
-  const modes: ThemeMode[] = ['light', 'dark'];
-  const activeIndex = modes.indexOf(currentTheme);
+const Header: React.FC<HeaderProps> = ({ user, onLoginClick, onLogout, onDashboardClick, onLogoClick, onProfileClick }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
 
   return (
     <nav className="sticky top-0 z-50 px-3 sm:px-6 py-3 sm:py-4">
@@ -45,33 +57,14 @@ const Header: React.FC<HeaderProps> = ({ user, onLoginClick, onLogout, onDashboa
         </div>
 
         <div className="flex items-center gap-3 sm:gap-8">
-          {/* Refined Theme Switcher */}
-          <div className="relative bg-slate-100/50 dark:bg-slate-900/50 p-1 rounded-full flex items-center w-15 sm:w-22 h-8 sm:h-9">
-            <div 
-              className={`absolute h-6 sm:h-7 w-6.5 sm:w-9.5 bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 z-0 ${
-                activeIndex === 1 ? 'translate-x-6.5 sm:translate-x-10' : 'translate-x-0'
-              }`}
-            ></div>
-            {modes.map(mode => (
-              <button 
-                key={mode} 
-                onClick={() => onThemeChange(mode)} 
-                className={`relative z-10 flex-1 flex items-center justify-center h-full transition-colors ${
-                  currentTheme === mode ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-500'
-                }`}
-                aria-label={`Switch to ${mode} mode`}
-              >
-                {mode === 'light' ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l.707.707M6.343 6.343l.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"></path>
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                  </svg>
-                )}
-              </button>
-            ))}
+          {/* Local Time Display */}
+          <div className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-900/50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
+            <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+              {formatTime(currentTime)}
+            </span>
           </div>
 
           {user ? (
