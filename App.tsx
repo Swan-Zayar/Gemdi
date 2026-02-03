@@ -5,20 +5,23 @@ import Header from './components/Header';
 import Landing from './components/Landing';
 import LoginModal from './components/LoginModal';
 import ProfileModal from './components/ProfileModal';
+import ProfileSetupModal from './components/ProfileSetupModal';
 import Dashboard from './components/Dashboard';
 import StudyPlanView from './components/StudyPlanView';
 import QuizView from './components/QuizView';
 import FlashcardView from './components/FlashcardView';
 import ProcessingOverlay from './components/ProcessingOverlay';
 import Footer from './components/Footer';
-import { AppState, StudySession, QuizQuestion } from './types';
+import { AppState, StudySession, QuizQuestion, UserLocal } from './types';
 import { storageService as localStorageService } from './services/storage';
 import * as sessionStorageService from './firebaseStorageService';
+import * as userProfileService from './userProfileService';
 import { geminiService } from './services/gemini';
 import { intelligenceService } from './services/intelligence';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserLocal | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [appState, setAppState] = useState<AppState>(AppState.LANDING);
   const [sessions, setSessions] = useState<StudySession[]>([]);
@@ -26,6 +29,7 @@ const App: React.FC = () => {
   const [activeStepTitle, setActiveStepTitle] = useState<string | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [neuralInsight, setNeuralInsight] = useState<string>('');
   const [currentQuiz, setCurrentQuiz] = useState<QuizQuestion[]>([]);
@@ -50,7 +54,23 @@ const App: React.FC = () => {
         if (firebaseUser) {
           console.log('User authenticated:', firebaseUser.uid);
           setUser(firebaseUser);
-          setAppState(AppState.DASHBOARD);
+          
+          // Load user profile
+          const profile = await userProfileService.getUserProfile(firebaseUser.uid);
+          if (profile) {
+            setUserProfile({
+              id: profile.userId,
+              name: profile.username,
+              email: firebaseUser.email || '',
+              avatar: profile.avatar
+            });
+            setAppState(AppState.DASHBOARD);
+          } else {
+            // New user - show profile setup
+            setIsProfileSetupOpen(true);
+            setAppState(AppState.LANDING);
+          }
+          
           try {
             const userSessions = await sessionStorageService.getSessionsForUser(firebaseUser.uid);
             console.log('Sessions loaded:', userSessions.length);
@@ -160,7 +180,21 @@ const App: React.FC = () => {
     console.log('handleLogin called for:', loggedInUser.uid);
     setUser(loggedInUser);
     setIsLoginModalOpen(false);
-    setAppState(AppState.DASHBOARD);
+    
+    // Check if user has a profile
+    const profile = await userProfileService.getUserProfile(loggedInUser.uid);
+    if (profile) {
+      setUserProfile({
+        id: profile.userId,
+        name: profile.username,
+        email: loggedInUser.email || '',
+        avatar: profile.avatar
+      });
+      setAppState(AppState.DASHBOARD);
+    } else {
+      // New user - show profile setup
+      setIsProfileSetupOpen(true);
+    }
 
     try {
       const userSessions = await sessionStorageService.getSessionsForUser(loggedInUser.uid);
@@ -178,6 +212,30 @@ const App: React.FC = () => {
     }
   };
 
+  /** Profile setup completion handler */
+  const handleProfileSetupComplete = async (username: string, avatar: string) => {
+    if (!user) return;
+
+    const profile: userProfileService.UserProfile = {
+      userId: user.uid,
+      username,
+      avatar,
+      createdAt: new Date().toISOString()
+    };
+
+    await userProfileService.saveUserProfile(profile);
+    
+    setUserProfile({
+      id: user.uid,
+      name: username,
+      email: user.email || '',
+      avatar
+    });
+    
+    setIsProfileSetupOpen(false);
+    setAppState(AppState.DASHBOARD);
+  };
+
   /** Logout handler */
   const handleLogout = async () => {
     try {
@@ -186,17 +244,10 @@ const App: React.FC = () => {
       console.warn('Error signing out from Firebase', e);
     }
     setUser(null);
-    localStorageService.saveUser(null);
+    setUserProfile(null);
     setAppState(AppState.LANDING);
     setActiveSession(null);
     setSessions([]);
-  };
-
-  /** Safely get first name from user */
-  const getFirstName = () => {
-    if (!user) return '';
-    // Use displayName from Firebase user
-    return user.displayName?.split(' ')[0] ?? '';
   };
 
   /** Update active session */
@@ -207,6 +258,19 @@ const App: React.FC = () => {
       sessionStorageService.getSessionsForUser(user.uid).then(setSessions).catch(console.error);
     }
   };
+
+  /** Update user profile */
+  const handleProfileUpdate = async (updatedProfile: UserLocal) => {
+    if (!user) return;
+    
+    await userProfileService.updateUserProfile(user.uid, {
+      username: updatedProfile.name,
+      avatar: updatedProfile.avatar
+    });
+    
+    setUserProfile(updatedProfile);
+  };
+
 
   /** Rename session */
   const handleRenameSession = async (id: string, newName: string) => {
@@ -242,8 +306,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300">
       <Header
-        user={user}
-        displayName={getFirstName()}
+        user={userProfile}
         onLoginClick={() => setIsLoginModalOpen(true)}
         onLogout={handleLogout}
         onDashboardClick={() => setAppState(AppState.DASHBOARD)}
@@ -333,7 +396,8 @@ const App: React.FC = () => {
 
       <Footer />
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} onLogin={handleLogin} />
-      {user && <ProfileModal user={user} isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} onUpdate={() => {}} />}
+      {userProfile && <ProfileModal user={userProfile} isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} onUpdate={handleProfileUpdate} />}
+      <ProfileSetupModal isOpen={isProfileSetupOpen} onComplete={handleProfileSetupComplete} />
       {isProcessing && <ProcessingOverlay />}
     </div>
   );
