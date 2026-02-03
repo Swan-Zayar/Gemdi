@@ -46,9 +46,16 @@ const Header: React.FC<HeaderProps> = ({ user, onLoginClick, onLogout, onDashboa
     });
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <nav className="sticky top-0 z-50 px-3 sm:px-6 py-3 sm:py-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between glass-panel px-4 sm:px-8 py-2 sm:py-3 rounded-3xl sm:rounded-[2.5rem] chic-shadow border border-slate-200/50 dark:border-slate-700/50">
+      <div 
+        className="max-w-7xl mx-auto flex items-center justify-between glass-panel px-4 sm:px-8 py-2 sm:py-3 rounded-3xl sm:rounded-[2.5rem] chic-shadow border border-slate-200/50 dark:border-slate-700/50 cursor-pointer transition-all hover:border-slate-300/50 dark:hover:border-slate-600/50"
+        onClick={scrollToTop}
+      >
         <div className="flex items-center gap-2 sm:gap-4 cursor-pointer group" onClick={onLogoClick}>
           <GemdiLogo className="w-8 h-8 sm:w-10 sm:h-10 transform-gpu transition-all duration-500 group-hover:scale-110" />
           <div className="flex flex-col">
