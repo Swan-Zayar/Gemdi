@@ -174,14 +174,15 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
         <button 
           onClick={(e) => { e.stopPropagation(); handlePrev(); }} 
           disabled={isFirstCard}
-          className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-4xl flex items-center justify-center text-slate-600 dark:text-slate-300 chic-shadow border border-slate-100 dark:border-slate-700 transition-all ${isFirstCard ? 'opacity-20 cursor-not-allowed' : 'bg-white dark:bg-slate-800 hover:bg-slate-900 dark:hover:bg-indigo-600 hover:text-white active:scale-95'}`}
+          className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-4xl flex items-center justify-center chic-shadow border border-slate-100 dark:border-slate-700 transition-all ${isFirstCard ? 'bg-slate-100 dark:bg-slate-900/50 text-slate-300 dark:text-slate-500 cursor-not-allowed' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-900 dark:hover:bg-indigo-600 hover:text-white active:scale-95'}`}
         >
           <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M15 19l-7-7 7-7"></path></svg>
         </button>
         <button 
           onClick={(e) => { e.stopPropagation(); handleNext(); }} 
           disabled={isLastCard} 
-          className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-4xl flex items-center justify-center text-white chic-shadow transition-all ${isLastCard ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'bg-indigo-600 hover:bg-slate-900 dark:hover:bg-indigo-500 active:scale-95 shadow-xl'}`}>
+          className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-4xl flex items-center justify-center chic-shadow border border-slate-100 dark:border-slate-700 transition-all ${isLastCard ? 'bg-slate-100 dark:bg-slate-900/50 text-slate-300 dark:text-slate-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 dark:hover:bg-indigo-500 active:scale-95 shadow-xl'}`}
+        >
           <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"></path></svg>
         </button>
       </div>

@@ -363,12 +363,21 @@ const App: React.FC = () => {
                 onComplete={(r) => {
                   const c = activeSession.completedSteps || [];
                   const updatedSteps = activeStepTitle && !c.includes(activeStepTitle) ? [...c, activeStepTitle] : c;
-                  updateActiveSession({
+                  const updatedSession = {
                     ...activeSession,
                     drillCompleted: true,
                     performanceRating: r,
                     completedSteps: updatedSteps,
-                  });
+                  };
+                  updateActiveSession(updatedSession);
+                  
+                  // Retrain neural model with new rating
+                  if (sessions && sessions.length > 0) {
+                    intelligenceService.learnFromSessions(sessions)
+                      .then(setNeuralInsight)
+                      .catch(err => console.warn('Intelligence service error:', err));
+                  }
+                  
                   setActiveStepTitle(null);
                   setAppState(AppState.STUDY_PLAN);
                 }}

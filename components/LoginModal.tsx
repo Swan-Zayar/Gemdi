@@ -99,9 +99,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
         }
         setStep('PASSWORD_ENTRY');
       } else if (mode === 'signup') {
-        // Signup mode - require new account
+        // Signup mode - check if account already exists
         if (methods && methods.length > 0) {
-          setError("An account with this email already exists. Please log in instead.");
+          // Email already exists - automatically switch to login mode
+          setMode('login');
+          setStep('PASSWORD_ENTRY');
           return;
         }
         setStep('SIGNUP');
