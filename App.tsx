@@ -13,7 +13,7 @@ import FlashcardView from './components/FlashcardView';
 import ProcessingOverlay from './components/ProcessingOverlay';
 import Footer from './components/Footer';
 import { AppState, StudySession, QuizQuestion, UserLocal } from './types';
-import { storageService as localStorageService, ThemeMode } from './services/storage';
+import { themeService, ThemeMode } from './services/theme';
 import * as sessionStorageService from './firebaseStorageService';
 import * as userProfileService from './userProfileService';
 import { geminiService } from './services/gemini';
@@ -35,7 +35,7 @@ const App: React.FC = () => {
   const [currentQuiz, setCurrentQuiz] = useState<QuizQuestion[]>([]);
   const [isQuizReady, setIsQuizReady] = useState(false);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
-  const [themeMode, setThemeMode] = useState<ThemeMode>(localStorageService.getTheme());
+  const [themeMode, setThemeMode] = useState<ThemeMode>(themeService.getTheme());
 
   /** Listen to Firebase auth state changes */
   useEffect(() => {
@@ -285,7 +285,7 @@ const App: React.FC = () => {
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode);
-    localStorageService.saveTheme(mode);
+    themeService.saveTheme(mode);
   };
 
 
@@ -367,6 +367,7 @@ const App: React.FC = () => {
                   setAppState(AppState.FLASHCARDS);
                 }}
                 onStartQuiz={async () => setAppState(AppState.QUIZ)}
+                onBack={() => setAppState(AppState.DASHBOARD)}
               />
             )}
 

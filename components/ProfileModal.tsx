@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { UserLocal } from '../types';
-import { ThemeMode } from '../services/storage';
+import { ThemeMode } from '../services/theme';
+import { AVATARS } from '../src/avatars';
 
 interface ProfileModalProps {
   user: UserLocal;
@@ -12,8 +13,36 @@ interface ProfileModalProps {
   onThemeChange: (mode: ThemeMode) => void;
 }
 
-const AVATAR_OPTIONS = [
-  'Midnight', 'Aurora', 'Oxford', 'Scholar', 'Neural', 'Cyber', 'Classic'
+const THEME_OPTIONS: { mode: ThemeMode; label: string; icon: React.ReactNode }[] = [
+  {
+    mode: 'light',
+    label: 'Light',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m0-11.314L7.05 7.05m10.314 10.314l1.414 1.414" />
+        <circle cx="12" cy="12" r="4" strokeWidth="2.5" />
+      </svg>
+    )
+  },
+  {
+    mode: 'dark',
+    label: 'Dark',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+      </svg>
+    )
+  },
+  {
+    mode: 'system',
+    label: 'System',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 20h8" />
+      </svg>
+    )
+  }
 ];
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUpdate, themeMode, onThemeChange }) => {
@@ -50,18 +79,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
             </div>
             
             <div className="flex flex-wrap justify-center gap-3">
-              {AVATAR_OPTIONS.map(opt => {
-                const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${opt}`;
-                return (
-                  <button 
-                    key={opt}
-                    onClick={() => setSelectedAvatar(url)}
-                    className={`w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${selectedAvatar === url ? 'border-indigo-600 scale-110 shadow-lg' : 'border-transparent opacity-50 hover:opacity-100'}`}
-                  >
-                    <img src={url} alt={opt} className="w-full h-full object-cover" />
-                  </button>
-                );
-              })}
+              {AVATARS.map((avatar) => (
+                <button 
+                  key={avatar.name}
+                  onClick={() => setSelectedAvatar(avatar.src)}
+                  className={`w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${selectedAvatar === avatar.src ? 'border-indigo-600 scale-110 shadow-lg' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                >
+                  <img src={avatar.src} alt={avatar.name} className="w-full h-full object-cover" />
+                </button>
+              ))}
             </div>
           </div>
 
@@ -87,16 +113,19 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Theme</label>
               <div className="grid grid-cols-3 gap-3">
-                {(['light', 'dark', 'system'] as ThemeMode[]).map((mode) => (
+                {THEME_OPTIONS.map((option) => (
                   <button
-                    key={mode}
+                    key={option.mode}
                     onClick={() => {
-                      setSelectedTheme(mode);
-                      onThemeChange(mode);
+                      setSelectedTheme(option.mode);
+                      onThemeChange(option.mode);
                     }}
-                    className={`py-3 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all ${selectedTheme === mode ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                    aria-label={option.label}
+                    title={option.label}
+                    className={`py-3 rounded-2xl border transition-all flex items-center justify-center ${selectedTheme === option.mode ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}
                   >
-                    {mode}
+                    {option.icon}
+                    <span className="sr-only">{option.label}</span>
                   </button>
                 ))}
               </div>

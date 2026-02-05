@@ -9,6 +9,7 @@ interface StudyPlanViewProps {
   onViewFlashcards: () => void;
   onStepAction: (stepTitle: string) => void;
   onStartQuiz: () => void;
+  onBack: () => void;
 }
 
 const formatMath = (text: string) => {
@@ -35,7 +36,7 @@ const formatMath = (text: string) => {
   return processed;
 };
 
-const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onViewFlashcards, onStepAction, onStartQuiz }) => {
+const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcards, onStepAction, onStartQuiz, onBack }) => {
   const [selectedStep, setSelectedStep] = useState<StudyStep | null>(null);
   const plan = session.studyPlan;
 
@@ -169,13 +170,21 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, isQuizReady, onV
            </div>
         </div>
       )}
-
+      <button 
+          onClick={onBack}
+          className="group flex items-center gap-2 sm:gap-3 pt-1 font-black text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+        >
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:-translate-x-1 transition-transform">
+             <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M15 19l-7-7 7-7"></path></svg>
+          </div>
+          <span className="hidden sm:inline">Back to Dashboard</span>
+      </button>
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 px-4">
         <div className="relative text-center sm:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400 text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] mb-3 border border-indigo-100 dark:border-indigo-900/50 shadow-sm">
             Roadmap Live
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">{plan.title}</h2>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">{session.sessionName}</h2>
           <p className="text-slate-400 dark:text-slate-500 font-bold mt-2 text-sm sm:text-base">From <span className="text-indigo-600 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-900/50">{session.fileName}</span></p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 px-2 sm:px-0">

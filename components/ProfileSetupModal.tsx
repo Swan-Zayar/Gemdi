@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
+import { AVATARS, DEFAULT_AVATAR } from '../src/avatars';
 
 interface ProfileSetupModalProps {
   isOpen: boolean;
   onComplete: (username: string, avatar: string) => void;
 }
 
-const AVATAR_OPTIONS = [
-  'Midnight', 'Aurora', 'Oxford', 'Scholar', 'Neural', 'Cyber', 'Classic', 'Phoenix', 'Nova', 'Zenith'
-];
-
 const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplete }) => {
   const [username, setUsername] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState(`https://api.dicebear.com/7.x/avataaars/svg?seed=Scholar`);
+  const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR || '');
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
@@ -44,18 +41,15 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
             </div>
             
             <div className="flex flex-wrap justify-center gap-3">
-              {AVATAR_OPTIONS.map(opt => {
-                const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${opt}`;
-                return (
-                  <button 
-                    key={opt}
-                    onClick={() => setSelectedAvatar(url)}
-                    className={`w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${selectedAvatar === url ? 'border-indigo-600 scale-110 shadow-lg' : 'border-transparent opacity-50 hover:opacity-100'}`}
-                  >
-                    <img src={url} alt={opt} className="w-full h-full object-cover" />
-                  </button>
-                );
-              })}
+              {AVATARS.map((avatar) => (
+                <button 
+                  key={avatar.name}
+                  onClick={() => setSelectedAvatar(avatar.src)}
+                  className={`w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${selectedAvatar === avatar.src ? 'border-indigo-600 scale-110 shadow-lg' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                >
+                  <img src={avatar.src} alt={avatar.name} className="w-full h-full object-cover" />
+                </button>
+              ))}
             </div>
           </div>
 

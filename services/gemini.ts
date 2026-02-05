@@ -2,15 +2,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { StudyPlan, Flashcard, QuizQuestion, StudyStep } from "../types";
 import { intelligenceService } from "./intelligence";
-import { storageService } from "./storage";
 
 export const geminiService = {
   async processStudyContent(fileBase64: string, fileName: string, fileMimeType: string): Promise<{ studyPlan: StudyPlan; flashcards: Flashcard[]; isStudyMaterial: boolean; validityWarning: string }> {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const model = 'gemini-3-flash-preview';
 
-    const sessions = storageService.getAllSessions();
-    const learnedContext = await intelligenceService.learnFromSessions(sessions);
+    const learnedContext = await intelligenceService.learnFromSessions([]);
     const optimizationInstruction = intelligenceService.getPromptInstruction(learnedContext);
 
     const prompt = `

@@ -169,9 +169,6 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                 <div className="w-full flex items-center justify-between py-3 sm:py-4 border-t border-slate-50 dark:border-slate-700 group-hover:border-indigo-100 dark:group-hover:border-indigo-900/50 transition-all mt-4 sm:mt-6">
                   <div className="flex flex-col flex-1">
                     <span className="text-[9px] sm:text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest">Enter Roadmap</span>
-                    {session.performanceRating && (
-                      <span className="text-[8px] sm:text-[9px] font-black text-emerald-500 dark:text-emerald-400 uppercase">Session Rating: {session.performanceRating}/5</span>
-                    )}
                     {session.studyPlan && session.studyPlan.steps.length > 0 && (
                       <div className="mt-2 w-full">
                         <div className="flex items-center justify-between mb-1">
