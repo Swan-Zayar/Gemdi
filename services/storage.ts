@@ -36,6 +36,6 @@ export const storageService = {
   },
 
   getTheme: (): ThemeMode => {
-    return (localStorage.getItem(THEME_KEY) as ThemeMode) || 'light';
+    return (localStorage.getItem(THEME_KEY) as ThemeMode) || 'system';
   }
 };

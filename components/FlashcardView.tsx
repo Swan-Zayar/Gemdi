@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Flashcard } from '../types';
 
 interface FlashcardViewProps {
@@ -37,6 +37,10 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
   const [isFlipped, setIsFlipped] = useState(false);
   const [showRating, setShowRating] = useState(false);
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const tiltRef = useRef({ x: 0, y: 0 });
 
   const card = flashcards[currentIndex];
   const isFirstCard = currentIndex === 0;
@@ -93,6 +97,39 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
 
   if (!card) return null;
 
+  const handlePointerMove: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    tiltRef.current = {
+      x: (0.5 - y) * 10,
+      y: (x - 0.5) * 12,
+    };
+
+    if (frameRef.current !== null) return;
+    frameRef.current = window.requestAnimationFrame(() => {
+      if (cardRef.current) {
+        cardRef.current.style.setProperty('--tilt-x', `${tiltRef.current.x}deg`);
+        cardRef.current.style.setProperty('--tilt-y', `${tiltRef.current.y}deg`);
+      }
+      frameRef.current = null;
+    });
+  };
+
+  const handlePointerLeave: React.PointerEventHandler<HTMLDivElement> = () => {
+    setIsHovering(false);
+    if (frameRef.current !== null) {
+      window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+    tiltRef.current = { x: 0, y: 0 };
+    if (cardRef.current) {
+      cardRef.current.style.setProperty('--tilt-x', '0deg');
+      cardRef.current.style.setProperty('--tilt-y', '0deg');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 sm:space-y-12 animate-fadeIn py-6 sm:py-12 px-4 flex flex-col min-h-[80vh]">
       <div className="flex items-center justify-between px-2 sm:px-6 shrink-0">
@@ -122,12 +159,28 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
       </div>
 
       <div 
-        className="perspective-2000 cursor-pointer h-[50vh] sm:h-[60vh] w-full grow relative"
+        className="perspective-2000 cursor-pointer h-[50vh] sm:h-[60vh] w-full grow relative rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden"
         onClick={() => setIsFlipped(!isFlipped)}
+        onPointerMove={handlePointerMove}
+        onPointerEnter={() => setIsHovering(true)}
+        onPointerLeave={handlePointerLeave}
       >
-        <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
+        <div
+          ref={cardRef}
+          className="relative w-full h-full transform-style-3d"
+          style={{
+            transform: `rotateY(${isFlipped ? 180 : 0}deg) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) scale(${isHovering ? 1.02 : 1})`,
+            transition: isHovering ? 'transform 80ms linear' : 'transform 500ms ease',
+            willChange: 'transform',
+            ['--tilt-x' as any]: '0deg',
+            ['--tilt-y' as any]: '0deg',
+          }}
+        >
+          <div className="absolute inset-0 -z-10 rounded-[2.5rem] sm:rounded-[4rem] bg-linear-to-br from-indigo-500/10 via-fuchsia-500/10 to-cyan-500/10 blur-2xl"></div>
+          <div className="absolute inset-0 -z-10 translate-y-3 sm:translate-y-4 rounded-[2.5rem] sm:rounded-[4rem] bg-slate-200/40 dark:bg-slate-900/40"></div>
           {/* Card Front */}
           <div className="absolute inset-0 bg-white dark:bg-slate-800 rounded-[2.5rem] sm:rounded-[4rem] p-8 sm:p-16 flex flex-col items-center justify-center text-center chic-shadow border border-slate-50 dark:border-slate-700 backface-hidden shadow-2xl overflow-hidden">
+            <div className="absolute -top-24 -right-24 w-56 h-56 rounded-full bg-linear-to-br from-indigo-400/20 to-fuchsia-400/20 blur-2xl"></div>
             <div className="absolute top-6 left-6 sm:top-12 sm:left-12 w-10 h-10 sm:w-12 sm:h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center">
                <span className="text-indigo-600 dark:text-indigo-400 font-black">?</span>
             </div>
@@ -146,7 +199,8 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
           </div>
 
           {/* Card Back */}
-          <div className="absolute inset-0 bg-slate-900 dark:bg-black text-white rounded-[2.5rem] sm:rounded-[4rem] p-8 sm:p-10 flex flex-col items-center justify-center text-center chic-shadow rotate-y-180 backface-hidden shadow-2xl border-4 border-indigo-500/20 overflow-y-auto custom-scrollbar">
+          <div className="absolute inset-0 bg-slate-900 dark:bg-black text-white rounded-[2.5rem] sm:rounded-[4rem] p-8 sm:p-10 flex flex-col items-center justify-center text-center chic-shadow rotate-y-180 backface-hidden shadow-2xl border-4 border-indigo-500/20 overflow-hidden">
+            <div className="absolute -bottom-24 -left-24 w-56 h-56 rounded-full bg-linear-to-br from-emerald-400/20 to-cyan-400/20 blur-2xl"></div>
             <div className="absolute top-6 right-6 sm:top-12 sm:right-12 w-10 h-10 sm:w-12 sm:h-12 bg-indigo-600 rounded-xl sm:rounded-2xl flex items-center justify-center">
                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
             </div>

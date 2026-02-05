@@ -13,7 +13,7 @@ import FlashcardView from './components/FlashcardView';
 import ProcessingOverlay from './components/ProcessingOverlay';
 import Footer from './components/Footer';
 import { AppState, StudySession, QuizQuestion, UserLocal } from './types';
-import { storageService as localStorageService } from './services/storage';
+import { storageService as localStorageService, ThemeMode } from './services/storage';
 import * as sessionStorageService from './firebaseStorageService';
 import * as userProfileService from './userProfileService';
 import { geminiService } from './services/gemini';
@@ -35,6 +35,7 @@ const App: React.FC = () => {
   const [currentQuiz, setCurrentQuiz] = useState<QuizQuestion[]>([]);
   const [isQuizReady, setIsQuizReady] = useState(false);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>(localStorageService.getTheme());
 
   /** Listen to Firebase auth state changes */
   useEffect(() => {
@@ -106,25 +107,36 @@ const App: React.FC = () => {
     };
   }, []);
 
-  /** Always follow system theme preference */
+  /** Apply theme preference */
   useEffect(() => {
     const root = window.document.documentElement;
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const applyTheme = (isDark: boolean) => {
-      if (isDark) root.classList.add('dark');
+
+    const applyTheme = (mode: ThemeMode) => {
+      if (mode === 'dark') {
+        root.classList.add('dark');
+        return;
+      }
+      if (mode === 'light') {
+        root.classList.remove('dark');
+        return;
+      }
+      if (mediaQuery.matches) root.classList.add('dark');
       else root.classList.remove('dark');
     };
-    
-    // Apply initial theme
-    applyTheme(mediaQuery.matches);
-    
-    // Listen for system theme changes
-    const handler = (e: MediaQueryListEvent) => applyTheme(e.matches);
+
+    applyTheme(themeMode);
+
+    const handler = (e: MediaQueryListEvent) => {
+      if (themeMode === 'system') {
+        if (e.matches) root.classList.add('dark');
+        else root.classList.remove('dark');
+      }
+    };
+
     mediaQuery.addEventListener('change', handler);
-    
     return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
+  }, [themeMode]);
 
   /** File upload handler */
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -271,6 +283,11 @@ const App: React.FC = () => {
     setUserProfile(updatedProfile);
   };
 
+  const handleThemeChange = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    localStorageService.saveTheme(mode);
+  };
+
 
   /** Rename session */
   const handleRenameSession = async (id: string, newName: string) => {
@@ -405,7 +422,16 @@ const App: React.FC = () => {
 
       <Footer />
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} onLogin={handleLogin} />
-      {userProfile && <ProfileModal user={userProfile} isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} onUpdate={handleProfileUpdate} />}
+      {userProfile && (
+        <ProfileModal
+          user={userProfile}
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          onUpdate={handleProfileUpdate}
+          themeMode={themeMode}
+          onThemeChange={handleThemeChange}
+        />
+      )}
       <ProfileSetupModal isOpen={isProfileSetupOpen} onComplete={handleProfileSetupComplete} />
       {isProcessing && <ProcessingOverlay />}
     </div>

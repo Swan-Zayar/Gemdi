@@ -1,26 +1,33 @@
 
 import React, { useState } from 'react';
 import { UserLocal } from '../types';
+import { ThemeMode } from '../services/storage';
 
 interface ProfileModalProps {
   user: UserLocal;
   isOpen: boolean;
   onClose: () => void;
   onUpdate: (updatedUser: UserLocal) => void;
+  themeMode: ThemeMode;
+  onThemeChange: (mode: ThemeMode) => void;
 }
 
 const AVATAR_OPTIONS = [
   'Midnight', 'Aurora', 'Oxford', 'Scholar', 'Neural', 'Cyber', 'Classic'
 ];
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUpdate }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUpdate, themeMode, onThemeChange }) => {
   const [name, setName] = useState(user.name);
   const [selectedAvatar, setSelectedAvatar] = useState(user.avatar);
+  const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
     onUpdate({ ...user, name, avatar: selectedAvatar });
+    if (selectedTheme !== themeMode) {
+      onThemeChange(selectedTheme);
+    }
     onClose();
   };
 
@@ -76,6 +83,26 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                 value={user.email}
                 className="w-full px-6 py-4 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-slate-400 cursor-not-allowed"
               />
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Theme</label>
+              <div className="grid grid-cols-3 gap-3">
+                {(['light', 'dark', 'system'] as ThemeMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => {
+                      setSelectedTheme(mode);
+                      onThemeChange(mode);
+                    }}
+                    className={`py-3 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all ${selectedTheme === mode ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                System uses your OS appearance.
+              </p>
             </div>
           </div>
 
