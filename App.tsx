@@ -19,6 +19,7 @@ import * as userProfileService from './userProfileService';
 import { geminiService } from './services/gemini';
 import { intelligenceService } from './services/intelligence';
 import { I18nProvider } from './services/i18n';
+import { validateUploadFile } from './services/fileValidation';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -65,7 +66,8 @@ const App: React.FC = () => {
               name: profile.username,
               email: firebaseUser.email || '',
               avatar: profile.avatar,
-              language: profile.language || 'en'
+              language: profile.language || 'en',
+              customPrompt: profile.customPrompt
             });
             setAppState(AppState.DASHBOARD);
           } else {
@@ -144,6 +146,13 @@ const App: React.FC = () => {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
+
+    const fileError = validateUploadFile(file);
+    if (fileError) {
+      alert(fileError);
+      event.target.value = '';
+      return;
+    }
 
     setIsProcessing(true);
     
@@ -273,9 +282,7 @@ const App: React.FC = () => {
   const updateActiveSession = (updated: StudySession) => {
     setActiveSession(updated);
     sessionStorageService.saveSession(updated).catch(console.error);
-    if (user) {
-      sessionStorageService.getSessionsForUser(user.uid).then(setSessions).catch(console.error);
-    }
+    setSessions(prev => prev.map(session => session.id === updated.id ? updated : session));
   };
 
   /** Update user profile */
@@ -320,11 +327,8 @@ const App: React.FC = () => {
 
     const updatedSession = { ...session, sessionName: newName };
     await sessionStorageService.saveSession(updatedSession);
-    
-    if (user) {
-      const updated = await sessionStorageService.getSessionsForUser(user.uid);
-      setSessions(updated);
-    }
+
+    setSessions(prev => prev.map(s => s.id === id ? updatedSession : s));
 
     // Update active session if it's the one being renamed
     if (activeSession?.id === id) {
@@ -351,7 +355,6 @@ const App: React.FC = () => {
           user={userProfile}
           onLoginClick={() => setIsLoginModalOpen(true)}
           onLogout={handleLogout}
-          onDashboardClick={() => setAppState(AppState.DASHBOARD)}
           onLogoClick={() => setAppState(user ? AppState.DASHBOARD : AppState.LANDING)}
           onProfileClick={() => setIsProfileModalOpen(true)}
         />
@@ -369,9 +372,9 @@ const App: React.FC = () => {
                 }}
                 onDeleteSession={async (id) => {
                   await sessionStorageService.deleteSession(id);
-                  if (user) {
-                    const updated = await sessionStorageService.getSessionsForUser(user.uid);
-                    setSessions(updated);
+                  setSessions(prev => prev.filter(session => session.id !== id));
+                  if (activeSession?.id === id) {
+                    setActiveSession(null);
                   }
                 }}
                 onRenameSession={handleRenameSession}
@@ -384,7 +387,6 @@ const App: React.FC = () => {
             {appState === AppState.STUDY_PLAN && activeSession && (
               <StudyPlanView
                 session={activeSession}
-                isQuizReady={isQuizReady}
                 onViewFlashcards={() => {
                   setActiveStepTitle(null);
                   setAppState(AppState.FLASHCARDS);

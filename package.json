@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/genai": "^1.38.0",
     "@tensorflow/tfjs": "^4.22.0",
     "@vitejs/plugin-rsc": "^0.5.17",
     "firebase": "^12.8.0",

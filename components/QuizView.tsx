@@ -1,36 +1,13 @@
 
 import React, { useState } from 'react';
 import { QuizQuestion } from '../types';
+import { renderMathToHtml } from '../services/mathRender';
 
 interface QuizViewProps {
   questions: QuizQuestion[];
   onBack: () => void;
   onComplete: (score: number, total: number) => void;
 }
-
-const formatMath = (text: string) => {
-  if (typeof window === 'undefined' || !(window as any).katex) return text;
-  
-  // Replace double dollar signs first (block mode)
-  let processed = text.replace(/\$\$\s*([\s\S]+?)\s*\$\$/g, (_, math) => {
-    try {
-      return (window as any).katex.renderToString(math.trim(), { displayMode: true, throwOnError: false });
-    } catch (e) {
-      return `$$${math}$$`;
-    }
-  });
-
-  // Replace single dollar signs (inline mode)
-  processed = processed.replace(/\$([^\$]+)\$/g, (_, math) => {
-    try {
-      return (window as any).katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
-    } catch (e) {
-      return `$${math}$`;
-    }
-  });
-
-  return processed;
-};
 
 const QuizView: React.FC<QuizViewProps> = ({ questions, onBack, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -141,7 +118,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, onBack, onComplete }) =>
             Conceptual Inquiry
           </div>
           <h3 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-8 sm:mb-12"
-              dangerouslySetInnerHTML={{ __html: formatMath(currentQuestion.question) }}>
+              dangerouslySetInnerHTML={{ __html: renderMathToHtml(currentQuestion.question) }}>
           </h3>
 
           <div className="grid grid-cols-1 gap-3 sm:gap-4">
@@ -165,7 +142,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, onBack, onComplete }) =>
                       : 'border-slate-50 dark:border-slate-700 hover:border-indigo-200 bg-slate-50/50 dark:bg-slate-900/50'
                   }`}
                 >
-                  <span className="font-bold text-sm sm:text-lg" dangerouslySetInnerHTML={{ __html: formatMath(option) }}></span>
+                  <span className="font-bold text-sm sm:text-lg" dangerouslySetInnerHTML={{ __html: renderMathToHtml(option) }}></span>
                   <div className={`shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-all ml-4 ${
                     isAnsweredCorrect 
                       ? 'bg-emerald-500 border-emerald-500 text-white' 
@@ -196,7 +173,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, onBack, onComplete }) =>
                   Neural Explanation
                 </h4>
                 <p className="text-slate-700 dark:text-slate-300 text-sm sm:text-base font-medium leading-relaxed italic"
-                   dangerouslySetInnerHTML={{ __html: formatMath(currentQuestion.explanation) }}>
+                   dangerouslySetInnerHTML={{ __html: renderMathToHtml(currentQuestion.explanation) }}>
                 </p>
               </div>
               <button 

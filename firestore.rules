@@ -2,31 +2,98 @@ rules_version='2'
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isShortString(value, maxLen) {
+      return value is string && value.size() <= maxLen;
+    }
+
+    function hasOnlyKeys(data, keys) {
+      return data.keys().hasOnly(keys);
+    }
+
+    function validUserProfile(data, userId) {
+      return hasOnlyKeys(data, [
+        "userId",
+        "username",
+        "avatar",
+        "createdAt",
+        "language",
+        "customPrompt"
+      ])
+      && data.userId == userId
+      && isShortString(data.username, 30)
+      && isShortString(data.avatar, 300000)
+      && isShortString(data.createdAt, 40)
+      && (!data.keys().hasAny(["language"]) || isShortString(data.language, 10))
+      && (!data.keys().hasAny(["customPrompt"]) || isShortString(data.customPrompt, 500));
+    }
+
+    function validStudySession(data) {
+      return hasOnlyKeys(data, [
+        "id",
+        "userId",
+        "fileName",
+        "sessionName",
+        "fileType",
+        "createdAt",
+        "studyPlan",
+        "flashcards",
+        "completedSteps",
+        "drillCompleted",
+        "performanceRating",
+        "isPotentiallyInvalid",
+        "validityWarning",
+        "quizHistory"
+      ])
+      && isShortString(data.userId, 128)
+      && isShortString(data.fileName, 200)
+      && (!data.keys().hasAny(["sessionName"]) || isShortString(data.sessionName, 80))
+      && isShortString(data.fileType, 120)
+      && isShortString(data.createdAt, 40)
+      && (!data.keys().hasAny(["validityWarning"]) || isShortString(data.validityWarning, 500))
+      && (!data.keys().hasAny(["studyPlan"]) || data.studyPlan is map)
+      && (!data.keys().hasAny(["flashcards"]) || (data.flashcards is list && data.flashcards.size() <= 500))
+      && (!data.keys().hasAny(["completedSteps"]) || (data.completedSteps is list && data.completedSteps.size() <= 500))
+      && (!data.keys().hasAny(["quizHistory"]) || (data.quizHistory is list && data.quizHistory.size() <= 200));
+    }
+
     // Study sessions collection - users can only access their own sessions
     match /studySessions/{sessionId} {
       // Allow users to read their own sessions
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       
       // Allow users to create sessions for themselves
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && validStudySession(request.resource.data);
       
       // Allow users to update their own sessions
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && validStudySession(request.resource.data);
       
       // Allow users to delete their own sessions
-      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
     
     // User profiles collection - users can only access their own profile
     match /userProfiles/{userId} {
       // Allow users to read their own profile
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if isSignedIn() && request.auth.uid == userId;
       
       // Allow users to create their own profile
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && validUserProfile(request.resource.data, userId);
       
       // Allow users to update their own profile
-      allow update: if request.auth != null && request.auth.uid == userId;
+      allow update: if isSignedIn()
+        && request.auth.uid == userId
+        && validUserProfile(request.resource.data, userId);
     }
     
     // Deny access to any other collections by default

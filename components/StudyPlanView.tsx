@@ -2,39 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { StudySession, StudyStep } from '../types';
+import { renderMathToHtml } from '../services/mathRender';
 
 interface StudyPlanViewProps {
   session: StudySession;
-  isQuizReady: boolean;
   onViewFlashcards: () => void;
   onStepAction: (stepTitle: string) => void;
   onStartQuiz: () => void;
   onBack: () => void;
 }
-
-const formatMath = (text: string) => {
-  if (typeof window === 'undefined' || !(window as any).katex) return text;
-  
-  // Replace double dollar signs first (block mode)
-  let processed = text.replace(/\$\$\s*([\s\S]+?)\s*\$\$/g, (_, math) => {
-    try {
-      return (window as any).katex.renderToString(math.trim(), { displayMode: true, throwOnError: false });
-    } catch (e) {
-      return `$$${math}$$`;
-    }
-  });
-
-  // Replace single dollar signs (inline mode)
-  processed = processed.replace(/\$([^\$]+)\$/g, (_, math) => {
-    try {
-      return (window as any).katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
-    } catch (e) {
-      return `$${math}$`;
-    }
-  });
-
-  return processed;
-};
 
 const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcards, onStepAction, onStartQuiz, onBack }) => {
   const [selectedStep, setSelectedStep] = useState<StudyStep | null>(null);
@@ -105,7 +81,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
                     return (
                       <div key={i} className="pl-6 -indent-4 mb-3">
                         <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed font-medium" 
-                           dangerouslySetInnerHTML={{ __html: formatMath(bulletText) }}>
+                          dangerouslySetInnerHTML={{ __html: renderMathToHtml(bulletText) }}>
                         </p>
                       </div>
                     );
@@ -118,12 +94,12 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
                        {isHeader ? (
                          <div className="mt-8 mb-4">
                            <h4 className="text-slate-900 dark:text-white font-black text-xs sm:text-sm uppercase tracking-[0.25em] border-l-4 border-indigo-600 pl-5 py-2 bg-indigo-50/30 dark:bg-indigo-900/20 rounded-r-xl"
-                               dangerouslySetInnerHTML={{ __html: formatMath(trimmed.replace(/:$/, '')) }}>
+                               dangerouslySetInnerHTML={{ __html: renderMathToHtml(trimmed.replace(/:$/, '')) }}>
                            </h4>
                          </div>
                        ) : (
                          <p className="text-slate-500 dark:text-slate-400 text-base sm:text-lg leading-relaxed font-medium pl-6 border-l border-slate-100 dark:border-slate-800"
-                            dangerouslySetInnerHTML={{ __html: formatMath(trimmed) }}>
+                           dangerouslySetInnerHTML={{ __html: renderMathToHtml(trimmed) }}>
                          </p>
                        )}
                     </div>
@@ -212,7 +188,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
               Overview
             </h3>
             <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed font-medium" 
-               dangerouslySetInnerHTML={{ __html: formatMath(plan.overview) }}></p>
+              dangerouslySetInnerHTML={{ __html: renderMathToHtml(plan.overview) }}></p>
           </div>
 
           {session.quizHistory && session.quizHistory.length > 0 && (

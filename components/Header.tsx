@@ -7,7 +7,6 @@ interface HeaderProps {
   user: UserLocal | null;
   onLoginClick: () => void;
   onLogout: () => void;
-  onDashboardClick: () => void;
   onLogoClick: () => void;
   onProfileClick: () => void;
 }
@@ -28,7 +27,7 @@ export const GemdiLogo: React.FC<{ className?: string }> = ({ className = "w-10 
   </svg>
 );
 
-const Header: React.FC<HeaderProps> = ({ user, onLoginClick, onLogout, onDashboardClick, onLogoClick, onProfileClick }) => {
+const Header: React.FC<HeaderProps> = ({ user, onLoginClick, onLogout, onLogoClick, onProfileClick }) => {
   const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showHowTo, setShowHowTo] = useState(false);

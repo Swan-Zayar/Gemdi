@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import type { StudySession } from './types';
 import { geminiService } from './services/gemini';
+import { validateUploadFile } from './services/fileValidation';
 
 const SESSIONS_COLLECTION = 'studySessions';
 
@@ -56,6 +57,11 @@ export async function processAndCreateSession(
 ): Promise<StudySession> {
   try {
     console.log('Processing file:', file.name);
+
+    const fileError = validateUploadFile(file);
+    if (fileError) {
+      throw new Error(fileError);
+    }
     
     // Convert file to base64
     const fileBase64 = await fileToBase64(file);
@@ -67,7 +73,8 @@ export async function processAndCreateSession(
       fileBase64,
       file.name,
       file.type,
-      customPrompt
+      customPrompt,
+      file.size
     );
 
     console.log('Study materials generated, creating session...');

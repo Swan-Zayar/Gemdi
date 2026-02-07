@@ -1,6 +1,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Flashcard } from '../types';
+import { renderMathToHtml } from '../services/mathRender';
 
 interface FlashcardViewProps {
   flashcards: Flashcard[];
@@ -8,30 +9,6 @@ interface FlashcardViewProps {
   onBack: () => void;
   onComplete: (rating?: number) => void;
 }
-
-const formatMath = (text: string) => {
-  if (typeof window === 'undefined' || !(window as any).katex) return text;
-  
-  // Replace double dollar signs first (block mode)
-  let processed = text.replace(/\$\$\s*([\s\S]+?)\s*\$\$/g, (_, math) => {
-    try {
-      return (window as any).katex.renderToString(math.trim(), { displayMode: true, throwOnError: false });
-    } catch (e) {
-      return `$$${math}$$`;
-    }
-  });
-
-  // Replace single dollar signs (inline mode)
-  processed = processed.replace(/\$([^\$]+)\$/g, (_, math) => {
-    try {
-      return (window as any).katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
-    } catch (e) {
-      return `$${math}$`;
-    }
-  });
-
-  return processed;
-};
 
 const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, onBack, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -228,7 +205,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
               </span>
             )}
             <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight max-w-lg"
-                dangerouslySetInnerHTML={{ __html: formatMath(card.question) }}>
+              dangerouslySetInnerHTML={{ __html: renderMathToHtml(card.question) }}>
             </h3>
             <div className="mt-12 sm:mt-20 flex items-center gap-3 text-slate-300 dark:text-slate-600 animate-pulse">
                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Tap to Flip</span>
@@ -245,7 +222,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
             
             <div className="grow flex flex-col items-center justify-center py-10">
               <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white leading-relaxed max-w-lg mb-8"
-                  dangerouslySetInnerHTML={{ __html: formatMath(card.answer) }}>
+                  dangerouslySetInnerHTML={{ __html: renderMathToHtml(card.answer) }}>
               </h3>
               
               {isLastCard && (
