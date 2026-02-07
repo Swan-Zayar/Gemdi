@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AVATARS, DEFAULT_AVATAR } from '../src/avatars';
+import ImageCropModal from './ImageCropModal';
 
 interface ProfileSetupModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR || '');
   const [error, setError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -23,9 +25,18 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      setSelectedAvatar(result);
+      setImageToCrop(result);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    setSelectedAvatar(croppedImage);
+    setImageToCrop(null);
+  };
+
+  const handleCropCancel = () => {
+    setImageToCrop(null);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -62,7 +73,15 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
   };
 
   return (
-    <div className="fixed inset-0 z-1001 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-fadeIn">
+    <>
+      {imageToCrop && (
+        <ImageCropModal
+          image={imageToCrop}
+          onComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
+      <div className="fixed inset-0 z-1001 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-fadeIn">
       <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-[3rem] p-8 sm:p-10 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp">
         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-8">Welcome to Gemdi!</h2>
 
@@ -145,6 +164,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -4,6 +4,7 @@ import { UserLocal } from '../types';
 import { ThemeMode } from '../services/theme';
 import { AVATARS } from '../src/avatars';
 import { useTranslation } from '../services/i18n';
+import ImageCropModal from './ImageCropModal';
 
 interface ProfileModalProps {
   user: UserLocal;
@@ -64,6 +65,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
   const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
   const [selectedLanguage, setSelectedLanguage] = useState(user.language || 'en');
   const [isDragging, setIsDragging] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -76,9 +78,18 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      setSelectedAvatar(result);
+      setImageToCrop(result);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    setSelectedAvatar(croppedImage);
+    setImageToCrop(null);
+  };
+
+  const handleCropCancel = () => {
+    setImageToCrop(null);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -112,7 +123,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
   };
 
   return (
-    <div className="fixed inset-0 z-1001 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-fadeIn" onClick={onClose}>
+    <>
+      {imageToCrop && (
+        <ImageCropModal
+          image={imageToCrop}
+          onComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
+      <div className="fixed inset-0 z-1001 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-fadeIn" onClick={onClose}>
       <div className="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-[3rem] p-8 sm:p-10 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp" onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-8 right-8 text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -238,6 +257,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
         </div>
       </div>
     </div>
+    </>
   );
 };
 

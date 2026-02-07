@@ -5,7 +5,13 @@ export default {
       "./components/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
-      extend: {},
+      extend: {
+        zIndex: {
+          '1001': '1001',
+          '1002': '1002',
+          '1003': '1003',
+        },
+      },
     },
     plugins: [],
   };
