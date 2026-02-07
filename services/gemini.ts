@@ -36,7 +36,7 @@ export const geminiService = {
       Deliverables:
       1. Study Plan title and overview.
       2. For EACH unit: "title", "description", and exhaustive "detailedNotes" (dash-prefixed technical points).
-      3. 15-20 flashcards.
+      3. CRITICAL - FLASHCARDS: For EACH unit, generate EXACTLY 3-5 flashcards with "stepTitle" matching the unit title exactly. MINIMUM 3 flashcards per unit is MANDATORY.
       4. Key topics.
     `;
 
@@ -88,9 +88,10 @@ export const geminiService = {
                   properties: {
                     question: { type: Type.STRING },
                     answer: { type: Type.STRING },
-                    category: { type: Type.STRING }
+                    category: { type: Type.STRING },
+                    stepTitle: { type: Type.STRING, description: "The title of the step/unit this flashcard belongs to" }
                   },
-                  required: ["question", "answer"]
+                  required: ["question", "answer", "stepTitle"]
                 }
               }
             },

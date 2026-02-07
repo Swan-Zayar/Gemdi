@@ -377,7 +377,10 @@ const App: React.FC = () => {
 
             {appState === AppState.FLASHCARDS && activeSession && (
               <FlashcardView
-                flashcards={activeSession.flashcards || []}
+                flashcards={activeStepTitle 
+                  ? (activeSession.flashcards || []).filter(fc => fc.stepTitle === activeStepTitle)
+                  : activeSession.flashcards || []}
+                stepTitle={activeStepTitle}
                 onBack={() => {
                   setActiveStepTitle(null);
                   setAppState(AppState.STUDY_PLAN);

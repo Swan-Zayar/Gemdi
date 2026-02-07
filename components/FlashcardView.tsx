@@ -4,6 +4,7 @@ import { Flashcard } from '../types';
 
 interface FlashcardViewProps {
   flashcards: Flashcard[];
+  stepTitle?: string | null;
   onBack: () => void;
   onComplete: (rating?: number) => void;
 }
@@ -32,7 +33,7 @@ const formatMath = (text: string) => {
   return processed;
 };
 
-const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onComplete }) => {
+const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, onBack, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [showRating, setShowRating] = useState(false);
@@ -41,6 +42,33 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
   const cardRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<number | null>(null);
   const tiltRef = useRef({ x: 0, y: 0 });
+
+  // Handle empty flashcards
+  if (flashcards.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6 animate-fadeIn py-12 px-4 text-center">
+        <div className="bg-slate-50 dark:bg-slate-800 rounded-3xl p-12 border border-slate-200 dark:border-slate-700">
+          <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-6 mx-auto">
+            <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3">No Flashcards Found</h3>
+          <p className="text-slate-500 dark:text-slate-400 mb-8">
+            {stepTitle 
+              ? `No flashcards were generated for "${stepTitle}". Try studying the full session instead.`
+              : "No flashcards available for this session."}
+          </p>
+          <button 
+            onClick={onBack}
+            className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-sm hover:bg-indigo-600 dark:hover:bg-indigo-100 transition-all active:scale-95"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const card = flashcards[currentIndex];
   const isFirstCard = currentIndex === 0;
@@ -131,18 +159,28 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 sm:space-y-12 animate-fadeIn py-6 sm:py-12 px-4 flex flex-col min-h-[80vh]">
-      <div className="flex items-center justify-between px-2 sm:px-6 shrink-0">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 animate-fadeIn py-4 sm:py-6 px-4 flex flex-col min-h-[80vh]">
+      <div className="flex items-center justify-between px-2 sm:px-6 shrink-0 gap-2 sm:gap-6">
         <button 
           onClick={onBack}
-          className="group flex items-center gap-2 sm:gap-3 font-black text-[10px] sm:text-sm uppercase tracking-widest text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+          className="group flex items-center gap-2 sm:gap-3 font-black text-[10px] sm:text-sm uppercase tracking-widest text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0"
         >
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:-translate-x-1 transition-transform">
              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M15 19l-7-7 7-7"></path></svg>
           </div>
           <span className="hidden sm:inline">Exit Drill</span>
         </button>
-        <div className="flex flex-col items-end">
+        
+        {stepTitle && (
+          <div className="flex-1 text-center px-2 sm:px-4">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] sm:text-sm font-black uppercase tracking-wider border border-indigo-100 dark:border-indigo-900/50">
+              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span className="hidden sm:inline">Phase Drill:</span> {stepTitle}
+            </div>
+          </div>
+        )}
+        
+        <div className="flex flex-col items-end shrink-0">
            <span className="text-[8px] sm:text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">Session Progress</span>
            <div className="flex items-center gap-3 sm:gap-4">
               <span className="text-base sm:text-xl font-black text-slate-900 dark:text-white leading-none">
@@ -189,7 +227,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
                 {card.category}
               </span>
             )}
-            <h3 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight max-w-lg"
+            <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight max-w-lg"
                 dangerouslySetInnerHTML={{ __html: formatMath(card.question) }}>
             </h3>
             <div className="mt-12 sm:mt-20 flex items-center gap-3 text-slate-300 dark:text-slate-600 animate-pulse">
@@ -206,7 +244,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, onBack, onCom
             </div>
             
             <div className="grow flex flex-col items-center justify-center py-10">
-              <h3 className="text-lg sm:text-2xl lg:text-3xl font-bold text-white leading-relaxed max-w-lg mb-8"
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white leading-relaxed max-w-lg mb-8"
                   dangerouslySetInnerHTML={{ __html: formatMath(card.answer) }}>
               </h3>
               

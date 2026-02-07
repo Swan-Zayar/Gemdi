@@ -63,10 +63,10 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
       <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md"></div>
       
       <div 
-        className="w-full max-w-4xl h-[95vh] sm:h-auto sm:max-h-[90vh] bg-white dark:bg-slate-900 rounded-t-[3rem] sm:rounded-[3rem] shadow-[0_32px_128px_-15px_rgba(0,0,0,0.5)] animate-slideUp flex flex-col relative border border-slate-100 dark:border-slate-800 z-10"
+        className="w-full max-w-4xl h-[95vh] sm:h-auto sm:max-h-[90vh] bg-white dark:bg-slate-900 rounded-t-[3rem] sm:rounded-[3rem] shadow-[0_32px_128px_-15px_rgba(0,0,0,0.5)] animate-slideUp flex flex-col relative border border-slate-100 dark:border-slate-800 z-10 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 sm:p-10 flex items-start justify-between bg-white dark:bg-slate-900 shrink-0">
+        <div className="p-6 sm:p-10 flex items-start justify-between shrink-0">
           <div className="flex items-start gap-4 sm:gap-6">
             <div className="w-10 h-10 sm:w-14 sm:h-14 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-lg sm:text-2xl shrink-0">
               {plan.steps.indexOf(selectedStep) + 1}
@@ -74,7 +74,6 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
             <div className="pt-0.5">
               <h3 className="font-black text-xl sm:text-3xl text-slate-900 dark:text-white leading-tight tracking-tight mb-2">{selectedStep.title}</h3>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[9px] sm:text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50/50 dark:bg-indigo-900/20 px-2.5 py-1 rounded-full border border-indigo-100/50 dark:border-indigo-800/50">Technical Node</span>
                 {isStepCompleted(selectedStep.title) && (
                   <span className="text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50/50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full border border-emerald-100/50 dark:border-emerald-800/50 flex items-center gap-1.5">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
@@ -92,7 +91,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
           </button>
         </div>
 
-        <div className="grow overflow-y-auto px-6 sm:px-10 pb-10 custom-scrollbar scroll-smooth bg-white dark:bg-slate-900">
+        <div className="grow overflow-y-auto px-6 sm:px-10 pb-10 custom-scrollbar scroll-smooth">
           <div className="space-y-8 sm:space-y-12">
             <div className="prose prose-slate dark:prose-invert max-w-none">
               <div className="space-y-6">
@@ -212,16 +211,8 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
               <span className="w-1 h-5 sm:w-1.5 sm:h-6 bg-indigo-600 rounded-full"></span>
               Overview
             </h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed mb-6 font-medium" 
+            <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed font-medium" 
                dangerouslySetInnerHTML={{ __html: formatMath(plan.overview) }}></p>
-            
-            <div className="flex flex-wrap gap-2">
-              {plan.topics.map((topic, i) => (
-                <span key={i} className="px-2.5 py-1 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[8px] sm:text-[10px] font-black rounded-lg uppercase tracking-widest border border-slate-100 dark:border-slate-600">
-                  {topic}
-                </span>
-              ))}
-            </div>
           </div>
 
           {session.quizHistory && session.quizHistory.length > 0 && (
@@ -289,9 +280,12 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid transparent; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; margin: 16px 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
         
         @keyframes slideUp {
           from { transform: translateY(100px); opacity: 0; }

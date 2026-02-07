@@ -13,6 +13,7 @@ export interface Flashcard {
   question: string;
   answer: string;
   category?: string;
+  stepTitle?: string;
 }
 
 export interface QuizQuestion {
