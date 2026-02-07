@@ -10,7 +10,7 @@ RUN npm run build
 FROM node:18-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=8080
+ENV PORT=3000
 
 # Install a lightweight static server
 RUN npm install -g serve
