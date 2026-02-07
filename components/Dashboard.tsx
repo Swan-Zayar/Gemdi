@@ -2,6 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { StudySession } from '../types';
 import { useTranslation } from '../services/i18n';
+import { validateCustomPrompt } from '../services/validation';
 
 interface DashboardProps {
   sessions: StudySession[];
@@ -10,13 +11,18 @@ interface DashboardProps {
   onDeleteSession: (id: string) => void;
   onRenameSession: (id: string, newName: string) => void;
   neuralInsight: string;
+  customPrompt?: string;
+  onCustomPromptChange: (prompt: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession, onDeleteSession, onRenameSession, neuralInsight }) => {
+const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession, onDeleteSession, onRenameSession, neuralInsight, customPrompt, onCustomPromptChange }) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [showCustomPromptModal, setShowCustomPromptModal] = useState(false);
+  const [tempPrompt, setTempPrompt] = useState(customPrompt || '');
+  const [promptError, setPromptError] = useState<string | null>(null);
 
   const startEditing = (e: React.MouseEvent, session: StudySession) => {
     e.stopPropagation();
@@ -37,10 +43,39 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
     setEditingName('');
   };
 
+  const handleSaveCustomPrompt = () => {
+    const validation = validateCustomPrompt(tempPrompt);
+    if (!validation.valid) {
+      setPromptError(validation.error || 'Invalid prompt');
+      return;
+    }
+    onCustomPromptChange(tempPrompt);
+    setPromptError(null);
+    setShowCustomPromptModal(false);
+  };
+
+  const handleOpenCustomPrompt = () => {
+    setTempPrompt(customPrompt || '');
+    setPromptError(null);
+    setShowCustomPromptModal(true);
+  };
+
   return (
     <div className="space-y-6 sm:space-y-10 animate-fadeIn py-4 px-1 sm:px-2">
       <div className="relative group">
         <div className="bg-slate-900 dark:bg-black rounded-4xl sm:rounded-[2.5rem] p-6 sm:p-8 md:p-12 text-white relative overflow-hidden shadow-2xl transition-all duration-700">
+          {/* Customize AI Button - Top Right */}
+          <button
+            onClick={handleOpenCustomPrompt}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl text-white text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span className="hidden sm:inline">Customize AI</span>
+          </button>
+
           <div className="relative z-10 max-w-xl text-center sm:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/10 text-indigo-300 text-[9px] font-black uppercase tracking-[0.15em] mb-4 sm:mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_10px_#6366f1]"></span>
@@ -197,6 +232,93 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
           </div>
         )}
       </section>
+
+      {/* Custom Prompt Modal */}
+      {showCustomPromptModal && (
+        <div className="fixed inset-0 z-1002 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-fadeIn" onClick={() => setShowCustomPromptModal(false)}>
+          <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-[3rem] p-8 sm:p-10 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowCustomPromptModal(false)} className="absolute top-8 right-8 text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Customize AI Processing</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  Custom prompts will only apply to future uploads
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block">Custom Instructions</label>
+                <textarea
+                  value={tempPrompt}
+                  onChange={(e) => {
+                    setTempPrompt(e.target.value);
+                    setPromptError(null);
+                  }}
+                  placeholder="Add custom instructions for how Gemini should process your study materials..."
+                  rows={6}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-sm text-slate-700 dark:text-slate-300 resize-none"
+                />
+                <div className="flex items-center justify-between mt-2 px-2">
+                  <span className={`text-xs font-bold ${
+                    tempPrompt.length > 500 ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'
+                  }`}>
+                    {tempPrompt.length}/500 characters
+                  </span>
+                </div>
+                {promptError && (
+                  <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-xl">
+                    <p className="text-red-600 dark:text-red-400 text-xs font-bold flex items-start gap-2">
+                      <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      {promptError}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl p-4">
+                <p className="text-xs font-bold text-indigo-900 dark:text-indigo-100 mb-2">💡 Example Instructions:</p>
+                <ul className="text-xs text-indigo-700 dark:text-indigo-300 space-y-1 list-disc list-inside">
+                  <li>"Focus on practical examples and real-world applications"</li>
+                  <li>"Include more mathematical proofs and derivations"</li>
+                  <li>"Emphasize implementation details and code patterns"</li>
+                  <li>"Add historical context and background information"</li>
+                </ul>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowCustomPromptModal(false)}
+                  className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveCustomPrompt}
+                  className="flex-1 py-3 bg-indigo-600 text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-indigo-700 transition-all active:scale-95"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

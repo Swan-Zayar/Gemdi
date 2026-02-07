@@ -1,15 +1,26 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { StudyPlan, Flashcard, QuizQuestion, StudyStep } from "../types";
 import { intelligenceService } from "./intelligence";
+import { validateCustomPrompt, sanitizePrompt } from "./validation";
 
 export const geminiService = {
-  async processStudyContent(fileBase64: string, fileName: string, fileMimeType: string): Promise<{ studyPlan: StudyPlan; flashcards: Flashcard[]; isStudyMaterial: boolean; validityWarning: string }> {
+  async processStudyContent(fileBase64: string, fileName: string, fileMimeType: string, customPrompt?: string): Promise<{ studyPlan: StudyPlan; flashcards: Flashcard[]; isStudyMaterial: boolean; validityWarning: string }> {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const model = 'gemini-3-flash-preview';
 
     const learnedContext = await intelligenceService.learnFromSessions([]);
     const optimizationInstruction = intelligenceService.getPromptInstruction(learnedContext);
+
+    // Validate and sanitize custom prompt for security
+    let safeCustomPrompt = '';
+    if (customPrompt) {
+      const validation = validateCustomPrompt(customPrompt);
+      if (validation.valid) {
+        safeCustomPrompt = sanitizePrompt(customPrompt);
+      } else {
+        console.warn('Invalid custom prompt rejected:', validation.error);
+      }
+    }
 
     const prompt = `
       You are a world-class Lead Professor. Perform an EXHAUSTIVE EXTRACTION of: ${fileName}.
@@ -27,7 +38,6 @@ export const geminiService = {
 
       MATH/SCIENCE NOTATION RULES:
       - Use ONLY single dollar signs for inline math ($x^2$).
-      - Use double dollar signs for centered block math ($$E=mc^2$$).
       - CRITICAL: NO spaces between dollar signs and content (e.g., use "$x$" NOT "$ x $").
       - Use standard LaTeX for subscripts (_), superscripts (^), and fractions (\\frac).
       
@@ -38,6 +48,7 @@ export const geminiService = {
       2. For EACH unit: "title", "description", and exhaustive "detailedNotes" (dash-prefixed technical points).
       3. CRITICAL - FLASHCARDS: For EACH unit, generate EXACTLY 3-5 flashcards with "stepTitle" matching the unit title exactly. MINIMUM 3 flashcards per unit is MANDATORY.
       4. Key topics.
+      ${safeCustomPrompt ? `\n\nADDITIONAL CUSTOM INSTRUCTIONS FROM USER:\n${safeCustomPrompt}` : ''}
     `;
 
     try {

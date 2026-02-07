@@ -7,6 +7,7 @@ export interface UserLocal {
   password?: string; // Stored in mock registry
   learnedPreferences?: string;
   language?: string; // User's preferred language
+  customPrompt?: string; // Custom instructions for Gemini processing
 }
 
 export interface Flashcard {

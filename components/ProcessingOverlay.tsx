@@ -56,7 +56,7 @@ const ProcessingOverlay: React.FC = () => {
         {/* Text Section */}
         <div className="w-full space-y-6 sm:space-y-8">
           <div className="space-y-2">
-            <h2 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-slate-300 dark:text-slate-600">Neural Syncing</h2>
+            <h2 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-slate-300 dark:text-slate-600">Gemdi is working...</h2>
             <div className="h-8 sm:h-12 flex items-center justify-center">
                <p className="text-slate-900 dark:text-white font-black text-xl sm:text-3xl tracking-tight transition-all duration-500">
                  {MESSAGES[msgIndex]}

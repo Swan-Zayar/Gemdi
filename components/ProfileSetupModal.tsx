@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AVATARS, DEFAULT_AVATAR } from '../src/avatars';
 import ImageCropModal from './ImageCropModal';
+import { validateUsername } from '../services/validation';
 
 interface ProfileSetupModalProps {
   isOpen: boolean;
@@ -61,12 +62,9 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
   };
 
   const handleComplete = () => {
-    if (!username.trim()) {
-      setError('Please enter a username');
-      return;
-    }
-    if (username.trim().length < 2) {
-      setError('Username must be at least 2 characters');
+    const validation = validateUsername(username);
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid username');
       return;
     }
     onComplete(username.trim(), selectedAvatar);

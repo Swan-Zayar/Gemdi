@@ -51,7 +51,8 @@ export async function deleteSession(id: string): Promise<void> {
  */
 export async function processAndCreateSession(
   file: File,
-  userId: string
+  userId: string,
+  customPrompt?: string
 ): Promise<StudySession> {
   try {
     console.log('Processing file:', file.name);
@@ -65,7 +66,8 @@ export async function processAndCreateSession(
     const result = await geminiService.processStudyContent(
       fileBase64,
       file.name,
-      file.type
+      file.type,
+      customPrompt
     );
 
     console.log('Study materials generated, creating session...');

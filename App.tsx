@@ -152,7 +152,8 @@ const App: React.FC = () => {
       // This is where you'd call your file processing service
       const newSession = await sessionStorageService.processAndCreateSession(
         file, 
-        user.uid
+        user.uid,
+        userProfile?.customPrompt
       );
       
       // Add the new session to the list
@@ -202,7 +203,9 @@ const App: React.FC = () => {
         id: profile.userId,
         name: profile.username,
         email: loggedInUser.email || '',
-        avatar: profile.avatar
+        avatar: profile.avatar,
+        language: profile.language,
+        customPrompt: profile.customPrompt
       });
       setAppState(AppState.DASHBOARD);
     } else {
@@ -234,7 +237,9 @@ const App: React.FC = () => {
       userId: user.uid,
       username,
       avatar,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      language: userProfile?.language,
+      customPrompt: userProfile?.customPrompt
     };
 
     await userProfileService.saveUserProfile(profile);
@@ -276,12 +281,18 @@ const App: React.FC = () => {
   /** Update user profile */
   const handleProfileUpdate = async (updatedProfile: UserLocal) => {
     if (!user) return;
-    
-    await userProfileService.updateUserProfile(user.uid, {
+
+    const updates: Partial<userProfileService.UserProfile> = {
       username: updatedProfile.name,
       avatar: updatedProfile.avatar,
-      language: updatedProfile.language
-    });
+      language: updatedProfile.language,
+      customPrompt: updatedProfile.customPrompt
+    };
+
+    if (updates.language === undefined) delete updates.language;
+    if (updates.customPrompt === undefined) delete updates.customPrompt;
+
+    await userProfileService.updateUserProfile(user.uid, updates);
     
     setUserProfile(updatedProfile);
   };
@@ -289,6 +300,16 @@ const App: React.FC = () => {
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode);
     themeService.saveTheme(mode);
+  };
+
+  const handleCustomPromptChange = async (prompt: string) => {
+    if (!user || !userProfile) return;
+    
+    const updatedProfile = { ...userProfile, customPrompt: prompt };
+    await userProfileService.updateUserProfile(user.uid, {
+      customPrompt: prompt
+    });
+    setUserProfile(updatedProfile);
   };
 
 
@@ -355,6 +376,8 @@ const App: React.FC = () => {
                 }}
                 onRenameSession={handleRenameSession}
                 neuralInsight={neuralInsight}
+                customPrompt={userProfile?.customPrompt}
+                onCustomPromptChange={handleCustomPromptChange}
               />
             )}
 

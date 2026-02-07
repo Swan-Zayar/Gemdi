@@ -7,6 +7,7 @@ export interface UserProfile {
   avatar: string;
   createdAt: string;
   language?: string;
+  customPrompt?: string;
 }
 
 const PROFILES_COLLECTION = 'userProfiles';

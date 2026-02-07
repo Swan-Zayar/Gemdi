@@ -1,16 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserLocal } from '../types';
 import { ThemeMode } from '../services/theme';
 import { AVATARS } from '../src/avatars';
 import { useTranslation } from '../services/i18n';
 import ImageCropModal from './ImageCropModal';
+import { validateUsername } from '../services/validation';
 
 interface ProfileModalProps {
   user: UserLocal;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (updatedUser: UserLocal) => void;
+  onUpdate: (updatedUser: UserLocal) => Promise<void>;
   themeMode: ThemeMode;
   onThemeChange: (mode: ThemeMode) => void;
 }
@@ -64,9 +65,22 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
   const [selectedAvatar, setSelectedAvatar] = useState(user.avatar);
   const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
   const [selectedLanguage, setSelectedLanguage] = useState(user.language || 'en');
+  const [nameError, setNameError] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setName(user.name);
+    setSelectedAvatar(user.avatar);
+    setSelectedTheme(themeMode);
+    setSelectedLanguage(user.language || 'en');
+    setNameError('');
+    setSaveError('');
+  }, [isOpen, user, themeMode]);
 
   if (!isOpen) return null;
 
@@ -113,13 +127,27 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
     if (file) handleImageUpload(file);
   };
 
-  const handleSave = () => {
-    onUpdate({ ...user, name, avatar: selectedAvatar, language: selectedLanguage });
-    setLanguage(selectedLanguage as any);
-    if (selectedTheme !== themeMode) {
-      onThemeChange(selectedTheme);
+  const handleSave = async () => {
+    const validation = validateUsername(name);
+    if (!validation.valid) {
+      setNameError(validation.error || 'Invalid username');
+      return;
     }
-    onClose();
+    setIsSaving(true);
+    setSaveError('');
+    try {
+      await onUpdate({ ...user, name, avatar: selectedAvatar, language: selectedLanguage });
+      setLanguage(selectedLanguage as any);
+      if (selectedTheme !== themeMode) {
+        onThemeChange(selectedTheme);
+      }
+      onClose();
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      setSaveError('Failed to save profile. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -212,9 +240,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
               <input 
                 type="text" 
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={e => {
+                  setName(e.target.value);
+                  setNameError('');
+                }}
                 className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
               />
+              {nameError && (
+                <p className="text-red-500 text-xs font-bold mt-2 ml-2">{nameError}</p>
+              )}
             </div>
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">{t('profile.email')}</label>
@@ -250,8 +284,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
               </p>
             </div>
 
-            <button onClick={handleSave} className="w-full py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl tracking-widest uppercase text-sm hover:shadow-2xl transition-all active:scale-95">
-              {t('profile.savePreferences')}
+            {saveError && (
+              <p className="text-red-500 text-xs font-bold mt-2 ml-2">{saveError}</p>
+            )}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="w-full py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl tracking-widest uppercase text-sm hover:shadow-2xl transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isSaving ? 'Saving...' : t('profile.savePreferences')}
             </button>
           </div>
         </div>
