@@ -6,6 +6,7 @@ export interface UserProfile {
   username: string;
   avatar: string;
   createdAt: string;
+  language?: string;
 }
 
 const PROFILES_COLLECTION = 'userProfiles';

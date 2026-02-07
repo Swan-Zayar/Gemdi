@@ -18,6 +18,7 @@ import * as sessionStorageService from './firebaseStorageService';
 import * as userProfileService from './userProfileService';
 import { geminiService } from './services/gemini';
 import { intelligenceService } from './services/intelligence';
+import { I18nProvider } from './services/i18n';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -63,7 +64,8 @@ const App: React.FC = () => {
               id: profile.userId,
               name: profile.username,
               email: firebaseUser.email || '',
-              avatar: profile.avatar
+              avatar: profile.avatar,
+              language: profile.language || 'en'
             });
             setAppState(AppState.DASHBOARD);
           } else {
@@ -277,7 +279,8 @@ const App: React.FC = () => {
     
     await userProfileService.updateUserProfile(user.uid, {
       username: updatedProfile.name,
-      avatar: updatedProfile.avatar
+      avatar: updatedProfile.avatar,
+      language: updatedProfile.language
     });
     
     setUserProfile(updatedProfile);
@@ -321,15 +324,16 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300">
-      <Header
-        user={userProfile}
-        onLoginClick={() => setIsLoginModalOpen(true)}
-        onLogout={handleLogout}
-        onDashboardClick={() => setAppState(AppState.DASHBOARD)}
-        onLogoClick={() => setAppState(user ? AppState.DASHBOARD : AppState.LANDING)}
-        onProfileClick={() => setIsProfileModalOpen(true)}
-      />
+    <I18nProvider defaultLanguage={(userProfile?.language as any) || 'en'}>
+      <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300">
+        <Header
+          user={userProfile}
+          onLoginClick={() => setIsLoginModalOpen(true)}
+          onLogout={handleLogout}
+          onDashboardClick={() => setAppState(AppState.DASHBOARD)}
+          onLogoClick={() => setAppState(user ? AppState.DASHBOARD : AppState.LANDING)}
+          onProfileClick={() => setIsProfileModalOpen(true)}
+        />
 
       <main className="grow w-full max-w-7xl mx-auto px-4">
         {user ? (
@@ -435,7 +439,8 @@ const App: React.FC = () => {
       )}
       <ProfileSetupModal isOpen={isProfileSetupOpen} onComplete={handleProfileSetupComplete} />
       {isProcessing && <ProcessingOverlay />}
-    </div>
+      </div>
+    </I18nProvider>
   );
 };
 

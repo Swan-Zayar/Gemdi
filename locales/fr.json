@@ -1,0 +1,75 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "upload": "Télécharger",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour",
+    "next": "Suivant",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "loading": "Chargement..."
+  },
+  "header": {
+    "appName": "Gemdi",
+    "howToUse": "Comment utiliser Gemdi"
+  },
+  "profile": {
+    "title": "Paramètres du Profil",
+    "displayName": "Nom d'Affichage",
+    "email": "E-mail",
+    "theme": "Thème",
+    "language": "Langue",
+    "savePreferences": "Enregistrer les Préférences",
+    "uploadImage": "Télécharger une image personnalisée",
+    "uploadImageFile": "Veuillez télécharger un fichier image",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeSystem": "Système",
+    "themeNote": "Le système utilise l'apparence de votre OS.",
+    "themeWarning": "Remarque : Assurez-vous que le thème du site Web ne soit pas en conflit avec le thème de votre OS/navigateur pour une meilleure expérience.",
+    "languageOptions": {
+      "en": "🇬🇧 Anglais",
+      "es": "🇪🇸 Espagnol",
+      "fr": "🇫🇷 Français",
+      "de": "🇩🇪 Allemand",
+      "zh": "🇨🇳 Chinois",
+      "ja": "🇯🇵 Japonais",
+      "my": "🇲🇲 Birman",
+      "ms": "🇲🇾 Malais"
+    }
+  },
+  "howTo": {
+    "title": "Comment Utiliser Gemdi",
+    "step1Title": "Téléchargez Votre Matériel d'Étude",
+    "step1Desc": "Cliquez sur le bouton de téléchargement sur votre tableau de bord et sélectionnez vos notes d'étude, PDFs ou documents. L'IA de Gemdi analysera et traitera votre contenu.",
+    "step2Title": "Consultez Votre Plan d'Étude",
+    "step2Desc": "Une fois traité, Gemdi génère un plan d'étude personnalisé avec des sujets organisés, des cartes et des notes détaillées extraites de votre matériel.",
+    "step3Title": "Pratiquez avec les Cartes",
+    "step3Desc": "Cliquez sur n'importe quelle phase d'étude pour lancer des exercices interactifs avec des cartes. Appuyez pour retourner les cartes et suivez votre progression à travers chaque session.",
+    "step4Title": "Testez Vos Connaissances",
+    "step4Desc": "Passez des quiz générés par l'IA pour évaluer votre compréhension. Gemdi s'adapte à votre style d'apprentissage au fil du temps en fonction de vos performances.",
+    "step5Title": "Personnalisez Votre Expérience",
+    "step5Desc": "Cliquez sur votre profil pour personnaliser votre avatar, nom d'affichage et préférences de thème (clair, sombre ou système).",
+    "proTip": "Astuce :",
+    "proTipDesc": "Évaluez votre session après chaque exercice pour aider l'IA de Gemdi à apprendre vos préférences et optimiser les futurs supports d'étude pour votre style d'apprentissage."
+  },
+  "dashboard": {
+    "poweredBy": "Propulsé par Gemini",
+    "learnWithDepth": "Apprenez avec",
+    "newDepth": "Nouvelle Profondeur.",
+    "dropMaterial": "Déposer du Matériel d'Étude",
+    "pdfDocxOnly": "PDF ou DOCX uniquement",
+    "studyVault": "Coffre-fort d'Étude",
+    "knowledgeAssets": "Actifs de connaissances architecturaux",
+    "sessions": "sessions",
+    "vaultEmpty": "Le coffre-fort est vide",
+    "startProcessing": "Commencez par traiter un document.",
+    "renameSession": "Renommer la session",
+    "enterRoadmap": "Entrer dans le Plan",
+    "progress": "Progrès",
+    "aiFoundUnusual": "L'IA a trouvé ce document inhabituel pour du matériel d'étude."
+  }
+}

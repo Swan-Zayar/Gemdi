@@ -1,0 +1,79 @@
+{
+  "common": {
+    "login": "Log Masuk",
+    "logout": "Log Keluar",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "upload": "Muat Naik",
+    "delete": "Padam",
+    "edit": "Edit",
+    "close": "Tutup",
+    "back": "Kembali",
+    "next": "Seterusnya",
+    "loading": "Memuatkan...",
+    "error": "Ralat",
+    "success": "Berjaya"
+  },
+  "header": {
+    "appName": "Gemdi",
+    "howToUse": "Cara Menggunakan"
+  },
+  "profile": {
+    "title": "Profil",
+    "displayName": "Nama Paparan",
+    "email": "E-mel",
+    "theme": "Tema",
+    "language": "Bahasa",
+    "savePreferences": "Simpan Keutamaan",
+    "uploadImage": "Muat naik imej tersuai",
+    "uploadImageFile": "Sila muat naik fail imej",
+    "themeLight": "Terang",
+    "themeDark": "Gelap",
+    "themeSystem": "Sistem",
+    "themeNote": "Sistem menggunakan penampilan OS anda.",
+    "themeWarning": "Nota: Pastikan tema laman web tidak bercanggah dengan tema OS/pelayar anda untuk pengalaman terbaik.",
+    "languageOptions": {
+      "en": "🇬🇧 English",
+      "es": "🇪🇸 Español",
+      "fr": "🇫🇷 Français",
+      "de": "🇩🇪 Deutsch",
+      "zh": "🇨🇳 中文",
+      "ja": "🇯🇵 日本語",
+      "my": "🇲🇲 မြန်မာ",
+      "ms": "🇲🇾 Bahasa Melayu"
+    },
+    "profileUpdated": "Profil berjaya dikemas kini!",
+    "profileUpdateFailed": "Gagal mengemas kini profil."
+  },
+  "howTo": {
+    "title": "Cara Menggunakan Gemdi",
+    "step1Title": "Muat Naik Bahan Pembelajaran Anda",
+    "step1Desc": "Klik butang muat naik pada papan pemuka anda dan pilih nota pembelajaran, PDF atau dokumen anda. AI Gemdi akan menganalisis dan memproses kandungan anda.",
+    "step2Title": "Semak Pelan Pembelajaran Anda",
+    "step2Desc": "Setelah diproses, Gemdi menghasilkan pelan pembelajaran yang diperibadikan dengan topik yang teratur, kad imbas dan nota terperinci yang diekstrak daripada bahan anda.",
+    "step3Title": "Berlatih dengan Kad Imbas",
+    "step3Desc": "Klik pada mana-mana fasa pembelajaran untuk melancarkan latihan kad imbas interaktif. Ketik untuk membalikkan kad dan jejaki kemajuan anda melalui setiap sesi.",
+    "step4Title": "Uji Pengetahuan Anda",
+    "step4Desc": "Ambil kuiz yang dijana AI untuk menilai pemahaman anda. Gemdi menyesuaikan diri dengan gaya pembelajaran anda dari masa ke masa berdasarkan prestasi anda.",
+    "step5Title": "Sesuaikan Pengalaman Anda",
+    "step5Desc": "Klik profil anda untuk memperibadikan avatar, nama paparan dan pilihan tema anda (terang, gelap atau sistem).",
+    "proTip": "Petua Profesional:",
+    "proTipDesc": "Nilai sesi anda selepas setiap latihan untuk membantu AI Gemdi mempelajari pilihan anda dan mengoptimumkan bahan pembelajaran masa depan untuk gaya pembelajaran anda."
+  },
+  "dashboard": {
+    "poweredBy": "Dikuasakan Oleh Gemini",
+    "learnWithDepth": "Belajar dengan",
+    "newDepth": "Kedalaman Baharu",
+    "dropMaterial": "Lepaskan Bahan Pembelajaran",
+    "pdfDocxOnly": "PDF atau DOCX sahaja",
+    "studyVault": "Bilik Kebal Pembelajaran",
+    "knowledgeAssets": "Aset pengetahuan seni bina",
+    "sessions": "sesi",
+    "vaultEmpty": "Bilik kebal kosong",
+    "startProcessing": "Mulakan dengan memproses dokumen.",
+    "renameSession": "Namakan semula sesi",
+    "enterRoadmap": "Masuki Peta Jalan",
+    "progress": "Kemajuan",
+    "aiFoundUnusual": "AI mendapati dokumen ini luar biasa untuk bahan pembelajaran."
+  }
+}

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { UserLocal } from '../types';
 import { ThemeMode } from '../services/theme';
 import { AVATARS } from '../src/avatars';
+import { useTranslation } from '../services/i18n';
 
 interface ProfileModalProps {
   user: UserLocal;
@@ -45,10 +46,23 @@ const THEME_OPTIONS: { mode: ThemeMode; label: string; icon: React.ReactNode }[]
   }
 ];
 
+const LANGUAGE_OPTIONS = [
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'zh', label: '中文', flag: '🇨🇳' },
+  { code: 'ja', label: '日本語', flag: '🇯🇵' },
+  { code: 'my', label: 'မြန်မာ', flag: '🇲🇲' },
+  { code: 'ms', label: 'Bahasa Melayu', flag: '🇲🇾' },
+];
+
 const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUpdate, themeMode, onThemeChange }) => {
+  const { t, setLanguage } = useTranslation();
   const [name, setName] = useState(user.name);
   const [selectedAvatar, setSelectedAvatar] = useState(user.avatar);
   const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
+  const [selectedLanguage, setSelectedLanguage] = useState(user.language || 'en');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -56,7 +70,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
 
   const handleImageUpload = (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      alert(t('profile.uploadImageFile'));
       return;
     }
     const reader = new FileReader();
@@ -89,7 +103,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
   };
 
   const handleSave = () => {
-    onUpdate({ ...user, name, avatar: selectedAvatar });
+    onUpdate({ ...user, name, avatar: selectedAvatar, language: selectedLanguage });
+    setLanguage(selectedLanguage as any);
     if (selectedTheme !== themeMode) {
       onThemeChange(selectedTheme);
     }
@@ -103,7 +118,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
 
-        <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-8">Profile Settings</h2>
+        <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-8">{t('profile.title')}</h2>
 
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Side - Avatar Section */}
@@ -146,19 +161,35 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                   fileInputRef.current?.click();
                 }}
                 className="w-12 h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
-                title="Upload custom image"
+                title={t('profile.uploadImage')}
               >
                 <svg className="w-6 h-6 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
                 </svg>
               </button>
+            </div><br/>
+
+            {/* Language Selection */}
+            <div className="w-full mt-6">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-center">{t('profile.language')}</label>
+              <select 
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+              >
+                {LANGUAGE_OPTIONS.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           {/* Right Side - Settings Section */}
           <div className="flex flex-col md:w-1/2 lg:w-3/5 space-y-6">
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Display Name</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">{t('profile.displayName')}</label>
               <input 
                 type="text" 
                 value={name}
@@ -167,7 +198,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
               />
             </div>
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Email</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">{t('profile.email')}</label>
               <input 
                 type="text" 
                 disabled
@@ -176,7 +207,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
               />
             </div>
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Theme</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">{t('profile.theme')}</label>
               <div className="grid grid-cols-3 gap-3">
                 {THEME_OPTIONS.map((option) => (
                   <button
@@ -195,13 +226,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                 ))}
               </div>
               <p className="mt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500">
-                System uses your OS appearance. <br/>
-                Note: Make sure the website theme doesn't conflict with your OS theme for best experience.
+                {t('profile.themeNote')} <br/>
+                {t('profile.themeWarning')}
               </p>
             </div>
 
             <button onClick={handleSave} className="w-full py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl tracking-widest uppercase text-sm hover:shadow-2xl transition-all active:scale-95">
-              Save Preferences
+              {t('profile.savePreferences')}
             </button>
           </div>
         </div>

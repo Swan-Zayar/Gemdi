@@ -1,0 +1,75 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "upload": "アップロード",
+    "delete": "削除",
+    "edit": "編集",
+    "back": "戻る",
+    "next": "次へ",
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "loading": "読み込み中..."
+  },
+  "header": {
+    "appName": "Gemdi",
+    "howToUse": "Gemdiの使い方"
+  },
+  "profile": {
+    "title": "プロフィール設定",
+    "displayName": "表示名",
+    "email": "メール",
+    "theme": "テーマ",
+    "language": "言語",
+    "savePreferences": "設定を保存",
+    "uploadImage": "カスタム画像をアップロード",
+    "uploadImageFile": "画像ファイルをアップロードしてください",
+    "themeLight": "ライト",
+    "themeDark": "ダーク",
+    "themeSystem": "システム",
+    "themeNote": "システムはOSの外観を使用します。",
+    "themeWarning": "注意：最適な体験のために、ウェブサイトのテーマがOS/ブラウザのテーマと競合しないようにしてください。",
+    "languageOptions": {
+      "en": "🇬🇧 英語",
+      "es": "🇪🇸 スペイン語",
+      "fr": "🇫🇷 フランス語",
+      "de": "🇩🇪 ドイツ語",
+      "zh": "🇨🇳 中国語",
+      "ja": "🇯🇵 日本語",
+      "my": "🇲🇲 ビルマ語",
+      "ms": "🇲🇾 マレー語"
+    }
+  },
+  "howTo": {
+    "title": "Gemdiの使い方",
+    "step1Title": "学習資料をアップロード",
+    "step1Desc": "ダッシュボードのアップロードボタンをクリックして、学習ノート、PDF、または文書を選択してください。GemdiのAIがコンテンツを分析して処理します。",
+    "step2Title": "学習プランを確認",
+    "step2Desc": "処理が完了すると、Gemdiは整理されたトピック、フラッシュカード、資料から抽出された詳細なノートを含むパーソナライズされた学習プランを生成します。",
+    "step3Title": "フラッシュカードで練習",
+    "step3Desc": "任意の学習フェーズをクリックして、インタラクティブなフラッシュカードドリルを開始します。タップしてカードを裏返し、各セッションの進捗を追跡します。",
+    "step4Title": "知識をテスト",
+    "step4Desc": "AI生成のクイズを受けて理解度を評価します。Gemdiはパフォーマンスに基づいて、時間とともに学習スタイルに適応します。",
+    "step5Title": "体験をカスタマイズ",
+    "step5Desc": "プロフィールをクリックして、アバター、表示名、テーマの設定（ライト、ダーク、またはシステム）をパーソナライズします。",
+    "proTip": "プロのヒント：",
+    "proTipDesc": "各ドリルの後にセッションを評価して、GemdiのAIがあなたの好みを学習し、学習スタイルに合わせて将来の学習資料を最適化するのを助けてください。"
+  },
+  "dashboard": {
+    "poweredBy": "Gemini で動作",
+    "learnWithDepth": "深く学ぶ",
+    "newDepth": "新しい深さ。",
+    "dropMaterial": "学習資料をアップロード",
+    "pdfDocxOnly": "PDFまたはDOCXのみ",
+    "studyVault": "学習ボルト",
+    "knowledgeAssets": "アーキテクチャ知識資産",
+    "sessions": "セッション",
+    "vaultEmpty": "ボルトは空です",
+    "startProcessing": "ドキュメントの処理から始めてください。",
+    "renameSession": "セッション名を変更",
+    "enterRoadmap": "ロードマップに入る",
+    "progress": "進捗",
+    "aiFoundUnusual": "AIは、このドキュメントが学習資料として異常であることを発見しました。"
+  }
+}

@@ -1,6 +1,7 @@
 
 import React, { useRef, useState } from 'react';
 import { StudySession } from '../types';
+import { useTranslation } from '../services/i18n';
 
 interface DashboardProps {
   sessions: StudySession[];
@@ -12,6 +13,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession, onDeleteSession, onRenameSession, neuralInsight }) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -42,10 +44,10 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
           <div className="relative z-10 max-w-xl text-center sm:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/10 text-indigo-300 text-[9px] font-black uppercase tracking-[0.15em] mb-4 sm:mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_10px_#6366f1]"></span>
-              Powered By Gemini
+              {t('dashboard.poweredBy')}
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 tracking-tighter leading-[1.1] sm:leading-[0.9]">
-              Learn with <br /><span className="text-indigo-500">New Depth.</span>
+              {t('dashboard.learnWithDepth')} <br /><span className="text-indigo-500">{t('dashboard.newDepth')}</span>
             </h2>
           
 
@@ -55,10 +57,10 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                 className="w-full sm:w-auto relative bg-indigo-600 text-white px-6 sm:px-8 py-4 rounded-xl sm:rounded-2xl font-black hover:bg-white hover:text-slate-900 transition-all flex items-center justify-center gap-3 chic-shadow text-sm sm:text-base active:scale-95"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path></svg>
-                Drop Study Material
+                {t('dashboard.dropMaterial')}
               </button>
               <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] sm:text-[10px] font-black text-indigo-300 uppercase tracking-widest">
-                PDF or DOCX only
+                {t('dashboard.pdfDocxOnly')}
               </div>
             </div>
             
@@ -80,11 +82,11 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
       <section>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 px-2 sm:px-4 gap-4">
           <div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-50 tracking-tight">Study Vault</h3>
-            <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] sm:text-xs mt-0.5">Architectural knowledge assets</p>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-50 tracking-tight">{t('dashboard.studyVault')}</h3>
+            <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] sm:text-xs mt-0.5">{t('dashboard.knowledgeAssets')}</p>
           </div>
           <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-200/50 dark:border-slate-700/50 chic-shadow text-[9px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">
-            {sessions.length} sessions
+            {sessions.length} {t('dashboard.sessions')}
           </div>
         </div>
 
@@ -93,8 +95,8 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
             <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-50 dark:bg-slate-800 text-slate-200 dark:text-slate-700 rounded-2xl flex items-center justify-center mb-6 mx-auto">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
             </div>
-            <p className="text-slate-900 dark:text-slate-100 text-lg sm:text-xl font-black mb-1">Vault is empty</p>
-            <p className="text-slate-400 dark:text-slate-500 text-xs sm:text-sm font-bold">Start by processing a document.</p>
+            <p className="text-slate-900 dark:text-slate-100 text-lg sm:text-xl font-black mb-1">{t('dashboard.vaultEmpty')}</p>
+            <p className="text-slate-400 dark:text-slate-500 text-xs sm:text-sm font-bold">{t('dashboard.startProcessing')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-2">
@@ -111,7 +113,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                     </div>
                     <div className="flex items-center gap-2">
                       {session.isPotentiallyInvalid && (
-                        <div className="bg-amber-100 dark:bg-amber-900/30 p-2 rounded-lg text-amber-600 dark:text-amber-400" title="AI found this document unusual for study material.">
+                        <div className="bg-amber-100 dark:bg-amber-900/30 p-2 rounded-lg text-amber-600 dark:text-amber-400" title={t('dashboard.aiFoundUnusual')}>
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                         </div>
                       )}
@@ -154,7 +156,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                       <button
                         onClick={(e) => startEditing(e, session)}
                         className="p-1 text-slate-300 dark:text-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all opacity-0 group-hover:opacity-100"
-                        title="Rename session"
+                        title={t('dashboard.renameSession')}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                       </button>
@@ -168,11 +170,11 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                 
                 <div className="w-full flex items-center justify-between py-3 sm:py-4 border-t border-slate-50 dark:border-slate-700 group-hover:border-indigo-100 dark:group-hover:border-indigo-900/50 transition-all mt-4 sm:mt-6">
                   <div className="flex flex-col flex-1">
-                    <span className="text-[9px] sm:text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest">Enter Roadmap</span>
+                    <span className="text-[9px] sm:text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest">{t('dashboard.enterRoadmap')}</span>
                     {session.studyPlan && session.studyPlan.steps.length > 0 && (
                       <div className="mt-2 w-full">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[7px] sm:text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Progress</span>
+                          <span className="text-[7px] sm:text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('dashboard.progress')}</span>
                           <span className="text-[8px] sm:text-[9px] font-black text-indigo-600 dark:text-indigo-400">
                             {Math.round(((session.completedSteps?.length || 0) / session.studyPlan.steps.length) * 100)}%
                           </span>

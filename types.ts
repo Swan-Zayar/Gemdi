@@ -5,7 +5,8 @@ export interface UserLocal {
   email: string;
   avatar: string;
   password?: string; // Stored in mock registry
-  learnedPreferences?: string; 
+  learnedPreferences?: string;
+  language?: string; // User's preferred language
 }
 
 export interface Flashcard {

@@ -1,0 +1,75 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "upload": "Upload",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "login": "Login",
+    "logout": "Log Out",
+    "loading": "Loading..."
+  },
+  "header": {
+    "appName": "Gemdi",
+    "howToUse": "How to use Gemdi"
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "displayName": "Display Name",
+    "email": "Email",
+    "theme": "Theme",
+    "language": "Language",
+    "savePreferences": "Save Preferences",
+    "uploadImage": "Upload custom image",
+    "uploadImageFile": "Please upload an image file",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "themeNote": "System uses your OS appearance.",
+    "themeWarning": "Note: Make sure the website theme doesn't conflict with your OS/browser theme for best experience.",
+    "languageOptions": {
+      "en": "🇬🇧 English",
+      "es": "🇪🇸 Español",
+      "fr": "🇫🇷 Français",
+      "de": "🇩🇪 Deutsch",
+      "zh": "🇨🇳 中文",
+      "ja": "🇯🇵 日本語",
+      "my": "🇲🇲 Burmese",
+      "ms": "🇲🇾 Malay"
+    }
+  },
+  "howTo": {
+    "title": "How to Use Gemdi",
+    "step1Title": "Upload Your Study Material",
+    "step1Desc": "Click the upload button on your dashboard and select your study notes, PDFs, or documents. Gemdi's AI will analyze and process your content.",
+    "step2Title": "Review Your Study Plan",
+    "step2Desc": "Once processed, Gemdi generates a personalized study plan with organized topics, flashcards, and detailed notes extracted from your material.",
+    "step3Title": "Practice with Flashcards",
+    "step3Desc": "Click on any study phase to launch interactive flashcard drills. Tap to flip cards and track your progress through each session.",
+    "step4Title": "Test Your Knowledge",
+    "step4Desc": "Take AI-generated quizzes to assess your understanding. Gemdi adapts to your learning style over time based on your performance.",
+    "step5Title": "Customize Your Experience",
+    "step5Desc": "Click your profile to personalize your avatar, display name, and theme preferences (light, dark, or system).",
+    "proTip": "Pro Tip:",
+    "proTipDesc": "Rate your session after each drill to help Gemdi's AI learn your preferences and optimize future study materials for your learning style."
+  },
+  "dashboard": {
+    "poweredBy": "Powered By Gemini",
+    "learnWithDepth": "Learn with",
+    "newDepth": "New Depth.",
+    "dropMaterial": "Drop Study Material",
+    "pdfDocxOnly": "PDF or DOCX only",
+    "studyVault": "Study Vault",
+    "knowledgeAssets": "Your keys to success",
+    "sessions": "sessions",
+    "vaultEmpty": "Vault is empty",
+    "startProcessing": "Start by processing a document.",
+    "renameSession": "Rename session",
+    "enterRoadmap": "Enter Roadmap",
+    "progress": "Progress",
+    "aiFoundUnusual": "AI found this document unusual for study material."
+  }
+}

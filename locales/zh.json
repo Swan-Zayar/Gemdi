@@ -1,0 +1,75 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "close": "关闭",
+    "upload": "上传",
+    "delete": "删除",
+    "edit": "编辑",
+    "back": "返回",
+    "next": "下一个",
+    "login": "登录",
+    "logout": "退出登录",
+    "loading": "加载中..."
+  },
+  "header": {
+    "appName": "Gemdi",
+    "howToUse": "如何使用 Gemdi"
+  },
+  "profile": {
+    "title": "个人资料设置",
+    "displayName": "显示名称",
+    "email": "电子邮件",
+    "theme": "主题",
+    "language": "语言",
+    "savePreferences": "保存偏好设置",
+    "uploadImage": "上传自定义图片",
+    "uploadImageFile": "请上传图片文件",
+    "themeLight": "浅色",
+    "themeDark": "深色",
+    "themeSystem": "系统",
+    "themeNote": "系统使用您操作系统的外观。",
+    "themeWarning": "注意：确保网站主题与您的操作系统/浏览器主题不冲突，以获得最佳体验。",
+    "languageOptions": {
+      "en": "🇬🇧 英语",
+      "es": "🇪🇸 西班牙语",
+      "fr": "🇫🇷 法语",
+      "de": "🇩🇪 德语",
+      "zh": "🇨🇳 中文",
+      "ja": "🇯🇵 日语",
+      "my": "🇲🇲 缅甸语",
+      "ms": "🇲🇾 马来语"
+    }
+  },
+  "howTo": {
+    "title": "如何使用 Gemdi",
+    "step1Title": "上传您的学习材料",
+    "step1Desc": "点击仪表板上的上传按钮，选择您的学习笔记、PDF 或文档。Gemdi 的 AI 将分析和处理您的内容。",
+    "step2Title": "查看您的学习计划",
+    "step2Desc": "处理完成后，Gemdi 会生成一个个性化的学习计划，其中包含有组织的主题、抽认卡和从您的材料中提取的详细笔记。",
+    "step3Title": "使用抽认卡练习",
+    "step3Desc": "点击任何学习阶段以启动交互式抽认卡练习。点击翻转卡片并跟踪您在每个练习中的进度。",
+    "step4Title": "测试您的知识",
+    "step4Desc": "参加 AI 生成的测验以评估您的理解。Gemdi 会根据您的表现随时间调整您的学习风格。",
+    "step5Title": "自定义您的体验",
+    "step5Desc": "点击您的个人资料以个性化您的头像、显示名称和主题偏好（浅色、深色或系统）。",
+    "proTip": "专业提示：",
+    "proTipDesc": "在每次练习后对您的练习进行评分，以帮助 Gemdi 的 AI 了解您的偏好并为您的学习风格优化未来的学习材料。"
+  },
+  "dashboard": {
+    "poweredBy": "由 Gemini 提供支持",
+    "learnWithDepth": "深度学习",
+    "newDepth": "新深度。",
+    "dropMaterial": "上传学习材料",
+    "pdfDocxOnly": "仅限 PDF 或 DOCX",
+    "studyVault": "学习保险库",
+    "knowledgeAssets": "架构知识资产",
+    "sessions": "个会话",
+    "vaultEmpty": "保险库为空",
+    "startProcessing": "从处理文档开始。",
+    "renameSession": "重命名会话",
+    "enterRoadmap": "进入路线图",
+    "progress": "进度",
+    "aiFoundUnusual": "AI 发现此文档对于学习材料来说不寻常。"
+  }
+}

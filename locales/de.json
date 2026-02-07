@@ -1,0 +1,75 @@
+{
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "upload": "Hochladen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "back": "Zurück",
+    "next": "Weiter",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "loading": "Lädt..."
+  },
+  "header": {
+    "appName": "Gemdi",
+    "howToUse": "Wie man Gemdi benutzt"
+  },
+  "profile": {
+    "title": "Profileinstellungen",
+    "displayName": "Anzeigename",
+    "email": "E-Mail",
+    "theme": "Design",
+    "language": "Sprache",
+    "savePreferences": "Einstellungen Speichern",
+    "uploadImage": "Benutzerdefiniertes Bild hochladen",
+    "uploadImageFile": "Bitte laden Sie eine Bilddatei hoch",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "themeSystem": "System",
+    "themeNote": "System verwendet das Erscheinungsbild Ihres Betriebssystems.",
+    "themeWarning": "Hinweis: Stellen Sie sicher, dass das Website-Design nicht mit dem Design Ihres Betriebssystems/Browsers in Konflikt steht, um die beste Erfahrung zu erzielen.",
+    "languageOptions": {
+      "en": "🇬🇧 Englisch",
+      "es": "🇪🇸 Spanisch",
+      "fr": "🇫🇷 Französisch",
+      "de": "🇩🇪 Deutsch",
+      "zh": "🇨🇳 Chinesisch",
+      "ja": "🇯🇵 Japanisch",
+      "my": "🇲🇲 Birmanisch",
+      "ms": "🇲🇾 Malaiisch"
+    }
+  },
+  "howTo": {
+    "title": "Wie Man Gemdi Benutzt",
+    "step1Title": "Laden Sie Ihr Lernmaterial Hoch",
+    "step1Desc": "Klicken Sie auf die Upload-Schaltfläche in Ihrem Dashboard und wählen Sie Ihre Lernnotizen, PDFs oder Dokumente aus. Gemdis KI wird Ihren Inhalt analysieren und verarbeiten.",
+    "step2Title": "Überprüfen Sie Ihren Lernplan",
+    "step2Desc": "Nach der Verarbeitung erstellt Gemdi einen personalisierten Lernplan mit organisierten Themen, Karteikarten und detaillierten Notizen aus Ihrem Material.",
+    "step3Title": "Üben Sie mit Karteikarten",
+    "step3Desc": "Klicken Sie auf eine beliebige Lernphase, um interaktive Karteikarten-Übungen zu starten. Tippen Sie zum Umdrehen der Karten und verfolgen Sie Ihren Fortschritt durch jede Sitzung.",
+    "step4Title": "Testen Sie Ihr Wissen",
+    "step4Desc": "Absolvieren Sie KI-generierte Quizze, um Ihr Verständnis zu bewerten. Gemdi passt sich im Laufe der Zeit basierend auf Ihrer Leistung an Ihren Lernstil an.",
+    "step5Title": "Passen Sie Ihre Erfahrung An",
+    "step5Desc": "Klicken Sie auf Ihr Profil, um Ihren Avatar, Anzeigenamen und Design-Präferenzen (hell, dunkel oder System) zu personalisieren.",
+    "proTip": "Profi-Tipp:",
+    "proTipDesc": "Bewerten Sie Ihre Sitzung nach jeder Übung, um Gemdis KI zu helfen, Ihre Präferenzen zu lernen und zukünftige Lernmaterialien für Ihren Lernstil zu optimieren."
+  },
+  "dashboard": {
+    "poweredBy": "Unterstützt von Gemini",
+    "learnWithDepth": "Lernen mit",
+    "newDepth": "Neuer Tiefe.",
+    "dropMaterial": "Lernmaterial Hochladen",
+    "pdfDocxOnly": "Nur PDF oder DOCX",
+    "studyVault": "Lerntresor",
+    "knowledgeAssets": "Architektonische Wissensbestände",
+    "sessions": "Sitzungen",
+    "vaultEmpty": "Tresor ist leer",
+    "startProcessing": "Beginnen Sie mit der Verarbeitung eines Dokuments.",
+    "renameSession": "Sitzung umbenennen",
+    "enterRoadmap": "Plan Starten",
+    "progress": "Fortschritt",
+    "aiFoundUnusual": "KI fand dieses Dokument für Lernmaterial ungewöhnlich."
+  }
+}
