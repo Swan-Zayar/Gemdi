@@ -23,24 +23,57 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
   const [showCustomPromptModal, setShowCustomPromptModal] = useState(false);
   const [tempPrompt, setTempPrompt] = useState(customPrompt || '');
   const [promptError, setPromptError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+  const [deletingSession, setDeletingSession] = useState<string | null>(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
+  const [renameName, setRenameName] = useState('');
 
   const startEditing = (e: React.MouseEvent, session: StudySession) => {
     e.stopPropagation();
-    setEditingId(session.id);
-    setEditingName(session.sessionName || session.fileName);
+    setRenameSessionId(session.id);
+    setRenameName(session.sessionName || session.fileName);
+    setShowRenameModal(true);
   };
 
-  const saveEdit = (sessionId: string) => {
-    if (editingName.trim()) {
-      onRenameSession(sessionId, editingName.trim());
+  const saveRename = () => {
+    if (renameSessionId && renameName.trim()) {
+      onRenameSession(renameSessionId, renameName.trim());
     }
-    setEditingId(null);
-    setEditingName('');
+    setShowRenameModal(false);
+    setRenameSessionId(null);
+    setRenameName('');
   };
 
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditingName('');
+  const cancelRename = () => {
+    setShowRenameModal(false);
+    setRenameSessionId(null);
+    setRenameName('');
+  };
+
+  const confirmDelete = (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+    setSessionToDelete(sessionId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = () => {
+    if (sessionToDelete) {
+      setDeletingSession(sessionToDelete);
+      setShowDeleteModal(false);
+      // Wait for magic disappear animation then delete
+      setTimeout(() => {
+        onDeleteSession(sessionToDelete);
+        setSessionToDelete(null);
+        setDeletingSession(null);
+      }, 600);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setSessionToDelete(null);
   };
 
   const handleSaveCustomPrompt = () => {
@@ -138,7 +171,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
             {sessions.map((session) => (
               <div 
                 key={session.id}
-                className={`group relative p-5 sm:p-6 rounded-2xl sm:rounded-4xl border transition-all md:tilt-card chic-shadow cursor-pointer flex flex-col min-h-50 sm:min-h-62.5 ${session.drillCompleted ? 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/30' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
+                className={`group relative p-5 sm:p-6 rounded-2xl sm:rounded-4xl border transition-all duration-300 ease-out md:tilt-card chic-shadow cursor-pointer flex flex-col min-h-50 sm:min-h-62.5 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl ${deletingSession === session.id ? 'animate-disappear' : ''} ${session.drillCompleted ? 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/30' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
                 onClick={() => onOpenSession(session)}
               >
                 <div className="mb-auto">
@@ -152,39 +185,12 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                         </div>
                       )}
-                      <button onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id); }} className="p-1 text-slate-300 dark:text-slate-600 hover:text-red-500 transition-all">
+                      <button onClick={(e) => confirmDelete(e, session.id)} className="p-1 text-slate-300 dark:text-slate-600 hover:text-red-500 transition-all hover:scale-110">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                       </button>
                     </div>
                   </div>
-                  {editingId === session.id ? (
-                    <div className="flex items-center gap-2 mb-1" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="text"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveEdit(session.id);
-                          if (e.key === 'Escape') cancelEdit();
-                        }}
-                        className="flex-1 font-black text-lg sm:text-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 px-2 py-1 rounded-lg border-2 border-indigo-500 focus:outline-none"
-                        autoFocus
-                      />
-                      <button
-                        onClick={() => saveEdit(session.id)}
-                        className="p-1 text-green-600 hover:text-green-700"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        className="p-1 text-slate-400 hover:text-slate-600"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-black text-lg sm:text-xl text-slate-900 dark:text-slate-50 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tight flex-1">
                         {session.sessionName || session.fileName}
                       </h4>
@@ -196,7 +202,6 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                       </button>
                     </div>
-                  )}
                   <div className="flex items-center gap-2">
                     <span className="text-[7px] sm:text-[8px] font-black text-indigo-500 dark:text-indigo-400 uppercase bg-indigo-50 dark:bg-indigo-900/30 px-1.5 sm:px-2 py-0.5 rounded-full">{session.fileType.split('/')[1]?.toUpperCase() || 'DOC'}</span>
                     <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-500">{new Date(session.createdAt).toLocaleDateString()}</span>
@@ -232,6 +237,93 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
           </div>
         )}
       </section>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-1002 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-fadeIn" onClick={cancelDelete}>
+          <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-4xl p-8 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center">
+                <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+              </div>
+            </div>
+            
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-center mb-2">Delete Study Session?</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-8">
+              This action cannot be undone. All study progress, flashcards, and quiz results will be permanently deleted.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-3 bg-red-600 text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-red-700 transition-all active:scale-95"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Confirmation Modal */}
+      {showRenameModal && (
+        <div className="fixed inset-0 z-1002 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-fadeIn" onClick={cancelRename}>
+          <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-4xl p-8 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center">
+                <svg className="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                </svg>
+              </div>
+            </div>
+            
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-center mb-2">Rename Session</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
+              Enter a new name for this study session
+            </p>
+
+            <input
+              type="text"
+              value={renameName}
+              onChange={(e) => setRenameName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') saveRename();
+                if (e.key === 'Escape') cancelRename();
+              }}
+              placeholder="Session name..."
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-base text-slate-700 dark:text-slate-300 mb-6"
+              autoFocus
+            />
+
+            <div className="flex gap-3">
+              <button
+                onClick={cancelRename}
+                className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveRename}
+                className="flex-1 py-3 bg-indigo-600 text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-indigo-700 transition-all active:scale-95"
+              >
+                Rename
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400 dark:text-slate-500 text-center mt-4">
+              Press <span className="font-bold text-indigo-600 dark:text-indigo-400">Enter</span> to confirm or <span className="font-bold">Esc</span> to cancel
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Custom Prompt Modal */}
       {showCustomPromptModal && (

@@ -177,9 +177,17 @@ const App: React.FC = () => {
       // Add the new session to the list
       setSessions(prev => [newSession, ...prev]);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing file:', error);
-      alert('Failed to process file. Please try again.');
+      const errorMessage = error?.message || 'Unknown error occurred';
+      const userMessage = errorMessage.includes('API key') 
+        ? 'API configuration error. Please contact support.'
+        : errorMessage.includes('quota')
+        ? 'API quota exceeded. Please try again later.'
+        : errorMessage.includes('size')
+        ? 'File is too large. Please use a file under 50MB.'
+        : `Failed to process file: ${errorMessage}`;
+      alert(userMessage);
     } finally {
       setIsProcessing(false);
       // Reset file input

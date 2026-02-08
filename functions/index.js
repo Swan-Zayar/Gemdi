@@ -1,11 +1,8 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
-const { GoogleGenAI, Type } = require("@google/genai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 admin.initializeApp();
-
-const GEMINI_API_KEY = defineSecret("AIzaSyAXdNEGRfGmWV58Oz80w4fzT83hXHpGN2A");
 
 const MAX_PROMPT_LENGTH = 500;
 const ALLOWED_FILE_TYPES = new Set([
@@ -29,13 +26,14 @@ const validateCommon = (data) => {
   }
 };
 
-exports.geminiProxy = onCall({ secrets: [GEMINI_API_KEY] }, async (request) => {
+exports.geminiProxy = onCall(async (request) => {
   const { data } = request;
   validateCommon(data);
 
-  const apiKey = GEMINI_API_KEY.value();
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new HttpsError("failed-precondition", "Missing GEMINI_API_KEY");
+    console.error("GEMINI_API_KEY environment variable is not set");
+    throw new HttpsError("failed-precondition", "API key not configured. Set GEMINI_API_KEY environment variable in Cloud Run.");
   }
 
   const { action, payload } = data;
@@ -43,8 +41,8 @@ exports.geminiProxy = onCall({ secrets: [GEMINI_API_KEY] }, async (request) => {
     throw new HttpsError("invalid-argument", "Missing action or payload");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
-  const model = "gemini-3-flash-preview";
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   if (action === "processStudyContent") {
     const { fileBase64, fileName, fileMimeType, customPrompt, fileSize } = payload;
@@ -61,6 +59,8 @@ exports.geminiProxy = onCall({ secrets: [GEMINI_API_KEY] }, async (request) => {
     }
 
     const safeCustomPrompt = sanitizePrompt(customPrompt);
+
+    console.log(`Processing file: ${fileName}, type: ${fileMimeType}, size: ${fileSize || 'unknown'} bytes`);
 
     const prompt = `
       You are a world-class Lead Professor. Perform an EXHAUSTIVE EXTRACTION of: ${fileName}.
@@ -89,75 +89,83 @@ exports.geminiProxy = onCall({ secrets: [GEMINI_API_KEY] }, async (request) => {
       ${safeCustomPrompt ? `\n\nADDITIONAL CUSTOM INSTRUCTIONS FROM USER:\n${safeCustomPrompt}` : ""}
     `;
 
-    const response = await ai.models.generateContent({
-      model,
-      contents: {
-        parts: [
-          { inlineData: { data: fileBase64, mimeType: fileMimeType } },
-          { text: prompt }
-        ]
-      },
-      config: {
-        thinkingConfig: { thinkingBudget: 24576 },
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            isStudyMaterial: { type: Type.BOOLEAN },
-            validityWarning: { type: Type.STRING },
-            studyPlan: {
-              type: Type.OBJECT,
-              properties: {
-                title: { type: Type.STRING },
-                overview: { type: Type.STRING },
-                topics: { type: Type.ARRAY, items: { type: Type.STRING } },
-                steps: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      title: { type: Type.STRING },
-                      description: { type: Type.STRING },
-                      detailedNotes: { type: Type.STRING }
-                    },
-                    required: ["title", "description", "detailedNotes"]
-                  }
-                }
-              },
-              required: ["title", "overview", "steps", "topics"]
-            },
-            flashcards: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
+    try {
+      const response = await model.generateContent([
+        {
+          inlineData: {
+            data: fileBase64,
+            mimeType: fileMimeType
+          }
+        },
+        { text: prompt }
+      ],
+      {
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "object",
+            properties: {
+              isStudyMaterial: { type: "boolean" },
+              validityWarning: { type: "string" },
+              studyPlan: {
+                type: "object",
                 properties: {
-                  question: { type: Type.STRING },
-                  answer: { type: Type.STRING },
-                  category: { type: Type.STRING },
-                  stepTitle: { type: Type.STRING }
+                  title: { type: "string" },
+                  overview: { type: "string" },
+                  topics: { type: "array", items: { type: "string" } },
+                  steps: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string" },
+                        description: { type: "string" },
+                        detailedNotes: { type: "string" }
+                      },
+                      required: ["title", "description", "detailedNotes"]
+                    }
+                  }
                 },
-                required: ["question", "answer", "stepTitle"]
+                required: ["title", "overview", "steps", "topics"]
+              },
+              flashcards: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    question: { type: "string" },
+                    answer: { type: "string" },
+                    category: { type: "string" },
+                    stepTitle: { type: "string" }
+                  },
+                  required: ["question", "answer", "stepTitle"]
+                }
               }
-            }
-          },
-          required: ["isStudyMaterial", "validityWarning", "studyPlan", "flashcards"]
+            },
+            required: ["isStudyMaterial", "validityWarning", "studyPlan", "flashcards"]
+          }
         }
+      });
+
+      const result = await response.response;
+      let text = result.text() || "{}";
+      if (text.includes("```")) {
+        const match = text.match(/```(?:json)?([\s\S]*?)```/);
+        if (match) text = match[1].trim();
       }
-    });
 
-    let text = response.text || "{}";
-    if (text.includes("```")) {
-      const match = text.match(/```(?:json)?([\s\S]*?)```/);
-      if (match) text = match[1].trim();
+      const parsedResult = JSON.parse(text);
+      console.log("Successfully processed file and generated study materials");
+      return {
+        studyPlan: parsedResult.studyPlan,
+        flashcards: parsedResult.flashcards || [],
+        isStudyMaterial: parsedResult.isStudyMaterial ?? true,
+        validityWarning: parsedResult.validityWarning || ""
+      };
+    } catch (error) {
+      console.error("Error in processStudyContent:", error);
+      throw new HttpsError("internal", `Failed to process file: ${error.message}`);
     }
-
-    const result = JSON.parse(text);
-    return {
-      studyPlan: result.studyPlan,
-      flashcards: result.flashcards || [],
-      isStudyMaterial: result.isStudyMaterial ?? true,
-      validityWarning: result.validityWarning || ""
-    };
   }
 
   if (action === "generateQuiz") {
@@ -180,33 +188,38 @@ exports.geminiProxy = onCall({ secrets: [GEMINI_API_KEY] }, async (request) => {
       ${context}
     `;
 
-    const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              question: { type: Type.STRING },
-              options: { type: Type.ARRAY, items: { type: Type.STRING } },
-              correctAnswer: { type: Type.STRING },
-              explanation: { type: Type.STRING }
-            },
-            required: ["question", "options", "correctAnswer", "explanation"]
+    try {
+      const response = await model.generateContent(prompt, {
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                question: { type: "string" },
+                options: { type: "array", items: { type: "string" } },
+                correctAnswer: { type: "string" },
+                explanation: { type: "string" }
+              },
+              required: ["question", "options", "correctAnswer", "explanation"]
+            }
           }
         }
-      }
-    });
+      });
 
-    let text = response.text || "[]";
-    if (text.includes("```")) {
-      const match = text.match(/```(?:json)?([\s\S]*?)```/);
-      if (match) text = match[1].trim();
+      const result = await response.response;
+      let text = result.text() || "[]";
+      if (text.includes("```")) {
+        const match = text.match(/```(?:json)?([\s\S]*?)```/);
+        if (match) text = match[1].trim();
+      }
+      console.log("Successfully generated quiz");
+      return JSON.parse(text);
+    } catch (error) {
+      console.error("Error in generateQuiz:", error);
+      throw new HttpsError("internal", `Failed to generate quiz: ${error.message}`);
     }
-    return JSON.parse(text);
   }
 
   throw new HttpsError("invalid-argument", "Unsupported action");

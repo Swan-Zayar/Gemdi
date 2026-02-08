@@ -3,10 +3,10 @@
   "private": true,
   "main": "index.js",
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "dependencies": {
-    "@google/genai": "^1.38.0",
+    "@google/generative-ai": "^0.21.0",
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^4.8.0"
   }
