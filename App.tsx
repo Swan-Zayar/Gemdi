@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserLocal | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [loadingDashboard, setLoadingDashboard] = useState(false);
   const [appState, setAppState] = useState<AppState>(AppState.LANDING);
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [activeSession, setActiveSession] = useState<StudySession | null>(null);
@@ -56,6 +57,7 @@ const App: React.FC = () => {
         if (firebaseUser) {
           console.log('User authenticated:', firebaseUser.uid);
           setUser(firebaseUser);
+          setLoadingDashboard(true);
           
           // Load user profile
           const profile = await userProfileService.getUserProfile(firebaseUser.uid);
@@ -72,6 +74,7 @@ const App: React.FC = () => {
             // New user - show profile setup
             setIsProfileSetupOpen(true);
             setAppState(AppState.LANDING);
+            setLoadingDashboard(false);
           }
           
           try {
@@ -86,12 +89,18 @@ const App: React.FC = () => {
           } catch (error) {
             console.error('Error loading user sessions:', error);
             setSessions([]);
+          } finally {
+            // Dashboard data loaded - hide loading screen
+            if (profile) {
+              setLoadingDashboard(false);
+            }
           }
         } else {
           console.log('No user, showing landing page');
           setUser(null);
           setAppState(AppState.LANDING);
           setSessions([]);
+          setLoadingDashboard(false);
         }
         setLoadingAuth(false);
         console.log('Loading auth set to false');
@@ -195,6 +204,7 @@ const App: React.FC = () => {
     console.log('handleLogin called for:', loggedInUser.uid);
     setUser(loggedInUser);
     setIsLoginModalOpen(false);
+    setLoadingDashboard(true);
     
     // Check if user has a profile
     const profile = await userProfileService.getUserProfile(loggedInUser.uid);
@@ -211,6 +221,7 @@ const App: React.FC = () => {
     } else {
       // New user - show profile setup
       setIsProfileSetupOpen(true);
+      setLoadingDashboard(false);
     }
 
     try {
@@ -226,6 +237,11 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Error loading user sessions after login:', error);
       setSessions([]); // Set empty sessions on error
+    } finally {
+      // Dashboard data loaded - hide loading screen
+      if (profile) {
+        setLoadingDashboard(false);
+      }
     }
   };
 
@@ -464,7 +480,7 @@ const App: React.FC = () => {
         />
       )}
       <ProfileSetupModal isOpen={isProfileSetupOpen} onComplete={handleProfileSetupComplete} />
-      {isProcessing && <ProcessingOverlay />}
+      {(isProcessing || loadingDashboard) && <ProcessingOverlay />}
       </div>
     </I18nProvider>
   );
