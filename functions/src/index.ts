@@ -47,7 +47,7 @@ const handleGeminiRequest = async (data: unknown) => {
   }
 
   const ai = new GoogleGenAI({apiKey});
-  const model = "gemini-2.0-flash";
+  const model = "gemini-3-flash-preview";
 
   if (action === "processStudyContent") {
     const {
@@ -107,9 +107,17 @@ const handleGeminiRequest = async (data: unknown) => {
       - NO IMAGES: Do not describe or generate visual aids.
       - NO TIME ESTIMATES: Do not calculate study durations.
 
+      TOPIC STRUCTURE RULES:
+      - Each unit/step must map to ONE main topic.
+      - Do not merge unrelated topics; split into separate units instead.
+      - Unit titles must be concise and unique (no duplicates).
+      - The studyPlan.topics array must list the main concepts in order of
+        appearance; no duplicates, no minor subtopics.
+
       MATH/SCIENCE NOTATION RULES:
-      - Use ONLY single dollar signs for inline math ($x^2$).
-      - CRITICAL: NO spaces between dollar signs and content (use "$x$").
+      - Do NOT use $ or $$ delimiters anywhere.
+      - Use KaTeX-friendly LaTeX with \( ... \) for inline math and
+        \[ ... \] for display math.
       - Use standard LaTeX for subscripts (_), superscripts (^), and fractions
         (\\frac).
 
@@ -264,7 +272,9 @@ const handleGeminiRequest = async (data: unknown) => {
 
     const prompt = `
       Generate a 10-question MCQ quiz for: "${studyPlan.title}".
-      - USE LaTeX notation ($...$) for math.
+      - Use KaTeX-friendly LaTeX with \( ... \) for inline math and
+        \[ ... \] for display math.
+      - Do NOT use $ or $$ delimiters anywhere.
       - Ensure detailed explanations.
 
       CONTEXT:
