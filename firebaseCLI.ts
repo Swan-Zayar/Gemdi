@@ -3,9 +3,17 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
 
-// Firebase configuration pulled from Vite environment variables.
+declare global {
+  interface Window {
+    __APP_CONFIG__?: Record<string, string>;
+  }
+}
+
+// Firebase configuration pulled from runtime config first, then Vite env.
 const getEnv = (key: keyof ImportMetaEnv) => {
-  const v = import.meta.env[key];
+  const runtimeValue = typeof window !== 'undefined' ? window.__APP_CONFIG__?.[key as string] : undefined;
+  const viteValue = import.meta.env[key];
+  const v = runtimeValue || viteValue;
   if (!v) throw new Error(`${key} is not set`);
   return String(v);
 };

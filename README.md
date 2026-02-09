@@ -48,7 +48,7 @@ Students often get overwhelmed by dense PDFs and messy notes. Gemdi extracts the
 
 ### Environment Variables
 
-Create a .env file with Firebase client config:
+Local development uses a .env file with Firebase client config:
 
 ```
 VITE_FIREBASE_API_KEY=
@@ -58,6 +58,8 @@ VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 ```
+
+Cloud Run expects these values as runtime environment variables (the container generates `/config.js` on startup).
 
 Set the Gemini API key as a Firebase Functions secret:
 
@@ -88,7 +90,14 @@ firebase deploy --only functions,firestore:rules
 
 ```
 docker build -t gemdi .
-docker run --rm -e PORT=3000 -p 3000:3000 gemdi
+docker run --rm -e PORT=3000 \
+	-e VITE_FIREBASE_API_KEY=... \
+	-e VITE_FIREBASE_AUTH_DOMAIN=... \
+	-e VITE_FIREBASE_PROJECT_ID=... \
+	-e VITE_FIREBASE_STORAGE_BUCKET=... \
+	-e VITE_FIREBASE_MESSAGING_SENDER_ID=... \
+	-e VITE_FIREBASE_APP_ID=... \
+	-p 3000:3000 gemdi
 ```
 
 ```
@@ -96,7 +105,7 @@ gcloud run deploy gemdi \
 	--source . \
 	--region asia-northeast2 \
 	--allow-unauthenticated \
-	--set-env-vars PORT=3000
+	--set-env-vars PORT=3000,VITE_FIREBASE_API_KEY=...,VITE_FIREBASE_AUTH_DOMAIN=...,VITE_FIREBASE_PROJECT_ID=...,VITE_FIREBASE_STORAGE_BUCKET=...,VITE_FIREBASE_MESSAGING_SENDER_ID=...,VITE_FIREBASE_APP_ID=...
 ```
 
 ## Security Notes
