@@ -289,7 +289,7 @@ export const geminiProxy = onCall({
   secrets: ["GEMINI_API_KEY"],
   // Increase memory and timeout to better handle large files and bigger model outputs
   timeoutSeconds: 300,
-  memory: "512MiB",
+  memory: "1GiB",
 }, async (request) => {
   return handleGeminiRequest(request.data as unknown);
 });
