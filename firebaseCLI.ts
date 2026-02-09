@@ -39,7 +39,7 @@ export const auth = getAuth(app);
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
 });
-export const functions = getFunctions(app, 'us-central1');
+export const functions = getFunctions(app, 'asia-northeast2');
 
 // When running the app locally in dev, connect to the Functions emulator
 // so callable functions hit the local emulator instead of production.

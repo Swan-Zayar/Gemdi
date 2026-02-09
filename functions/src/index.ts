@@ -285,6 +285,7 @@ const handleGeminiRequest = async (data: unknown) => {
 };
 
 export const geminiProxy = onCall({
+  region: 'asia-northeast2',
   secrets: ["GEMINI_API_KEY"],
   // Increase memory and timeout to better handle large files and bigger model outputs
   timeoutSeconds: 300,
@@ -293,7 +294,7 @@ export const geminiProxy = onCall({
   return handleGeminiRequest(request.data as unknown);
 });
 
-export const geminiProxyHttp = onRequest(async (req, res) => {
+export const geminiProxyHttp = onRequest({ region: 'asia-northeast2' }, async (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Methods", "POST,OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type");
