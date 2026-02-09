@@ -1,4 +1,4 @@
-import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {onCall, onRequest, HttpsError} from "firebase-functions/v2/https";
 import {GoogleGenAI, Type} from "@google/genai";
 
 const MAX_PROMPT_LENGTH = 500;
@@ -23,8 +23,8 @@ const validateCommon = (data: unknown) => {
   }
 };
 
-export const geminiProxy = onCall({secrets: ["GEMINI_API_KEY"]}, async (request) => {
-  validateCommon(request.data);
+const handleGeminiRequest = async (data: unknown) => {
+  validateCommon(data);
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -32,7 +32,7 @@ export const geminiProxy = onCall({secrets: ["GEMINI_API_KEY"]}, async (request)
     throw new HttpsError("failed-precondition", "API key not configured. Set GEMINI_API_KEY environment variable in Cloud Run.");
   }
 
-  const {action, payload} = request.data as {
+  const {action, payload} = (data as any) as {
     action?: string;
     payload?: Record<string, unknown>;
   };
@@ -260,4 +260,38 @@ export const geminiProxy = onCall({secrets: ["GEMINI_API_KEY"]}, async (request)
   }
 
   throw new HttpsError("invalid-argument", "Unsupported action");
+};
+
+export const geminiProxy = onCall({secrets: ["GEMINI_API_KEY"]}, async (request) => {
+  return handleGeminiRequest(request.data as unknown);
+});
+
+export const geminiProxyHttp = onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST,OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
+  try {
+    const result = await handleGeminiRequest(req.body);
+    res.json(result);
+  } catch (err) {
+    const e: any = err;
+    if (e && e.code) {
+      const statusMap: Record<string, number> = {
+        "invalid-argument": 400,
+        "failed-precondition": 412,
+        "internal": 500,
+        "permission-denied": 403,
+      };
+      const status = statusMap[e.code] || 500;
+      res.status(status).json({error: e.message || String(e)});
+    } else {
+      res.status(500).json({error: (err as Error).message || "Internal error"});
+    }
+  }
 });

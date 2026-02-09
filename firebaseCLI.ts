@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { initializeFirestore } from 'firebase/firestore';
-import { getFunctions } from 'firebase/functions';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 type AppConfigKey =
   | 'VITE_FIREBASE_API_KEY'
@@ -40,3 +40,14 @@ export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
 });
 export const functions = getFunctions(app, 'us-central1');
+
+// When running the app locally in dev, connect to the Functions emulator
+// so callable functions hit the local emulator instead of production.
+if (typeof import.meta !== 'undefined' && (import.meta.env?.DEV || import.meta.env?.VITE_USE_FIREBASE_EMULATOR === 'true')) {
+  try {
+    connectFunctionsEmulator(functions, 'localhost', 5001);
+    console.log('Connected to Functions emulator at http://localhost:5001');
+  } catch (e) {
+    // ignore if emulator lib not available in this environment
+  }
+}
