@@ -1,13 +1,5 @@
-<<<<<<< HEAD:functions/src/index.ts
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {GoogleGenAI, Type} from "@google/genai";
-=======
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const admin = require("firebase-admin");
-const { GoogleGenAI, Type } = require("@google/genai");
-
-admin.initializeApp();
->>>>>>> ui:functions/index.js
 
 const MAX_PROMPT_LENGTH = 500;
 const ALLOWED_FILE_TYPES = new Set([
@@ -31,20 +23,9 @@ const validateCommon = (data: unknown) => {
   }
 };
 
-<<<<<<< HEAD:functions/src/index.ts
-export const geminiProxy = onCall(async (request) => {
+export const geminiProxy = onCall({secrets: ["GEMINI_API_KEY"]}, async (request) => {
   validateCommon(request.data);
 
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Authentication required");
-  }
-
-=======
-exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) => {
-  const { data } = request;
-  validateCommon(data);
-
->>>>>>> ui:functions/index.js
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error("GEMINI_API_KEY environment variable is not set");
@@ -60,13 +41,8 @@ exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) =>
     throw new HttpsError("invalid-argument", "Missing action or payload");
   }
 
-<<<<<<< HEAD:functions/src/index.ts
   const ai = new GoogleGenAI({apiKey});
-  const model = "gemini-3-flash-preview";
-=======
-  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3.0-flash";
->>>>>>> ui:functions/index.js
 
   if (action === "processStudyContent") {
     const {
@@ -100,21 +76,11 @@ exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) =>
     console.log(`Processing file: ${fileName}, type: ${fileMimeType}, size: ${fileSize || 'unknown'} bytes`);
 
     const prompt = `
-<<<<<<< HEAD:functions/src/index.ts
-      You are a world-class Lead Professor. Perform an EXHAUSTIVE EXTRACTION of:
-      ${fileName}.
-
-      CRITICAL FORMATTING INSTRUCTION:
-      - Use HIGHLY STRUCTURED BULLETED LISTS for all "detailedNotes".
-      - Every line in "detailedNotes" MUST start with a dash (-) followed by a
-        space.
-=======
       You are a world-class Lead Professor. Perform an EXHAUSTIVE EXTRACTION of: ${fileName}.
       
       CRITICAL FORMATTING INSTRUCTION: 
       - Use HIGHLY STRUCTURED BULLETED LISTS for all "detailedNotes". 
       - Every distinch line inside "detailedNotes" MUST be a bullet point.
->>>>>>> ui:functions/index.js
       - Each bullet should contain a complete, technical thought.
 
       STRICT CONSTRAINTS:
@@ -143,122 +109,65 @@ exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) =>
     ""}
     `;
 
-<<<<<<< HEAD:functions/src/index.ts
-    const response = await ai.models.generateContent({
-      model,
-      contents: {
-        parts: [
-          {inlineData: {data: fileBase64, mimeType: fileMimeType}},
-          {text: prompt},
-        ],
-      },
-      config: {
-        thinkingConfig: {thinkingBudget: 24576},
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            isStudyMaterial: {type: Type.BOOLEAN},
-            validityWarning: {type: Type.STRING},
-            studyPlan: {
-              type: Type.OBJECT,
-              properties: {
-                title: {type: Type.STRING},
-                overview: {type: Type.STRING},
-                topics: {type: Type.ARRAY, items: {type: Type.STRING}},
-                steps: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      title: {type: Type.STRING},
-                      description: {type: Type.STRING},
-                      detailedNotes: {type: Type.STRING},
-                    },
-                    required: ["title", "description", "detailedNotes"],
-                  },
-                },
-              },
-              required: ["title", "overview", "steps", "topics"],
-            },
-            flashcards: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  question: {type: Type.STRING},
-                  answer: {type: Type.STRING},
-                  category: {type: Type.STRING},
-                  stepTitle: {type: Type.STRING},
-                },
-                required: ["question", "answer", "stepTitle"],
-              },
-            },
-          },
-          required: [
-            "isStudyMaterial",
-            "validityWarning",
-            "studyPlan",
-            "flashcards",
-          ],
-        },
-      },
-    });
-=======
     try {
       const response = await ai.models.generateContent({
         model,
         contents: {
           parts: [
-            { inlineData: { data: fileBase64, mimeType: fileMimeType } },
-            { text: prompt }
-          ]
+            {inlineData: {data: fileBase64, mimeType: fileMimeType}},
+            {text: prompt},
+          ],
         },
         config: {
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              isStudyMaterial: { type: Type.BOOLEAN },
-              validityWarning: { type: Type.STRING },
+              isStudyMaterial: {type: Type.BOOLEAN},
+              validityWarning: {type: Type.STRING},
               studyPlan: {
                 type: Type.OBJECT,
                 properties: {
-                  title: { type: Type.STRING },
-                  overview: { type: Type.STRING },
-                  topics: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  title: {type: Type.STRING},
+                  overview: {type: Type.STRING},
+                  topics: {type: Type.ARRAY, items: {type: Type.STRING}},
                   steps: {
                     type: Type.ARRAY,
                     items: {
                       type: Type.OBJECT,
                       properties: {
-                        title: { type: Type.STRING },
-                        description: { type: Type.STRING },
-                        detailedNotes: { type: Type.STRING }
+                        title: {type: Type.STRING},
+                        description: {type: Type.STRING},
+                        detailedNotes: {type: Type.STRING},
                       },
-                      required: ["title", "description", "detailedNotes"]
-                    }
-                  }
+                      required: ["title", "description", "detailedNotes"],
+                    },
+                  },
                 },
-                required: ["title", "overview", "steps", "topics"]
+                required: ["title", "overview", "steps", "topics"],
               },
               flashcards: {
                 type: Type.ARRAY,
                 items: {
                   type: Type.OBJECT,
                   properties: {
-                    question: { type: Type.STRING },
-                    answer: { type: Type.STRING },
-                    category: { type: Type.STRING },
-                    stepTitle: { type: Type.STRING }
+                    question: {type: Type.STRING},
+                    answer: {type: Type.STRING},
+                    category: {type: Type.STRING},
+                    stepTitle: {type: Type.STRING},
                   },
-                  required: ["question", "answer", "stepTitle"]
-                }
-              }
+                  required: ["question", "answer", "stepTitle"],
+                },
+              },
             },
-            required: ["isStudyMaterial", "validityWarning", "studyPlan", "flashcards"]
-          }
-        }
+            required: [
+              "isStudyMaterial",
+              "validityWarning",
+              "studyPlan",
+              "flashcards",
+            ],
+          },
+        },
       });
 
       let text = response.text || "{}";
@@ -266,37 +175,25 @@ exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) =>
         const match = text.match(/```(?:json)?([\s\S]*?)```/);
         if (match) text = match[1].trim();
       }
->>>>>>> ui:functions/index.js
 
-      const parsedResult = JSON.parse(text);
+      const parsedResult = JSON.parse(text) as {
+        studyPlan: unknown;
+        flashcards?: unknown[];
+        isStudyMaterial?: boolean;
+        validityWarning?: string;
+      };
+
       console.log("Successfully processed file and generated study materials");
       return {
         studyPlan: parsedResult.studyPlan,
         flashcards: parsedResult.flashcards || [],
         isStudyMaterial: parsedResult.isStudyMaterial ?? true,
-        validityWarning: parsedResult.validityWarning || ""
+        validityWarning: parsedResult.validityWarning || "",
       };
     } catch (error) {
       console.error("Error in processStudyContent:", error);
-      throw new HttpsError("internal", `Failed to process file: ${error.message}`);
+      throw new HttpsError("internal", `Failed to process file: ${(error as Error).message}`);
     }
-<<<<<<< HEAD:functions/src/index.ts
-
-    const result = JSON.parse(text) as {
-      studyPlan: unknown;
-      flashcards?: unknown[];
-      isStudyMaterial?: boolean;
-      validityWarning?: string;
-    };
-
-    return {
-      studyPlan: result.studyPlan,
-      flashcards: result.flashcards || [],
-      isStudyMaterial: result.isStudyMaterial ?? true,
-      validityWarning: result.validityWarning || "",
-    };
-=======
->>>>>>> ui:functions/index.js
   }
 
   if (action === "generateQuiz") {
@@ -327,28 +224,6 @@ exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) =>
       ${context}
     `;
 
-<<<<<<< HEAD:functions/src/index.ts
-    const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              question: {type: Type.STRING},
-              options: {type: Type.ARRAY, items: {type: Type.STRING}},
-              correctAnswer: {type: Type.STRING},
-              explanation: {type: Type.STRING},
-            },
-            required: ["question", "options", "correctAnswer", "explanation"],
-          },
-        },
-      },
-    });
-=======
     try {
       const response = await ai.models.generateContent({
         model,
@@ -360,17 +235,16 @@ exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) =>
             items: {
               type: Type.OBJECT,
               properties: {
-                question: { type: Type.STRING },
-                options: { type: Type.ARRAY, items: { type: Type.STRING } },
-                correctAnswer: { type: Type.STRING },
-                explanation: { type: Type.STRING }
+                question: {type: Type.STRING},
+                options: {type: Type.ARRAY, items: {type: Type.STRING}},
+                correctAnswer: {type: Type.STRING},
+                explanation: {type: Type.STRING},
               },
-              required: ["question", "options", "correctAnswer", "explanation"]
-            }
-          }
-        }
+              required: ["question", "options", "correctAnswer", "explanation"],
+            },
+          },
+        },
       });
->>>>>>> ui:functions/index.js
 
       let text = response.text || "[]";
       if (text.includes("```")) {
@@ -381,7 +255,7 @@ exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) =>
       return JSON.parse(text);
     } catch (error) {
       console.error("Error in generateQuiz:", error);
-      throw new HttpsError("internal", `Failed to generate quiz: ${error.message}`);
+      throw new HttpsError("internal", `Failed to generate quiz: ${(error as Error).message}`);
     }
   }
 
