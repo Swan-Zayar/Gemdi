@@ -42,7 +42,7 @@ export const geminiProxy = onCall({secrets: ["GEMINI_API_KEY"]}, async (request)
   }
 
   const ai = new GoogleGenAI({apiKey});
-  const model = "gemini-3.0-flash";
+  const model = "gemini-2.0-flash";
 
   if (action === "processStudyContent") {
     const {

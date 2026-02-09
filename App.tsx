@@ -40,9 +40,49 @@ const App: React.FC = () => {
   const [isQuizLoading, setIsQuizLoading] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>(themeService.getTheme());
 
+  /** Shared: load profile + sessions for a given Firebase user */
+  const loadUserData = async (firebaseUser: User) => {
+    setLoadingDashboard(true);
+
+    const profile = await userProfileService.getUserProfile(firebaseUser.uid);
+    if (profile) {
+      setUserProfile({
+        id: profile.userId,
+        name: profile.username,
+        email: firebaseUser.email || '',
+        avatar: profile.avatar,
+        language: profile.language || 'en',
+        customPrompt: profile.customPrompt
+      });
+      setAppState(AppState.DASHBOARD);
+    } else {
+      setIsProfileSetupOpen(true);
+      setAppState(AppState.LANDING);
+      setLoadingDashboard(false);
+    }
+
+    try {
+      const userSessions = await sessionStorageService.getSessionsForUser(firebaseUser.uid);
+      if (import.meta.env.DEV) console.log('Sessions loaded:', userSessions.length);
+      setSessions(userSessions || []);
+      if (userSessions && userSessions.length > 0) {
+        intelligenceService.learnFromSessions(userSessions)
+          .then(setNeuralInsight)
+          .catch(err => console.warn('Intelligence service error:', err));
+      }
+    } catch (error) {
+      console.error('Error loading user sessions:', error);
+      setSessions([]);
+    } finally {
+      if (profile) {
+        setLoadingDashboard(false);
+      }
+    }
+  };
+
   /** Listen to Firebase auth state changes */
   useEffect(() => {
-    console.log('Setting up Firebase auth listener...');
+    if (import.meta.env.DEV) console.log('Setting up Firebase auth listener...');
     
     const timeout = setTimeout(() => {
       console.warn('Firebase auth initialization timed out after 5 seconds');
@@ -52,60 +92,21 @@ const App: React.FC = () => {
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser) => {
-        console.log('Auth state changed:', firebaseUser ? 'User logged in' : 'No user');
+        if (import.meta.env.DEV) console.log('Auth state changed:', firebaseUser ? 'User logged in' : 'No user');
         clearTimeout(timeout);
         
         if (firebaseUser) {
-          console.log('User authenticated:', firebaseUser.uid);
+          if (import.meta.env.DEV) console.log('User authenticated:', firebaseUser.uid);
           setUser(firebaseUser);
-          setLoadingDashboard(true);
-          
-          // Load user profile
-          const profile = await userProfileService.getUserProfile(firebaseUser.uid);
-          if (profile) {
-            setUserProfile({
-              id: profile.userId,
-              name: profile.username,
-              email: firebaseUser.email || '',
-              avatar: profile.avatar,
-              language: profile.language || 'en',
-              customPrompt: profile.customPrompt
-            });
-            setAppState(AppState.DASHBOARD);
-          } else {
-            // New user - show profile setup
-            setIsProfileSetupOpen(true);
-            setAppState(AppState.LANDING);
-            setLoadingDashboard(false);
-          }
-          
-          try {
-            const userSessions = await sessionStorageService.getSessionsForUser(firebaseUser.uid);
-            console.log('Sessions loaded:', userSessions.length);
-            setSessions(userSessions || []);
-            if (userSessions && userSessions.length > 0) {
-              intelligenceService.learnFromSessions(userSessions)
-                .then(setNeuralInsight)
-                .catch(err => console.warn('Intelligence service error:', err));
-            }
-          } catch (error) {
-            console.error('Error loading user sessions:', error);
-            setSessions([]);
-          } finally {
-            // Dashboard data loaded - hide loading screen
-            if (profile) {
-              setLoadingDashboard(false);
-            }
-          }
+          await loadUserData(firebaseUser);
         } else {
-          console.log('No user, showing landing page');
+          if (import.meta.env.DEV) console.log('No user, showing landing page');
           setUser(null);
           setAppState(AppState.LANDING);
           setSessions([]);
           setLoadingDashboard(false);
         }
         setLoadingAuth(false);
-        console.log('Loading auth set to false');
       },
       (error) => {
         console.error('Firebase auth error:', error);
@@ -166,15 +167,12 @@ const App: React.FC = () => {
     setIsProcessing(true);
     
     try {
-      // Process the file and create a session
-      // This is where you'd call your file processing service
       const newSession = await sessionStorageService.processAndCreateSession(
         file, 
         user.uid,
         userProfile?.customPrompt
       );
       
-      // Add the new session to the list
       setSessions(prev => [newSession, ...prev]);
       
     } catch (error: any) {
@@ -190,7 +188,6 @@ const App: React.FC = () => {
       alert(userMessage);
     } finally {
       setIsProcessing(false);
-      // Reset file input
       event.target.value = '';
     }
   };
@@ -218,48 +215,10 @@ const App: React.FC = () => {
 
   /** Login handler (from LoginModal) */
   const handleLogin = async (loggedInUser: User) => {
-    console.log('handleLogin called for:', loggedInUser.uid);
+    if (import.meta.env.DEV) console.log('handleLogin called for:', loggedInUser.uid);
     setUser(loggedInUser);
     setIsLoginModalOpen(false);
-    setLoadingDashboard(true);
-    
-    // Check if user has a profile
-    const profile = await userProfileService.getUserProfile(loggedInUser.uid);
-    if (profile) {
-      setUserProfile({
-        id: profile.userId,
-        name: profile.username,
-        email: loggedInUser.email || '',
-        avatar: profile.avatar,
-        language: profile.language,
-        customPrompt: profile.customPrompt
-      });
-      setAppState(AppState.DASHBOARD);
-    } else {
-      // New user - show profile setup
-      setIsProfileSetupOpen(true);
-      setLoadingDashboard(false);
-    }
-
-    try {
-      const userSessions = await sessionStorageService.getSessionsForUser(loggedInUser.uid);
-      console.log('Sessions loaded in handleLogin:', userSessions?.length || 0);
-      setSessions(userSessions || []);
-      
-      if (userSessions && userSessions.length > 0) {
-        intelligenceService.learnFromSessions(userSessions)
-          .then(setNeuralInsight)
-          .catch(err => console.warn('Intelligence service error:', err));
-      }
-    } catch (error) {
-      console.error('Error loading user sessions after login:', error);
-      setSessions([]); // Set empty sessions on error
-    } finally {
-      // Dashboard data loaded - hide loading screen
-      if (profile) {
-        setLoadingDashboard(false);
-      }
-    }
+    await loadUserData(loggedInUser);
   };
 
   /** Profile setup completion handler */
@@ -354,13 +313,11 @@ const App: React.FC = () => {
 
     setSessions(prev => prev.map(s => s.id === id ? updatedSession : s));
 
-    // Update active session if it's the one being renamed
     if (activeSession?.id === id) {
       setActiveSession(updatedSession);
     }
   };
 
-  // Better loading screen with spinner
   if (loadingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900">
@@ -445,7 +402,6 @@ const App: React.FC = () => {
                   };
                   updateActiveSession(updatedSession);
                   
-                  // Retrain neural model with new rating
                   if (sessions && sessions.length > 0) {
                     intelligenceService.learnFromSessions(sessions)
                       .then(setNeuralInsight)

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GemdiLogo } from './Header';
+import { GemdiLogo } from './GemdiLogo';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();

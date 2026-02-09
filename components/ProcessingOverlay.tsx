@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { GemdiLogo } from './GemdiLogo';
 
 const MESSAGES = [
   "Synthesizing study plan...",
@@ -10,22 +11,6 @@ const MESSAGES = [
   "Preparing study vault...",
   "Finalizing extraction..."
 ];
-
-const GemdiLogoIcon: React.FC<{ className?: string }> = ({ className = "w-10 h-10" }) => (
-  <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="gemGradientOverlay" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#3b82f6" />
-        <stop offset="50%" stopColor="#8b5cf6" />
-        <stop offset="100%" stopColor="#2dd4bf" />
-      </linearGradient>
-    </defs>
-    <path d="M50 5 L90 35 L50 95 L10 35 Z" fill="url(#gemGradientOverlay)" />
-    <path d="M50 5 L90 35 L50 45 Z" fill="white" fillOpacity="0.1" />
-    <path d="M50 5 L10 35 L50 45 Z" fill="black" fillOpacity="0.05" />
-    <path d="M32 45 L45 58 L68 32" stroke="white" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
 
 const ProcessingOverlay: React.FC = () => {
   const [msgIndex, setMsgIndex] = useState(0);
@@ -46,7 +31,7 @@ const ProcessingOverlay: React.FC = () => {
           <div className="absolute inset-0 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
           
           <div className="relative w-24 h-24 sm:w-36 sm:h-36 animate-float-slow drop-shadow-2xl">
-            <GemdiLogoIcon className="w-full h-full" />
+            <GemdiLogo className="w-full h-full" gradientId="gemGradientOverlay" />
           </div>
 
           <div className="absolute top-0 left-0 w-4 h-4 bg-indigo-200 dark:bg-indigo-400 rounded-full animate-ping"></div>

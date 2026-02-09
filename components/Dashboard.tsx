@@ -18,8 +18,6 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession, onDeleteSession, onRenameSession, neuralInsight, customPrompt, onCustomPromptChange }) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
   const [showCustomPromptModal, setShowCustomPromptModal] = useState(false);
   const [tempPrompt, setTempPrompt] = useState(customPrompt || '');
   const [promptError, setPromptError] = useState<string | null>(null);

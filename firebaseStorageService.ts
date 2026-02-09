@@ -22,7 +22,7 @@ export async function saveSession(session: StudySession): Promise<void> {
 
 export async function getSessionsForUser(userId: string): Promise<StudySession[]> {
   try {
-    console.log('Fetching sessions for user:', userId);
+    if (import.meta.env.DEV) console.log('Fetching sessions for user:', userId);
     const q = query(
       collection(db, SESSIONS_COLLECTION),
       where('userId', '==', userId),
@@ -30,7 +30,7 @@ export async function getSessionsForUser(userId: string): Promise<StudySession[]
     );
     const snap = await getDocs(q);
     const sessions = snap.docs.map((d) => d.data() as StudySession);
-    console.log('Found sessions:', sessions.length);
+    if (import.meta.env.DEV) console.log('Found sessions:', sessions.length);
     return sessions;
   } catch (error: any) {
     console.error('Error fetching sessions:', error);
@@ -56,7 +56,7 @@ export async function processAndCreateSession(
   customPrompt?: string
 ): Promise<StudySession> {
   try {
-    console.log('Processing file:', file.name);
+    if (import.meta.env.DEV) console.log('Processing file:', file.name);
 
     const fileError = validateUploadFile(file);
     if (fileError) {
@@ -66,7 +66,7 @@ export async function processAndCreateSession(
     // Convert file to base64
     const fileBase64 = await fileToBase64(file);
     
-    console.log('File converted to base64, processing with Gemini...');
+    if (import.meta.env.DEV) console.log('File converted to base64, processing with Gemini...');
 
     // Process with Gemini (this does everything in one call)
     const result = await geminiService.processStudyContent(
@@ -77,7 +77,7 @@ export async function processAndCreateSession(
       file.size
     );
 
-    console.log('Study materials generated, creating session...');
+    if (import.meta.env.DEV) console.log('Study materials generated, creating session...');
 
     // Create the session object
     const newSession: StudySession = {
@@ -94,13 +94,13 @@ export async function processAndCreateSession(
       quizHistory: []
     };
 
-    console.log('Session object created:', newSession);
-    console.log('Saving session to Firebase...');
+    if (import.meta.env.DEV) console.log('Session object created:', newSession);
+    if (import.meta.env.DEV) console.log('Saving session to Firebase...');
     
     // Save to Firebase with error handling
     try {
       await saveSession(newSession);
-      console.log('Session saved successfully!');
+      if (import.meta.env.DEV) console.log('Session saved successfully!');
     } catch (saveError) {
       console.error('Firebase save error:', saveError);
       throw new Error(`Failed to save to Firebase: ${saveError}`);
