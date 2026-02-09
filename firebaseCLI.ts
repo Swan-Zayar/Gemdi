@@ -1,19 +1,25 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
 
-declare global {
-  interface Window {
-    __APP_CONFIG__?: Record<string, string>;
-  }
-}
+type AppConfigKey =
+  | 'VITE_FIREBASE_API_KEY'
+  | 'VITE_FIREBASE_AUTH_DOMAIN'
+  | 'VITE_FIREBASE_PROJECT_ID'
+  | 'VITE_FIREBASE_STORAGE_BUCKET'
+  | 'VITE_FIREBASE_MESSAGING_SENDER_ID'
+  | 'VITE_FIREBASE_APP_ID';
 
-// Firebase configuration pulled from runtime config first, then Vite env.
-const getEnv = (key: keyof ImportMetaEnv) => {
-  const runtimeValue = typeof window !== 'undefined' ? window.__APP_CONFIG__?.[key as string] : undefined;
-  const viteValue = import.meta.env[key];
-  const v = runtimeValue || viteValue;
+type AppConfig = Partial<Record<AppConfigKey, string>>;
+
+const runtimeConfig =
+  typeof window !== 'undefined'
+    ? (window as { __APP_CONFIG__?: AppConfig }).__APP_CONFIG__
+    : undefined;
+
+const getEnv = (key: AppConfigKey) => {
+  const v = runtimeConfig?.[key] ?? import.meta.env[key];
   if (!v) throw new Error(`${key} is not set`);
   return String(v);
 };
@@ -27,9 +33,10 @@ const firebaseConfig = {
   appId: getEnv('VITE_FIREBASE_APP_ID'),
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const functions = getFunctions(app);
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+});
+export const functions = getFunctions(app, 'us-central1');

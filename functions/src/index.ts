@@ -1,5 +1,13 @@
+<<<<<<< HEAD:functions/src/index.ts
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {GoogleGenAI, Type} from "@google/genai";
+=======
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const admin = require("firebase-admin");
+const { GoogleGenAI, Type } = require("@google/genai");
+
+admin.initializeApp();
+>>>>>>> ui:functions/index.js
 
 const MAX_PROMPT_LENGTH = 500;
 const ALLOWED_FILE_TYPES = new Set([
@@ -23,6 +31,7 @@ const validateCommon = (data: unknown) => {
   }
 };
 
+<<<<<<< HEAD:functions/src/index.ts
 export const geminiProxy = onCall(async (request) => {
   validateCommon(request.data);
 
@@ -30,9 +39,16 @@ export const geminiProxy = onCall(async (request) => {
     throw new HttpsError("unauthenticated", "Authentication required");
   }
 
+=======
+exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) => {
+  const { data } = request;
+  validateCommon(data);
+
+>>>>>>> ui:functions/index.js
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new HttpsError("failed-precondition", "Missing GEMINI_API_KEY");
+    console.error("GEMINI_API_KEY environment variable is not set");
+    throw new HttpsError("failed-precondition", "API key not configured. Set GEMINI_API_KEY environment variable in Cloud Run.");
   }
 
   const {action, payload} = request.data as {
@@ -44,8 +60,13 @@ export const geminiProxy = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "Missing action or payload");
   }
 
+<<<<<<< HEAD:functions/src/index.ts
   const ai = new GoogleGenAI({apiKey});
   const model = "gemini-3-flash-preview";
+=======
+  const ai = new GoogleGenAI({ apiKey });
+  const model = "gemini-3.0-flash";
+>>>>>>> ui:functions/index.js
 
   if (action === "processStudyContent") {
     const {
@@ -76,7 +97,10 @@ export const geminiProxy = onCall(async (request) => {
 
     const safeCustomPrompt = sanitizePrompt(customPrompt);
 
+    console.log(`Processing file: ${fileName}, type: ${fileMimeType}, size: ${fileSize || 'unknown'} bytes`);
+
     const prompt = `
+<<<<<<< HEAD:functions/src/index.ts
       You are a world-class Lead Professor. Perform an EXHAUSTIVE EXTRACTION of:
       ${fileName}.
 
@@ -84,6 +108,13 @@ export const geminiProxy = onCall(async (request) => {
       - Use HIGHLY STRUCTURED BULLETED LISTS for all "detailedNotes".
       - Every line in "detailedNotes" MUST start with a dash (-) followed by a
         space.
+=======
+      You are a world-class Lead Professor. Perform an EXHAUSTIVE EXTRACTION of: ${fileName}.
+      
+      CRITICAL FORMATTING INSTRUCTION: 
+      - Use HIGHLY STRUCTURED BULLETED LISTS for all "detailedNotes". 
+      - Every distinch line inside "detailedNotes" MUST be a bullet point.
+>>>>>>> ui:functions/index.js
       - Each bullet should contain a complete, technical thought.
 
       STRICT CONSTRAINTS:
@@ -112,6 +143,7 @@ export const geminiProxy = onCall(async (request) => {
     ""}
     `;
 
+<<<<<<< HEAD:functions/src/index.ts
     const response = await ai.models.generateContent({
       model,
       contents: {
@@ -172,12 +204,83 @@ export const geminiProxy = onCall(async (request) => {
         },
       },
     });
+=======
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: {
+          parts: [
+            { inlineData: { data: fileBase64, mimeType: fileMimeType } },
+            { text: prompt }
+          ]
+        },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              isStudyMaterial: { type: Type.BOOLEAN },
+              validityWarning: { type: Type.STRING },
+              studyPlan: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  overview: { type: Type.STRING },
+                  topics: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  steps: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        title: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        detailedNotes: { type: Type.STRING }
+                      },
+                      required: ["title", "description", "detailedNotes"]
+                    }
+                  }
+                },
+                required: ["title", "overview", "steps", "topics"]
+              },
+              flashcards: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    question: { type: Type.STRING },
+                    answer: { type: Type.STRING },
+                    category: { type: Type.STRING },
+                    stepTitle: { type: Type.STRING }
+                  },
+                  required: ["question", "answer", "stepTitle"]
+                }
+              }
+            },
+            required: ["isStudyMaterial", "validityWarning", "studyPlan", "flashcards"]
+          }
+        }
+      });
 
-    let text = response.text || "{}";
-    if (text.includes("```")) {
-      const match = text.match(/```(?:json)?([\s\S]*?)```/);
-      if (match) text = match[1].trim();
+      let text = response.text || "{}";
+      if (text.includes("```")) {
+        const match = text.match(/```(?:json)?([\s\S]*?)```/);
+        if (match) text = match[1].trim();
+      }
+>>>>>>> ui:functions/index.js
+
+      const parsedResult = JSON.parse(text);
+      console.log("Successfully processed file and generated study materials");
+      return {
+        studyPlan: parsedResult.studyPlan,
+        flashcards: parsedResult.flashcards || [],
+        isStudyMaterial: parsedResult.isStudyMaterial ?? true,
+        validityWarning: parsedResult.validityWarning || ""
+      };
+    } catch (error) {
+      console.error("Error in processStudyContent:", error);
+      throw new HttpsError("internal", `Failed to process file: ${error.message}`);
     }
+<<<<<<< HEAD:functions/src/index.ts
 
     const result = JSON.parse(text) as {
       studyPlan: unknown;
@@ -192,6 +295,8 @@ export const geminiProxy = onCall(async (request) => {
       isStudyMaterial: result.isStudyMaterial ?? true,
       validityWarning: result.validityWarning || "",
     };
+=======
+>>>>>>> ui:functions/index.js
   }
 
   if (action === "generateQuiz") {
@@ -222,6 +327,7 @@ export const geminiProxy = onCall(async (request) => {
       ${context}
     `;
 
+<<<<<<< HEAD:functions/src/index.ts
     const response = await ai.models.generateContent({
       model,
       contents: prompt,
@@ -242,13 +348,41 @@ export const geminiProxy = onCall(async (request) => {
         },
       },
     });
+=======
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                question: { type: Type.STRING },
+                options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                correctAnswer: { type: Type.STRING },
+                explanation: { type: Type.STRING }
+              },
+              required: ["question", "options", "correctAnswer", "explanation"]
+            }
+          }
+        }
+      });
+>>>>>>> ui:functions/index.js
 
-    let text = response.text || "[]";
-    if (text.includes("```")) {
-      const match = text.match(/```(?:json)?([\s\S]*?)```/);
-      if (match) text = match[1].trim();
+      let text = response.text || "[]";
+      if (text.includes("```")) {
+        const match = text.match(/```(?:json)?([\s\S]*?)```/);
+        if (match) text = match[1].trim();
+      }
+      console.log("Successfully generated quiz");
+      return JSON.parse(text);
+    } catch (error) {
+      console.error("Error in generateQuiz:", error);
+      throw new HttpsError("internal", `Failed to generate quiz: ${error.message}`);
     }
-    return JSON.parse(text);
   }
 
   throw new HttpsError("invalid-argument", "Unsupported action");
