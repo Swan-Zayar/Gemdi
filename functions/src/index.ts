@@ -176,12 +176,25 @@ const handleGeminiRequest = async (data: unknown) => {
         if (match) text = match[1].trim();
       }
 
-      const parsedResult = JSON.parse(text) as {
+      let parsedResult: {
         studyPlan: unknown;
         flashcards?: unknown[];
         isStudyMaterial?: boolean;
         validityWarning?: string;
       };
+
+      try {
+        parsedResult = JSON.parse(text);
+      } catch (parseErr) {
+        console.error("Failed to parse JSON from model response. text length:",
+          typeof text === 'string' ? text.length : 'unknown');
+        console.error("Parsed snippet:",
+          typeof text === 'string' ? text.slice(0, 2000) : 'not a string');
+        throw new HttpsError(
+          "internal",
+          "Model returned malformed JSON. See function logs for snippet."
+        );
+      }
 
       console.log("Successfully processed file and generated study materials");
       return {
@@ -251,8 +264,17 @@ const handleGeminiRequest = async (data: unknown) => {
         const match = text.match(/```(?:json)?([\s\S]*?)```/);
         if (match) text = match[1].trim();
       }
-      console.log("Successfully generated quiz");
-      return JSON.parse(text);
+      try {
+        const parsed = JSON.parse(text);
+        console.log("Successfully generated quiz");
+        return parsed;
+      } catch (parseErr) {
+        console.error("Failed to parse JSON for quiz. text length:",
+          typeof text === 'string' ? text.length : 'unknown');
+        console.error("Parsed snippet:",
+          typeof text === 'string' ? text.slice(0, 2000) : 'not a string');
+        throw new HttpsError("internal", "Model returned malformed JSON for quiz.");
+      }
     } catch (error) {
       console.error("Error in generateQuiz:", error);
       throw new HttpsError("internal", `Failed to generate quiz: ${(error as Error).message}`);
@@ -262,7 +284,12 @@ const handleGeminiRequest = async (data: unknown) => {
   throw new HttpsError("invalid-argument", "Unsupported action");
 };
 
-export const geminiProxy = onCall({secrets: ["GEMINI_API_KEY"]}, async (request) => {
+export const geminiProxy = onCall({
+  secrets: ["GEMINI_API_KEY"],
+  // Increase memory and timeout to better handle large files and bigger model outputs
+  timeoutSeconds: 300,
+  memory: "512MiB",
+}, async (request) => {
   return handleGeminiRequest(request.data as unknown);
 });
 
