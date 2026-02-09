@@ -1,4 +1,4 @@
-import { db } from './firebaseCLI';
+import { db, storage } from './firebaseCLI';
 import {
   collection,
   doc,
@@ -9,11 +9,13 @@ import {
   deleteDoc,
   orderBy,
 } from 'firebase/firestore';
+import { ref, uploadBytes, deleteObject } from 'firebase/storage';
 import type { StudySession } from './types';
 import { geminiService } from './services/gemini';
 import { validateUploadFile } from './services/fileValidation';
 
 const SESSIONS_COLLECTION = 'studySessions';
+const STORAGE_TEMP_FOLDER = 'temp-pdfs';
 
 export async function saveSession(session: StudySession): Promise<void> {
   const ref = doc(db, SESSIONS_COLLECTION, session.id);
@@ -48,13 +50,15 @@ export async function deleteSession(id: string): Promise<void> {
 }
 
 /**
- * Process uploaded file and create a new study session
+ * Process uploaded file and create a new study session using Cloud Storage
  */
 export async function processAndCreateSession(
   file: File,
   userId: string,
   customPrompt?: string
 ): Promise<StudySession> {
+  let storagePath: string | null = null;
+
   try {
     if (import.meta.env.DEV) console.log('Processing file:', file.name);
 
@@ -63,14 +67,20 @@ export async function processAndCreateSession(
       throw new Error(fileError);
     }
     
-    // Convert file to base64
-    const fileBase64 = await fileToBase64(file);
-    
-    if (import.meta.env.DEV) console.log('File converted to base64, processing with Gemini...');
+    // Step 1: Upload file to Firebase Storage
+    const timestamp = Date.now();
+    const sanitizedFileName = file.name.replace(/[^a-z0-9.-]/gi, '_');
+    storagePath = `${STORAGE_TEMP_FOLDER}/${userId}/${timestamp}_${sanitizedFileName}`;
 
-    // Process with Gemini (this does everything in one call)
+    if (import.meta.env.DEV) console.log('Uploading file to Storage:', storagePath);
+    const storageRef = ref(storage, storagePath);
+    await uploadBytes(storageRef, file);
+
+    if (import.meta.env.DEV) console.log('File uploaded successfully, processing with Gemini...');
+
+    // Step 2: Call Cloud Function with storage path
     const result = await geminiService.processStudyContent(
-      fileBase64,
+      storagePath,
       file.name,
       file.type,
       customPrompt,
@@ -105,27 +115,22 @@ export async function processAndCreateSession(
       console.error('Firebase save error:', saveError);
       throw new Error(`Failed to save to Firebase: ${saveError}`);
     }
-    
+
     return newSession;
   } catch (error) {
     console.error('Error processing file:', error);
+    
+    // Cleanup: delete the uploaded file if processing failed
+    if (storagePath) {
+      try {
+        if (import.meta.env.DEV) console.log('Cleaning up Storage file after error:', storagePath);
+        const storageRef = ref(storage, storagePath);
+        await deleteObject(storageRef);
+      } catch (cleanupErr) {
+        console.error('Failed to cleanup Storage file:', cleanupErr);
+      }
+    }
+    
     throw error;
   }
-}
-
-/**
- * Convert file to base64 string
- */
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
-      const base64 = result.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }

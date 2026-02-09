@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { initializeFirestore } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
+import { getStorage } from 'firebase/storage';
 
 type AppConfigKey =
   | 'VITE_FIREBASE_API_KEY'
@@ -40,6 +41,7 @@ export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
 });
 export const functions = getFunctions(app, 'asia-northeast2');
+export const storage = getStorage(app);
 
 // When running the app locally in dev, connect to the Functions emulator
 // so callable functions hit the local emulator instead of production.

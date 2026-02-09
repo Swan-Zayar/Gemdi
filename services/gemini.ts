@@ -4,7 +4,7 @@ import { StudyPlan, Flashcard, QuizQuestion } from "../types";
 
 export const geminiService = {
   async processStudyContent(
-    fileBase64: string,
+    storagePath: string,
     fileName: string,
     fileMimeType: string,
     customPrompt?: string,
@@ -13,7 +13,7 @@ export const geminiService = {
     const callable = httpsCallable(functions, "geminiProxy");
     const result = await callable({
       action: "processStudyContent",
-      payload: { fileBase64, fileName, fileMimeType, customPrompt, fileSize }
+      payload: { storagePath, fileName, fileMimeType, customPrompt, fileSize }
     });
 
     const data = result.data as {

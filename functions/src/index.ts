@@ -1,5 +1,10 @@
 import {onCall, onRequest, HttpsError} from "firebase-functions/v2/https";
 import {GoogleGenAI, Type} from "@google/genai";
+import * as admin from "firebase-admin";
+
+// Initialize Firebase Admin SDK
+admin.initializeApp();
+const bucket = admin.storage().bucket();
 
 const MAX_PROMPT_LENGTH = 500;
 const ALLOWED_FILE_TYPES = new Set([
@@ -46,21 +51,21 @@ const handleGeminiRequest = async (data: unknown) => {
 
   if (action === "processStudyContent") {
     const {
-      fileBase64,
+      storagePath,
       fileName,
       fileMimeType,
       customPrompt,
       fileSize,
     } = payload as {
-      fileBase64?: string;
+      storagePath?: string;
       fileName?: string;
       fileMimeType?: string;
       customPrompt?: string;
       fileSize?: number;
     };
 
-    if (!fileBase64 || !fileName || !fileMimeType) {
-      throw new HttpsError("invalid-argument", "Missing file payload");
+    if (!storagePath || !fileName || !fileMimeType) {
+      throw new HttpsError("invalid-argument", "Missing storagePath, fileName, or fileMimeType");
     }
 
     if (typeof fileSize === "number" && fileSize > MAX_FILE_SIZE_BYTES) {
@@ -73,9 +78,21 @@ const handleGeminiRequest = async (data: unknown) => {
 
     const safeCustomPrompt = sanitizePrompt(customPrompt);
 
-    console.log(`Processing file: ${fileName}, type: ${fileMimeType}, size: ${fileSize || 'unknown'} bytes`);
+    console.log(`Processing file: ${fileName}, type: ${fileMimeType}, size: ${fileSize || 'unknown'} bytes, storagePath: ${storagePath}`);
 
-    const prompt = `
+    let fileBuffer: Buffer | null = null;
+    let fileBase64: string | null = null;
+
+    try {
+      // Download file from Cloud Storage
+      const file = bucket.file(storagePath);
+      const [fileContent] = await file.download();
+      fileBuffer = fileContent;
+      fileBase64 = fileBuffer.toString('base64');
+
+      console.log(`Downloaded file from Storage, size: ${fileBuffer.length} bytes`);
+
+      const prompt = `
       You are a world-class Lead Professor. Perform an EXHAUSTIVE EXTRACTION of: ${fileName}.
       
       CRITICAL FORMATTING INSTRUCTION: 
@@ -105,104 +122,121 @@ const handleGeminiRequest = async (data: unknown) => {
          per unit is MANDATORY.
       4. Key topics.
       ${safeCustomPrompt ?
-    `\n\nADDITIONAL CUSTOM INSTRUCTIONS FROM USER:\n${safeCustomPrompt}` :
-    ""}
+        `\n\nADDITIONAL CUSTOM INSTRUCTIONS FROM USER:\n${safeCustomPrompt}` :
+        ""}
     `;
 
-    try {
-      const response = await ai.models.generateContent({
-        model,
-        contents: {
-          parts: [
-            {inlineData: {data: fileBase64, mimeType: fileMimeType}},
-            {text: prompt},
-          ],
-        },
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              isStudyMaterial: {type: Type.BOOLEAN},
-              validityWarning: {type: Type.STRING},
-              studyPlan: {
-                type: Type.OBJECT,
-                properties: {
-                  title: {type: Type.STRING},
-                  overview: {type: Type.STRING},
-                  topics: {type: Type.ARRAY, items: {type: Type.STRING}},
-                  steps: {
-                    type: Type.ARRAY,
-                    items: {
-                      type: Type.OBJECT,
-                      properties: {
-                        title: {type: Type.STRING},
-                        description: {type: Type.STRING},
-                        detailedNotes: {type: Type.STRING},
-                      },
-                      required: ["title", "description", "detailedNotes"],
-                    },
-                  },
-                },
-                required: ["title", "overview", "steps", "topics"],
-              },
-              flashcards: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    question: {type: Type.STRING},
-                    answer: {type: Type.STRING},
-                    category: {type: Type.STRING},
-                    stepTitle: {type: Type.STRING},
-                  },
-                  required: ["question", "answer", "stepTitle"],
-                },
-              },
-            },
-            required: [
-              "isStudyMaterial",
-              "validityWarning",
-              "studyPlan",
-              "flashcards",
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: {
+            parts: [
+              {inlineData: {data: fileBase64, mimeType: fileMimeType}},
+              {text: prompt},
             ],
           },
-        },
-      });
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                isStudyMaterial: {type: Type.BOOLEAN},
+                validityWarning: {type: Type.STRING},
+                studyPlan: {
+                  type: Type.OBJECT,
+                  properties: {
+                    title: {type: Type.STRING},
+                    overview: {type: Type.STRING},
+                    topics: {type: Type.ARRAY, items: {type: Type.STRING}},
+                    steps: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          title: {type: Type.STRING},
+                          description: {type: Type.STRING},
+                          detailedNotes: {type: Type.STRING},
+                        },
+                        required: ["title", "description", "detailedNotes"],
+                      },
+                    },
+                  },
+                  required: ["title", "overview", "steps", "topics"],
+                },
+                flashcards: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      question: {type: Type.STRING},
+                      answer: {type: Type.STRING},
+                      category: {type: Type.STRING},
+                      stepTitle: {type: Type.STRING},
+                    },
+                    required: ["question", "answer", "stepTitle"],
+                  },
+                },
+              },
+              required: [
+                "isStudyMaterial",
+                "validityWarning",
+                "studyPlan",
+                "flashcards",
+              ],
+            },
+          },
+        });
 
-      let text = response.text || "{}";
-      if (text.includes("```")) {
-        const match = text.match(/```(?:json)?([\s\S]*?)```/);
-        if (match) text = match[1].trim();
+        let text = response.text || "{}";
+        if (text.includes("```")) {
+          const match = text.match(/```(?:json)?([\s\S]*?)```/);
+          if (match) text = match[1].trim();
+        }
+
+        let parsedResult: {
+          studyPlan: unknown;
+          flashcards?: unknown[];
+          isStudyMaterial?: boolean;
+          validityWarning?: string;
+        };
+
+        try {
+          parsedResult = JSON.parse(text);
+        } catch (parseErr) {
+          console.error("Failed to parse JSON from model response. text length:",
+            typeof text === 'string' ? text.length : 'unknown');
+          console.error("Parsed snippet:",
+            typeof text === 'string' ? text.slice(0, 2000) : 'not a string');
+          throw new HttpsError(
+            "internal",
+            "Model returned malformed JSON. See function logs for snippet."
+          );
+        }
+
+        console.log("Successfully processed file and generated study materials");
+        return {
+          studyPlan: parsedResult.studyPlan,
+          flashcards: parsedResult.flashcards || [],
+          isStudyMaterial: parsedResult.isStudyMaterial ?? true,
+          validityWarning: parsedResult.validityWarning || "",
+        };
+      } catch (error) {
+        console.error("Error in processStudyContent:", error);
+        throw new HttpsError("internal", `Failed to process file: ${(error as Error).message}`);
+      } finally {
+        // Delete the file from Storage after processing (success or failure)
+        try {
+          const file = bucket.file(storagePath);
+          await file.delete();
+          console.log(`Deleted file from Storage: ${storagePath}`);
+        } catch (deleteErr) {
+          console.error("Failed to delete file from Storage:", deleteErr);
+        }
+
+        // Clear memory
+        fileBuffer = null;
+        fileBase64 = null;
       }
-
-      let parsedResult: {
-        studyPlan: unknown;
-        flashcards?: unknown[];
-        isStudyMaterial?: boolean;
-        validityWarning?: string;
-      };
-
-      try {
-        parsedResult = JSON.parse(text);
-      } catch (parseErr) {
-        console.error("Failed to parse JSON from model response. text length:",
-          typeof text === 'string' ? text.length : 'unknown');
-        console.error("Parsed snippet:",
-          typeof text === 'string' ? text.slice(0, 2000) : 'not a string');
-        throw new HttpsError(
-          "internal",
-          "Model returned malformed JSON. See function logs for snippet."
-        );
-      }
-
-      console.log("Successfully processed file and generated study materials");
-      return {
-        studyPlan: parsedResult.studyPlan,
-        flashcards: parsedResult.flashcards || [],
-        isStudyMaterial: parsedResult.isStudyMaterial ?? true,
-        validityWarning: parsedResult.validityWarning || "",
-      };
     } catch (error) {
       console.error("Error in processStudyContent:", error);
       throw new HttpsError("internal", `Failed to process file: ${(error as Error).message}`);
@@ -287,7 +321,6 @@ const handleGeminiRequest = async (data: unknown) => {
 export const geminiProxy = onCall({
   region: 'asia-northeast2',
   secrets: ["GEMINI_API_KEY"],
-  // Increase memory and timeout to better handle large files and bigger model outputs
   timeoutSeconds: 300,
   memory: "1GiB",
 }, async (request) => {
