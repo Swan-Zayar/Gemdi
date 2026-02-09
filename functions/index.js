@@ -1,6 +1,6 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI, Type } = require("@google/genai");
 
 admin.initializeApp();
 
@@ -26,7 +26,7 @@ const validateCommon = (data) => {
   }
 };
 
-exports.geminiProxy = onCall(async (request) => {
+exports.geminiProxy = onCall({ secrets: ["GEMINI_API_KEY"] }, async (request) => {
   const { data } = request;
   validateCommon(data);
 
@@ -41,8 +41,8 @@ exports.geminiProxy = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "Missing action or payload");
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const ai = new GoogleGenAI({ apiKey });
+  const model = "gemini-3.0-flash";
 
   if (action === "processStudyContent") {
     const { fileBase64, fileName, fileMimeType, customPrompt, fileSize } = payload;
@@ -67,7 +67,7 @@ exports.geminiProxy = onCall(async (request) => {
       
       CRITICAL FORMATTING INSTRUCTION: 
       - Use HIGHLY STRUCTURED BULLETED LISTS for all "detailedNotes". 
-      - Every line in "detailedNotes" MUST start with a dash (-) followed by a space.
+      - Every distinch line inside "detailedNotes" MUST be a bullet point.
       - Each bullet should contain a complete, technical thought.
       
       STRICT CONSTRAINTS:
@@ -90,37 +90,35 @@ exports.geminiProxy = onCall(async (request) => {
     `;
 
     try {
-      const response = await model.generateContent([
-        {
-          inlineData: {
-            data: fileBase64,
-            mimeType: fileMimeType
-          }
+      const response = await ai.models.generateContent({
+        model,
+        contents: {
+          parts: [
+            { inlineData: { data: fileBase64, mimeType: fileMimeType } },
+            { text: prompt }
+          ]
         },
-        { text: prompt }
-      ],
-      {
-        generationConfig: {
+        config: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: "object",
+            type: Type.OBJECT,
             properties: {
-              isStudyMaterial: { type: "boolean" },
-              validityWarning: { type: "string" },
+              isStudyMaterial: { type: Type.BOOLEAN },
+              validityWarning: { type: Type.STRING },
               studyPlan: {
-                type: "object",
+                type: Type.OBJECT,
                 properties: {
-                  title: { type: "string" },
-                  overview: { type: "string" },
-                  topics: { type: "array", items: { type: "string" } },
+                  title: { type: Type.STRING },
+                  overview: { type: Type.STRING },
+                  topics: { type: Type.ARRAY, items: { type: Type.STRING } },
                   steps: {
-                    type: "array",
+                    type: Type.ARRAY,
                     items: {
-                      type: "object",
+                      type: Type.OBJECT,
                       properties: {
-                        title: { type: "string" },
-                        description: { type: "string" },
-                        detailedNotes: { type: "string" }
+                        title: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        detailedNotes: { type: Type.STRING }
                       },
                       required: ["title", "description", "detailedNotes"]
                     }
@@ -129,14 +127,14 @@ exports.geminiProxy = onCall(async (request) => {
                 required: ["title", "overview", "steps", "topics"]
               },
               flashcards: {
-                type: "array",
+                type: Type.ARRAY,
                 items: {
-                  type: "object",
+                  type: Type.OBJECT,
                   properties: {
-                    question: { type: "string" },
-                    answer: { type: "string" },
-                    category: { type: "string" },
-                    stepTitle: { type: "string" }
+                    question: { type: Type.STRING },
+                    answer: { type: Type.STRING },
+                    category: { type: Type.STRING },
+                    stepTitle: { type: Type.STRING }
                   },
                   required: ["question", "answer", "stepTitle"]
                 }
@@ -147,8 +145,7 @@ exports.geminiProxy = onCall(async (request) => {
         }
       });
 
-      const result = await response.response;
-      let text = result.text() || "{}";
+      let text = response.text || "{}";
       if (text.includes("```")) {
         const match = text.match(/```(?:json)?([\s\S]*?)```/);
         if (match) text = match[1].trim();
@@ -189,18 +186,20 @@ exports.geminiProxy = onCall(async (request) => {
     `;
 
     try {
-      const response = await model.generateContent(prompt, {
-        generationConfig: {
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: "array",
+            type: Type.ARRAY,
             items: {
-              type: "object",
+              type: Type.OBJECT,
               properties: {
-                question: { type: "string" },
-                options: { type: "array", items: { type: "string" } },
-                correctAnswer: { type: "string" },
-                explanation: { type: "string" }
+                question: { type: Type.STRING },
+                options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                correctAnswer: { type: Type.STRING },
+                explanation: { type: Type.STRING }
               },
               required: ["question", "options", "correctAnswer", "explanation"]
             }
@@ -208,8 +207,7 @@ exports.geminiProxy = onCall(async (request) => {
         }
       });
 
-      const result = await response.response;
-      let text = result.text() || "[]";
+      let text = response.text || "[]";
       if (text.includes("```")) {
         const match = text.match(/```(?:json)?([\s\S]*?)```/);
         if (match) text = match[1].trim();
