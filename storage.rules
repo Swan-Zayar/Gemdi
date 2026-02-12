@@ -1,15 +1,15 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow authenticated users to upload/read/delete temp PDFs
-    // Cloud Function (via admin SDK) bypasses rules, but we're permissive here
-    match /temp-pdfs/{allPaths=**} {
-      allow read, write, delete: if request.auth != null;
+    // Allow authenticated users to upload/read/delete their own temp PDFs
+    // Path structure: temp-pdfs/{userId}/{filename}
+    match /temp-pdfs/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-
+    
     // Default deny all other access
     match /{allPaths=**} {
-      allow read, write, delete: if false;
+      allow read, write: if false;
     }
   }
 }

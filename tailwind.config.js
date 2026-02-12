@@ -14,18 +14,18 @@ export default {
         },
         keyframes: {
           disappear: {
-            '0%': { 
-              opacity: '1', 
+            '0%': {
+              opacity: '1',
               transform: 'scale(1) rotate(0deg)',
               filter: 'blur(0px)'
             },
-            '50%': { 
-              opacity: '0.5', 
+            '50%': {
+              opacity: '0.5',
               transform: 'scale(1.1) rotate(5deg)',
               filter: 'blur(1px)'
             },
-            '100%': { 
-              opacity: '0', 
+            '100%': {
+              opacity: '0',
               transform: 'scale(0.3) rotate(15deg)',
               filter: 'blur(8px)'
             },

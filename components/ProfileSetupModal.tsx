@@ -83,11 +83,11 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
       <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-[3rem] p-8 sm:p-10 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp">
         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-8">Welcome to Gemdi!</h2>
 
-        <div className="space-y-8">
+        <div className="flex flex-col gap-8">
           {/* Avatar Selection */}
-          <div className="flex flex-col items-center">
-            <div 
-              className={`relative group mb-6 cursor-pointer ${
+          <div className="flex flex-col items-center gap-6">
+            <div
+              className={`relative group cursor-pointer ${
                 isDragging ? 'ring-4 ring-indigo-500 ring-offset-2' : ''
               }`}
               onDrop={handleDrop}
@@ -100,20 +100,20 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
               </div>
             </div>
-            <input 
+            <input
               ref={fileInputRef}
-              type="file" 
-              accept="image/*" 
+              type="file"
+              accept="image/*"
               onChange={handleFileSelect}
               className="hidden"
             />
-            
+
             <div className="flex flex-wrap justify-center gap-3">
               {AVATARS.map((avatar) => (
-                <button 
+                <button
                   key={avatar.name}
                   onClick={() => setSelectedAvatar(avatar.src)}
-                  className={`w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${selectedAvatar === avatar.src ? 'border-indigo-600 scale-110 shadow-lg' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                  className={`w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${selectedAvatar === avatar.src ? 'border-indigo-500 scale-110 shadow-lg' : 'border-transparent opacity-50 hover:opacity-100'}`}
                 >
                   <img src={avatar.src} alt={avatar.name} className="w-full h-full object-cover" />
                 </button>
@@ -134,10 +134,10 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
           </div>
 
           {/* Username Input */}
-          <div>
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Choose Your Username</label>
-            <input 
-              type="text" 
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[3px]">Choose Your Username</label>
+            <input
+              type="text"
               value={username}
               onChange={e => {
                 setUsername(e.target.value);
@@ -145,17 +145,17 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
               }}
               onKeyDown={e => e.key === 'Enter' && handleComplete()}
               placeholder="Enter a username..."
-              className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-900 dark:text-white placeholder:text-slate-400"
+              className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-[15px] text-slate-900 dark:text-white placeholder:text-slate-400"
               autoFocus
             />
             {error && (
-              <p className="text-red-500 text-xs font-bold mt-2 ml-2">{error}</p>
+              <p className="text-red-500 text-xs font-bold mt-1 ml-2">{error}</p>
             )}
           </div>
 
-          <button 
-            onClick={handleComplete} 
-            className="w-full py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl tracking-widest uppercase text-sm hover:shadow-2xl transition-all active:scale-95"
+          <button
+            onClick={handleComplete}
+            className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl tracking-[3px] uppercase text-xs hover:shadow-2xl transition-all active:scale-95"
           >
             Complete Setup
           </button>

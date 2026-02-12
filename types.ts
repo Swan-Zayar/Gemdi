@@ -24,10 +24,17 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+export interface NoteSection {
+  heading: string;
+  body?: string;
+  bullets?: string[];
+  formulas?: string[];
+}
+
 export interface StudyStep {
   title: string;
   description: string;
-  detailedNotes: string;
+  detailedNotes: string | NoteSection[];
 }
 
 export interface StudyPlan {

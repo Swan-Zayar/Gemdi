@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { UserLocal } from '../types';
 import { ThemeMode } from '../services/theme';
@@ -72,6 +71,18 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Preview theme in the DOM without persisting
+  const previewTheme = (mode: ThemeMode) => {
+    const root = document.documentElement;
+    const isDark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.classList.toggle('dark', isDark);
+    root.style.colorScheme = isDark ? 'dark' : 'light';
+  };
+
+  const revertTheme = () => {
+    previewTheme(themeMode);
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     setName(user.name);
@@ -138,9 +149,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
     try {
       await onUpdate({ ...user, name, avatar: selectedAvatar, language: selectedLanguage });
       setLanguage(selectedLanguage as any);
-      if (selectedTheme !== themeMode) {
-        onThemeChange(selectedTheme);
-      }
+      onThemeChange(selectedTheme);
       onClose();
     } catch (error) {
       console.error('Failed to save profile:', error);
@@ -159,19 +168,21 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
           onCancel={handleCropCancel}
         />
       )}
-      <div className="fixed inset-0 z-1001 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-fadeIn overflow-y-auto" onClick={onClose}>
-      <div className="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-[3rem] p-8 sm:p-10 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp my-auto max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="sticky top-0 float-right z-10 text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-
-        <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-8">{t('profile.title')}</h2>
+      <div className="fixed inset-0 z-1001 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-fadeIn overflow-y-auto" onClick={() => { revertTheme(); onClose(); }}>
+      <div className="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-4xl p-10 chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp my-auto max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        {/* Header Row */}
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-[28px] font-extrabold text-slate-900 dark:text-white tracking-tight">{t('profile.title')}</h2>
+          <button onClick={() => { revertTheme(); onClose(); }} className="w-8 h-8 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
 
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Left Side - Avatar Section */}
-          <div className="flex flex-col items-center md:w-1/2 lg:w-2/5">
-            <div 
-              className={`relative group mb-6 cursor-pointer ${
+          {/* Left Column - Avatar Section */}
+          <div className="flex flex-col items-center gap-6 md:w-1/2 lg:w-2/5">
+            <div
+              className={`relative group cursor-pointer ${
                 isDragging ? 'ring-4 ring-indigo-500 ring-offset-2' : ''
               }`}
               onDrop={handleDrop}
@@ -184,20 +195,20 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
               </div>
             </div>
-            <input 
+            <input
               ref={fileInputRef}
-              type="file" 
-              accept="image/*" 
+              type="file"
+              accept="image/*"
               onChange={handleFileSelect}
               className="hidden"
             />
-            
+
             <div className="flex flex-wrap justify-center gap-3 max-w-xs">
               {AVATARS.map((avatar) => (
-                <button 
+                <button
                   key={avatar.name}
                   onClick={() => setSelectedAvatar(avatar.src)}
-                  className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${selectedAvatar === avatar.src ? 'border-indigo-600 scale-110 shadow-lg' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                  className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${selectedAvatar === avatar.src ? 'border-indigo-500 scale-110 shadow-lg' : 'border-transparent opacity-50 hover:opacity-100'}`}
                 >
                   <img src={avatar.src} alt={avatar.name} className="w-full h-full object-cover" />
                 </button>
@@ -214,15 +225,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
                 </svg>
               </button>
-            </div><br/>
+            </div>
 
             {/* Language Selection */}
-            <div className="w-full mt-6">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-center">{t('profile.language')}</label>
-              <select 
+            <div className="w-full flex flex-col gap-2">
+              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px] text-center">{t('profile.language')}</label>
+              <select
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
               >
                 {LANGUAGE_OPTIONS.map((lang) => (
                   <option key={lang.code} value={lang.code}>
@@ -233,64 +244,64 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
             </div>
           </div>
 
-          {/* Right Side - Settings Section */}
-          <div className="flex flex-col md:w-1/2 lg:w-3/5 space-y-6">
-            <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">{t('profile.displayName')}</label>
-              <input 
-                type="text" 
+          {/* Right Column - Settings Section */}
+          <div className="flex flex-col gap-6 md:w-1/2 lg:w-3/5">
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px]">{t('profile.displayName')}</label>
+              <input
+                type="text"
                 value={name}
                 onChange={e => {
                   setName(e.target.value);
                   setNameError('');
                 }}
-                className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
               />
               {nameError && (
-                <p className="text-red-500 text-xs font-bold mt-2 ml-2">{nameError}</p>
+                <p className="text-red-500 text-xs font-bold mt-1 ml-2">{nameError}</p>
               )}
             </div>
-            <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">{t('profile.email')}</label>
-              <input 
-                type="text" 
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px]">{t('profile.email')}</label>
+              <input
+                type="text"
                 disabled
                 value={user.email}
-                className="w-full px-6 py-4 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-slate-400 cursor-not-allowed"
+                className="w-full h-13 px-6 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-slate-400 cursor-not-allowed"
               />
             </div>
-            <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">{t('profile.theme')}</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px]">{t('profile.theme')}</label>
               <div className="grid grid-cols-3 gap-3">
                 {THEME_OPTIONS.map((option) => (
                   <button
                     key={option.mode}
                     onClick={() => {
                       setSelectedTheme(option.mode);
-                      onThemeChange(option.mode);
+                      previewTheme(option.mode);
                     }}
                     aria-label={option.label}
                     title={option.label}
-                    className={`py-3 rounded-2xl border transition-all flex items-center justify-center ${selectedTheme === option.mode ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                    className={`h-13 rounded-2xl border transition-all flex items-center justify-center ${selectedTheme === option.mode ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}
                   >
                     {option.icon}
                     <span className="sr-only">{option.label}</span>
                   </button>
                 ))}
               </div>
-              <p className="mt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1">
                 {t('profile.themeNote')} <br/>
                 {t('profile.themeWarning')}
               </p>
             </div>
 
             {saveError && (
-              <p className="text-red-500 text-xs font-bold mt-2 ml-2">{saveError}</p>
+              <p className="text-red-500 text-xs font-bold ml-2">{saveError}</p>
             )}
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl tracking-widest uppercase text-sm hover:shadow-2xl transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold rounded-3xl tracking-[3px] uppercase text-xs hover:shadow-2xl transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Saving...' : t('profile.savePreferences')}
             </button>

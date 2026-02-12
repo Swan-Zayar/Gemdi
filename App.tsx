@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { auth } from './firebaseCLI';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import Header from './components/Header';
 import Landing from './components/Landing';
 import LoginModal from './components/LoginModal';
 import ProfileModal from './components/ProfileModal';
@@ -11,7 +10,6 @@ import StudyPlanView from './components/StudyPlanView';
 import QuizView from './components/QuizView';
 import FlashcardView from './components/FlashcardView';
 import ProcessingOverlay from './components/ProcessingOverlay';
-import Footer from './components/Footer';
 import { AppState, StudySession, QuizQuestion, UserLocal } from './types';
 import { themeService, ThemeMode } from './services/theme';
 import * as sessionStorageService from './firebaseStorageService';
@@ -34,11 +32,15 @@ const App: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingFileName, setProcessingFileName] = useState<string>('');
+  const [processingComplete, setProcessingComplete] = useState(false);
+  const [processingError, setProcessingError] = useState<string | null>(null);
+  const [overlayVisible, setOverlayVisible] = useState(false);
   const [neuralInsight, setNeuralInsight] = useState<string>('');
   const [currentQuiz, setCurrentQuiz] = useState<QuizQuestion[]>([]);
-  const [isQuizReady, setIsQuizReady] = useState(false);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>(themeService.getTheme());
+  const [studyStreak, setStudyStreak] = useState(0);
 
   /** Shared: load profile + sessions for a given Firebase user */
   const loadUserData = async (firebaseUser: User) => {
@@ -46,6 +48,13 @@ const App: React.FC = () => {
 
     const profile = await userProfileService.getUserProfile(firebaseUser.uid);
     if (profile) {
+      // Record today's login and calculate streak
+      const updatedDates = await userProfileService.recordLogin(
+        firebaseUser.uid,
+        profile.loginDates || []
+      );
+      setStudyStreak(userProfileService.calculateStreak(updatedDates));
+
       setUserProfile({
         id: profile.userId,
         name: profile.username,
@@ -127,24 +136,21 @@ const App: React.FC = () => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const applyTheme = (mode: ThemeMode) => {
-      if (mode === 'dark') {
+      const isDark = mode === 'dark' || (mode === 'system' && mediaQuery.matches);
+      if (isDark) {
         root.classList.add('dark');
-        return;
-      }
-      if (mode === 'light') {
+      } else {
         root.classList.remove('dark');
-        return;
       }
-      if (mediaQuery.matches) root.classList.add('dark');
-      else root.classList.remove('dark');
+      // Tell the browser how to render native elements (inputs, scrollbars, etc.)
+      root.style.colorScheme = isDark ? 'dark' : 'light';
     };
 
     applyTheme(themeMode);
 
-    const handler = (e: MediaQueryListEvent) => {
+    const handler = () => {
       if (themeMode === 'system') {
-        if (e.matches) root.classList.add('dark');
-        else root.classList.remove('dark');
+        applyTheme('system');
       }
     };
 
@@ -165,53 +171,67 @@ const App: React.FC = () => {
     }
 
     setIsProcessing(true);
-    
+    setProcessingFileName(file.name);
+    setOverlayVisible(true);
+    setProcessingComplete(false);
+    setProcessingError(null);
+
     try {
       const newSession = await sessionStorageService.processAndCreateSession(
-        file, 
+        file,
         user.uid,
         userProfile?.customPrompt
       );
-      
+
       setSessions(prev => [newSession, ...prev]);
-      
+      setProcessingComplete(true);
+
     } catch (error: any) {
       console.error('Error processing file:', error);
       const errorMessage = error?.message || 'Unknown error occurred';
-      const userMessage = errorMessage.includes('API key') 
+      const userMessage = errorMessage.includes('API key')
         ? 'API configuration error. Please contact support.'
         : errorMessage.includes('quota')
         ? 'API quota exceeded. Please try again later.'
         : errorMessage.includes('size')
         ? 'File is too large. Please use a file under 50MB.'
         : `Failed to process file: ${errorMessage}`;
-      alert(userMessage);
+      setProcessingError(userMessage);
     } finally {
       setIsProcessing(false);
       event.target.value = '';
     }
   };
-  /** Prefetch quiz */
-  const prefetchQuiz = useCallback(async (session: StudySession) => {
-    if (!session.studyPlan || isQuizLoading) return;
+  /** Dismiss overlay after completion or error */
+  const handleOverlayDismiss = () => {
+    setOverlayVisible(false);
+    setProcessingComplete(false);
+    setProcessingError(null);
+    setProcessingFileName('');
+  };
+
+  /** Cancel/hide overlay while still processing */
+  const handleOverlayCancel = () => {
+    setOverlayVisible(false);
+    setProcessingFileName('');
+  };
+
+  /** Start quiz — generates fresh questions every time */
+  const handleStartQuiz = useCallback(async () => {
+    if (!activeSession?.studyPlan || isQuizLoading) return;
     setIsQuizLoading(true);
-    setIsQuizReady(false);
+    setCurrentQuiz([]);
+    setAppState(AppState.QUIZ);
     try {
-      const quiz = await geminiService.generateQuiz(session.studyPlan);
+      const quiz = await geminiService.generateQuiz(activeSession.studyPlan);
       setCurrentQuiz(quiz);
-      setIsQuizReady(true);
     } catch (e) {
-      console.warn(e);
+      console.error('Failed to generate quiz:', e);
+      setAppState(AppState.STUDY_PLAN);
     } finally {
       setIsQuizLoading(false);
     }
-  }, [isQuizLoading]);
-
-  useEffect(() => {
-    if (appState === AppState.STUDY_PLAN && activeSession && !isQuizReady && !isQuizLoading) {
-      prefetchQuiz(activeSession);
-    }
-  }, [appState, activeSession, isQuizReady, isQuizLoading, prefetchQuiz]);
+  }, [activeSession, isQuizLoading]);
 
   /** Login handler (from LoginModal) */
   const handleLogin = async (loggedInUser: User) => {
@@ -287,7 +307,19 @@ const App: React.FC = () => {
     setUserProfile(updatedProfile);
   };
 
+  const applyThemeToDOM = (mode: ThemeMode) => {
+    const root = document.documentElement;
+    const isDark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    root.style.colorScheme = isDark ? 'dark' : 'light';
+  };
+
   const handleThemeChange = (mode: ThemeMode) => {
+    applyThemeToDOM(mode);
     setThemeMode(mode);
     themeService.saveTheme(mode);
   };
@@ -332,17 +364,8 @@ const App: React.FC = () => {
   return (
     <I18nProvider defaultLanguage={(userProfile?.language as any) || 'en'}>
       <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300">
-        <Header
-          user={userProfile}
-          onLoginClick={() => setIsLoginModalOpen(true)}
-          onLogout={handleLogout}
-          onLogoClick={() => setAppState(user ? AppState.DASHBOARD : AppState.LANDING)}
-          onProfileClick={() => setIsProfileModalOpen(true)}
-        />
-
-      <main className="grow w-full max-w-7xl mx-auto px-4">
-        {user ? (
-          <>
+      {user ? (
+        <>
             {appState === AppState.DASHBOARD && (
               <Dashboard
                   sessions={sessions}
@@ -362,6 +385,9 @@ const App: React.FC = () => {
                 neuralInsight={neuralInsight}
                 customPrompt={userProfile?.customPrompt}
                 onCustomPromptChange={handleCustomPromptChange}
+                user={userProfile}
+                onProfileClick={() => setIsProfileModalOpen(true)}
+                studyStreak={studyStreak}
               />
             )}
 
@@ -376,14 +402,17 @@ const App: React.FC = () => {
                   setActiveStepTitle(title);
                   setAppState(AppState.FLASHCARDS);
                 }}
-                onStartQuiz={async () => setAppState(AppState.QUIZ)}
+                onStartQuiz={handleStartQuiz}
+                isQuizLoading={isQuizLoading}
                 onBack={() => setAppState(AppState.DASHBOARD)}
+                user={userProfile}
+                onProfileClick={() => setIsProfileModalOpen(true)}
               />
             )}
 
             {appState === AppState.FLASHCARDS && activeSession && (
               <FlashcardView
-                flashcards={activeStepTitle 
+                flashcards={activeStepTitle
                   ? (activeSession.flashcards || []).filter(fc => fc.stepTitle === activeStepTitle)
                   : activeSession.flashcards || []}
                 stepTitle={activeStepTitle}
@@ -401,22 +430,23 @@ const App: React.FC = () => {
                     completedSteps: updatedSteps,
                   };
                   updateActiveSession(updatedSession);
-                  
+
                   if (sessions && sessions.length > 0) {
                     intelligenceService.learnFromSessions(sessions)
                       .then(setNeuralInsight)
                       .catch(err => console.warn('Intelligence service error:', err));
                   }
-                  
+
                   setActiveStepTitle(null);
                   setAppState(AppState.STUDY_PLAN);
                 }}
               />
             )}
 
-            {appState === AppState.QUIZ && currentQuiz.length > 0 && (
+            {appState === AppState.QUIZ && (
               <QuizView
                 questions={currentQuiz}
+                isLoading={isQuizLoading}
                 onBack={() => setAppState(AppState.STUDY_PLAN)}
                 onComplete={(s, t) => {
                   updateActiveSession({
@@ -427,13 +457,10 @@ const App: React.FC = () => {
                 }}
               />
             )}
-          </>
-        ) : (
-          <Landing onGetStarted={() => setIsLoginModalOpen(true)} />
-        )}
-      </main>
-
-      <Footer />
+        </>
+      ) : (
+        <Landing onGetStarted={() => setIsLoginModalOpen(true)} onLoginClick={() => setIsLoginModalOpen(true)} />
+      )}
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} onLogin={handleLogin} />
       {userProfile && (
         <ProfileModal
@@ -446,7 +473,17 @@ const App: React.FC = () => {
         />
       )}
       <ProfileSetupModal isOpen={isProfileSetupOpen} onComplete={handleProfileSetupComplete} />
-      {(isProcessing || loadingDashboard) && <ProcessingOverlay />}
+      {loadingDashboard && <ProcessingOverlay />}
+      {overlayVisible && (
+        <ProcessingOverlay
+          fileName={processingFileName}
+          isComplete={processingComplete}
+          error={processingError}
+          onDismiss={handleOverlayDismiss}
+          onCancel={handleOverlayCancel}
+          allowMinimize
+        />
+      )}
       </div>
     </I18nProvider>
   );

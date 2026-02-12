@@ -21,14 +21,16 @@ service cloud.firestore {
         "avatar",
         "createdAt",
         "language",
-        "customPrompt"
+        "customPrompt",
+        "loginDates"
       ])
       && data.userId == userId
       && isShortString(data.username, 30)
       && isShortString(data.avatar, 300000)
       && isShortString(data.createdAt, 40)
       && (!data.keys().hasAny(["language"]) || isShortString(data.language, 10))
-      && (!data.keys().hasAny(["customPrompt"]) || isShortString(data.customPrompt, 500));
+      && (!data.keys().hasAny(["customPrompt"]) || isShortString(data.customPrompt, 500))
+      && (!data.keys().hasAny(["loginDates"]) || (data.loginDates is list && data.loginDates.size() <= 90));
     }
 
     function validStudySession(data) {

@@ -1,20 +1,27 @@
-
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { StudySession, StudyStep } from '../types';
+import { StudySession, StudyStep, NoteSection, UserLocal } from '../types';
 import { renderMathToHtml } from '../services/mathRender';
+import { GemdiLogo } from './GemdiLogo';
 
 interface StudyPlanViewProps {
   session: StudySession;
   onViewFlashcards: () => void;
   onStepAction: (stepTitle: string) => void;
   onStartQuiz: () => void;
+  isQuizLoading?: boolean;
   onBack: () => void;
+  user?: UserLocal | null;
+  onProfileClick?: () => void;
 }
 
-const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcards, onStepAction, onStartQuiz, onBack }) => {
+const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards, onStepAction, onStartQuiz, isQuizLoading, onBack, user, onProfileClick }) => {
   const [selectedStep, setSelectedStep] = useState<StudyStep | null>(null);
   const plan = session.studyPlan;
+
+  const userInitials = user?.name
+    ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'U';
 
   useEffect(() => {
     if (selectedStep) {
@@ -30,15 +37,21 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
   if (!plan) return null;
 
   const isStepCompleted = (title: string) => session.completedSteps?.includes(title);
+  const totalSteps = plan.steps.length;
+  const completedCount = session.completedSteps?.length || 0;
+  const progressPercent = totalSteps > 0 ? Math.round((completedCount / totalSteps) * 100) : 0;
+
+  // Determine the first non-completed step index for "current" highlighting
+  const currentStepIndex = plan.steps.findIndex(s => !isStepCompleted(s.title));
 
   const modalContent = selectedStep && (
-    <div 
-      className="fixed inset-0 z-9999 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-8 overflow-hidden" 
+    <div
+      className="fixed inset-0 z-9999 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-8 overflow-hidden"
       onClick={() => setSelectedStep(null)}
     >
       <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md"></div>
-      
-      <div 
+
+      <div
         className="w-full max-w-4xl h-[95vh] sm:h-auto sm:max-h-[90vh] bg-white dark:bg-slate-900 rounded-t-[3rem] sm:rounded-[3rem] shadow-[0_32px_128px_-15px_rgba(0,0,0,0.5)] animate-slideUp flex flex-col relative border border-slate-100 dark:border-slate-800 z-10 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -51,72 +64,116 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
               <h3 className="font-black text-xl sm:text-3xl text-slate-900 dark:text-white leading-tight tracking-tight mb-2">{selectedStep.title}</h3>
               <div className="flex flex-wrap items-center gap-2">
                 {isStepCompleted(selectedStep.title) && (
-                  <span className="text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50/50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full border border-emerald-100/50 dark:border-emerald-800/50 flex items-center gap-1.5">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
+                  <span className="text-[10px] font-semibold text-emerald-500 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full border border-emerald-100/50 dark:border-emerald-800/50 flex items-center gap-1.5">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
                     Mastered
                   </span>
                 )}
               </div>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setSelectedStep(null)}
             className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shrink-0"
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
         <div className="grow overflow-y-auto px-6 sm:px-10 pb-10 custom-scrollbar scroll-smooth">
           <div className="space-y-8 sm:space-y-12">
             <div className="prose prose-slate dark:prose-invert max-w-none">
-              <div className="space-y-6">
-                {selectedStep.detailedNotes.split('\n').filter(l => l.trim()).map((line, i) => {
-                  const trimmed = line.trim();
-                  const isListItem = trimmed.startsWith('-') || trimmed.startsWith('*');
-                  
-                  if (isListItem) {
-                    // Inline bullet point character with hanging indent CSS
-                    const bulletText = '• ' + trimmed.replace(/^[-*]\s*/, '').trim();
+              {Array.isArray(selectedStep.detailedNotes) ? (
+                /* Structured notes format */
+                <div className="space-y-8">
+                  {(selectedStep.detailedNotes as NoteSection[]).map((section, sIndex) => (
+                    <div key={sIndex}>
+                      {/* Section Heading */}
+                      <div className="mt-6 mb-4">
+                        <h4 className="text-slate-900 dark:text-white font-black text-xs sm:text-sm uppercase tracking-[0.25em] border-l-4 border-indigo-600 pl-5 py-2 bg-indigo-50/30 dark:bg-indigo-900/20 rounded-r-xl"
+                          dangerouslySetInnerHTML={{ __html: renderMathToHtml(section.heading) }} />
+                      </div>
+
+                      {/* Body paragraph */}
+                      {section.body && (
+                        <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed font-medium pl-6 mb-4 border-l-2 border-slate-200 dark:border-slate-700"
+                          dangerouslySetInnerHTML={{ __html: renderMathToHtml(section.body) }} />
+                      )}
+
+                      {/* Bullet points */}
+                      {section.bullets && section.bullets.length > 0 && (
+                        <div className="space-y-2 mb-4">
+                          {section.bullets.map((bullet, bIndex) => (
+                            <div key={bIndex} className="pl-6 -indent-4">
+                              <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed font-medium"
+                                dangerouslySetInnerHTML={{ __html: renderMathToHtml('• ' + bullet) }} />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Formula boxes */}
+                      {section.formulas && section.formulas.length > 0 && (
+                        <div className="space-y-3">
+                          {section.formulas.map((formula, fIndex) => (
+                            <div key={fIndex} className="py-4 px-6 bg-indigo-50/60 dark:bg-indigo-950/30 rounded-2xl border border-indigo-100 dark:border-indigo-800/40 text-center overflow-x-auto">
+                              <span className="text-slate-800 dark:text-slate-200"
+                                dangerouslySetInnerHTML={{ __html: renderMathToHtml(formula) }} />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Legacy flat string format */
+                <div className="space-y-6">
+                  {String(selectedStep.detailedNotes).split('\n').filter(l => l.trim()).map((line, i) => {
+                    const trimmed = line.trim();
+                    const isListItem = trimmed.startsWith('-') || trimmed.startsWith('*');
+
+                    if (isListItem) {
+                      const bulletText = '• ' + trimmed.replace(/^[-*]\s*/, '').trim();
+                      return (
+                        <div key={i} className="pl-6 -indent-4 mb-3">
+                          <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed font-medium"
+                            dangerouslySetInnerHTML={{ __html: renderMathToHtml(bulletText) }} />
+                        </div>
+                      );
+                    }
+
+                    const endsWithColon = trimmed.endsWith(':') && trimmed.length < 60;
+                    const isAllCaps = trimmed.length < 50 && trimmed.length > 2 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed);
+                    const isHeader = endsWithColon || isAllCaps;
+
                     return (
-                      <div key={i} className="pl-6 -indent-4 mb-3">
-                        <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed font-medium" 
-                          dangerouslySetInnerHTML={{ __html: renderMathToHtml(bulletText) }}>
-                        </p>
+                      <div key={i} className="group/line">
+                        {isHeader ? (
+                          <div className="mt-8 mb-4">
+                            <h4 className="text-slate-900 dark:text-white font-black text-xs sm:text-sm uppercase tracking-[0.25em] border-l-4 border-indigo-600 pl-5 py-2 bg-indigo-50/30 dark:bg-indigo-900/20 rounded-r-xl"
+                              dangerouslySetInnerHTML={{ __html: renderMathToHtml(trimmed.replace(/:$/, '')) }} />
+                          </div>
+                        ) : (
+                          <p className="text-slate-500 dark:text-slate-400 text-base sm:text-lg leading-relaxed font-medium pl-6 border-l border-slate-100 dark:border-slate-800"
+                            dangerouslySetInnerHTML={{ __html: renderMathToHtml(trimmed) }} />
+                        )}
                       </div>
                     );
-                  }
-
-                  const isHeader = trimmed.length < 50 && (trimmed.toUpperCase() === trimmed || trimmed.includes(':'));
-
-                  return (
-                    <div key={i} className="group/line">
-                       {isHeader ? (
-                         <div className="mt-8 mb-4">
-                           <h4 className="text-slate-900 dark:text-white font-black text-xs sm:text-sm uppercase tracking-[0.25em] border-l-4 border-indigo-600 pl-5 py-2 bg-indigo-50/30 dark:bg-indigo-900/20 rounded-r-xl"
-                               dangerouslySetInnerHTML={{ __html: renderMathToHtml(trimmed.replace(/:$/, '')) }}>
-                           </h4>
-                         </div>
-                       ) : (
-                         <p className="text-slate-500 dark:text-slate-400 text-base sm:text-lg leading-relaxed font-medium pl-6 border-l border-slate-100 dark:border-slate-800"
-                           dangerouslySetInnerHTML={{ __html: renderMathToHtml(trimmed) }}>
-                         </p>
-                       )}
-                    </div>
-                  );
-                })}
-              </div>
+                  })}
+                </div>
+              )}
             </div>
-            
+
             <div className="py-10">
               <div className="bg-slate-900 dark:bg-black p-8 sm:p-14 rounded-[2.5rem] sm:rounded-[3.5rem] text-white text-center shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full -mr-32 -mt-32"></div>
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 dark:bg-slate-800 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 mx-auto border border-white/10">
-                   <svg className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 </div>
                 <h4 className="font-black text-2xl sm:text-3xl mb-4 tracking-tight">Active Recall Lab</h4>
                 <p className="text-slate-400 font-bold text-base sm:text-lg mb-10 max-w-sm mx-auto">Verify your comprehension of this phase.</p>
-                <button 
+                <button
                   onClick={(e) => { e.stopPropagation(); onStepAction(selectedStep.title); setSelectedStep(null); }}
                   className="w-full sm:w-auto px-12 py-5 bg-white text-slate-900 rounded-2xl font-black text-lg hover:bg-indigo-50 transition-all active:scale-95"
                 >
@@ -131,124 +188,194 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
   );
 
   return (
-    <div className={`max-w-6xl mx-auto space-y-6 sm:space-y-10 animate-fadeIn pb-16 transition-all duration-500 ${selectedStep ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100 blur-0'}`}>
-      {session.isPotentiallyInvalid && (
-        <div className="mx-2 sm:mx-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex items-start gap-4 sm:gap-5 shadow-sm">
-           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
-             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-           </div>
-           <div>
-             <h4 className="text-amber-900 dark:text-amber-100 font-black text-base sm:text-lg tracking-tight">Note Quality Warning</h4>
-             <p className="text-amber-700 dark:text-amber-400 font-medium text-xs sm:text-sm leading-relaxed max-w-2xl">
-               {session.validityWarning || "Gemdi detected that this file might not be a standard course note."}
-             </p>
-           </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 animate-fadeIn">
+      {/* Inline Header */}
+      <header className="h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-8 sticky top-0 z-50">
+        <div className="flex items-center gap-2.5">
+          <GemdiLogo className="w-6 h-6" gradientId="spGrad" />
+          <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Gemdi</span>
         </div>
-      )}
-      <button 
-          onClick={onBack}
-          className="group flex items-center gap-2 sm:gap-3 py-2 mb-6 font-black text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
-        >
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:-translate-x-1 transition-transform">
-             <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M15 19l-7-7 7-7"></path></svg>
-          </div>
-          <span className="hidden sm:inline">Back to Dashboard</span>
-      </button>
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 px-4">
-        <div className="relative text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400 text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] mb-3 border border-indigo-100 dark:border-indigo-900/50 shadow-sm">
-            Roadmap Live
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">{session.sessionName}</h2>
-          <p className="text-slate-400 dark:text-slate-500 font-bold mt-2 text-sm sm:text-base">From <span className="text-indigo-600 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-900/50">{session.fileName}</span></p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 px-2 sm:px-0">
-          <button 
-            onClick={onViewFlashcards}
-            className="group relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-600 dark:hover:border-indigo-400 text-slate-900 dark:text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black chic-shadow flex items-center justify-center gap-3 transition-all active:scale-95 text-sm sm:text-base"
-          >
-            <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-            Study Cards
-          </button>
-          <button 
-            onClick={onStartQuiz}
-            className="group relative bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-indigo-600 dark:hover:bg-indigo-100 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black chic-shadow flex items-center justify-center gap-3 transition-all active:scale-95 text-sm sm:text-base overflow-hidden"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            Start Unit Quiz
+        <div className="flex items-center gap-3">
+          {session.quizHistory && session.quizHistory.length > 0 && (() => {
+            const bestScore = Math.max(...session.quizHistory.map(q => Math.round((q.score / q.total) * 100)));
+            return (
+              <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${bestScore >= 80 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400'}`}>
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                Best: {bestScore}%
+              </span>
+            );
+          })()}
+          <button onClick={onProfileClick} className="cursor-pointer">
+            {user?.avatar ? (
+              <img src={user.avatar} alt="Profile" className="w-9 h-9 rounded-full object-cover" />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-bold">
+                {userInitials}
+              </div>
+            )}
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-2 sm:px-4">
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-3xl sm:rounded-4xl border border-slate-100 dark:border-slate-700 chic-shadow relative overflow-hidden group">
-            <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-50 mb-4 flex items-center gap-2">
-              <span className="w-1 h-5 sm:w-1.5 sm:h-6 bg-indigo-600 rounded-full"></span>
-              Overview
-            </h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed font-medium" 
-              dangerouslySetInnerHTML={{ __html: renderMathToHtml(plan.overview) }}></p>
-          </div>
-
-          {session.quizHistory && session.quizHistory.length > 0 && (
-            <div className="bg-slate-900 dark:bg-black p-6 sm:p-8 rounded-3xl sm:rounded-4xl text-white chic-shadow relative overflow-hidden">
-               <h3 className="text-base sm:text-lg font-black mb-4 flex items-center gap-2">
-                <span className="w-1 h-4 sm:w-1.5 sm:h-4 bg-emerald-500 rounded-full"></span>
-                Mastery History
-               </h3>
-               <div className="space-y-3 sm:space-y-4">
-                 {session.quizHistory.slice(0, 3).map((h, i) => (
-                   <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 dark:bg-slate-800/50 border border-white/10 dark:border-white/5">
-                      <div className="flex flex-col">
-                        <span className="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">{new Date(h.date).toLocaleDateString()}</span>
-                        <span className="text-xs sm:text-sm font-bold text-emerald-400">Score: {h.score}/{h.total}</span>
-                      </div>
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-500">
-                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                      </div>
-                   </div>
-                 ))}
-               </div>
+      {/* Content */}
+      <div className={`px-12 py-8 max-w-5xl mx-auto transition-all duration-500 ${selectedStep ? 'opacity-20 blur-sm pointer-events-none' : ''}`}>
+        {/* Warning */}
+        {session.isPotentiallyInvalid && (
+          <div className="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-2xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             </div>
-          )}
+            <div>
+              <h4 className="text-amber-900 dark:text-amber-100 font-bold text-base">Note Quality Warning</h4>
+              <p className="text-amber-700 dark:text-amber-400 text-sm">{session.validityWarning || "Gemdi detected that this file might not be a standard course note."}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Back button */}
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-slate-900 dark:hover:text-white transition-colors mb-8"
+        >
+          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 12H5m7-7l-7 7 7 7" /></svg>
+          Back to Dashboard
+        </button>
+
+        {/* Title area */}
+        <div className="mb-8">
+          <h2 className="text-[28px] font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight" style={{ letterSpacing: '-0.5px' }}>
+            {session.sessionName || session.fileName}
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+            Study Roadmap &middot; {totalSteps} Steps &middot; {progressPercent}% Complete
+          </p>
         </div>
 
-        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-          <div className="px-2">
-            <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-50 tracking-tight">Study Masterplan</h3>
-            <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] sm:text-xs">Select a module to expand materials</p>
+        {/* Unit Quiz Card */}
+        <div className="mb-8 bg-slate-900 dark:bg-black p-8 rounded-[2.5rem] text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-600/10 rounded-full -mr-24 -mt-24"></div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 relative z-10">
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shrink-0">
+              <svg className="w-7 h-7 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-extrabold text-xl tracking-tight mb-1">Unit Quiz</h4>
+              <p className="text-slate-400 font-medium text-sm">Test your understanding with 20 questions</p>
+              {session.quizHistory && session.quizHistory.length > 0 && (
+                <p className="text-slate-500 text-xs font-medium mt-1.5">
+                  Last score: {Math.round((session.quizHistory[0].score / session.quizHistory[0].total) * 100)}% &middot; {session.quizHistory.length} attempt{session.quizHistory.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={onStartQuiz}
+              disabled={isQuizLoading}
+              className="px-8 py-3.5 bg-white text-slate-900 rounded-2xl font-extrabold text-sm hover:bg-indigo-50 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
+            >
+              {isQuizLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  {session.quizHistory && session.quizHistory.length > 0 ? 'Retake Quiz' : 'Take Quiz'}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </>
+              )}
+            </button>
           </div>
-          
-          <div className="grid grid-cols-1 gap-3 sm:gap-4">
-            {plan.steps.map((step, index) => {
-              const completed = isStepCompleted(step.title);
-              return (
-                <div 
-                  key={index} 
-                  onClick={() => setSelectedStep(step)}
-                  className={`group cursor-pointer p-4 sm:p-6 rounded-3xl sm:rounded-4xl border transition-all md:tilt-card flex items-center gap-4 sm:gap-6 chic-shadow ${completed ? 'border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/20 dark:bg-emerald-900/10' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-900/50'}`}
-                >
-                  <div className="shrink-0">
-                    <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center font-black text-xl sm:text-2xl transition-all duration-500 shadow-inner ${completed ? 'bg-emerald-500 text-white' : 'bg-slate-50 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:text-white'}`}>
-                      {completed ? (
-                        <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
-                      ) : (index + 1)}
+        </div>
+
+        {/* Timeline Steps */}
+        <div className="space-y-0">
+          {plan.steps.map((step, index) => {
+            const completed = isStepCompleted(step.title);
+            const isCurrent = index === currentStepIndex;
+            const isUpcoming = !completed && !isCurrent;
+            const isLast = index === plan.steps.length - 1;
+            const flashcardCount = (session.flashcards || []).filter(fc => fc.stepTitle === step.title).length;
+
+            return (
+              <div
+                key={index}
+                className="flex gap-5 cursor-pointer"
+                onClick={() => setSelectedStep(step)}
+                style={{ paddingBottom: isLast ? 0 : 24 }}
+              >
+                {/* Left indicator column */}
+                <div className="flex flex-col items-center w-10 shrink-0">
+                  {/* Circle */}
+                  {completed ? (
+                    <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
                     </div>
+                  ) : isCurrent ? (
+                    <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-extrabold text-base shrink-0">
+                      {index + 1}
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border-[1.5px] border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 font-extrabold text-base shrink-0">
+                      {index + 1}
+                    </div>
+                  )}
+                  {/* Connecting line */}
+                  {!isLast && (
+                    <div
+                      className={`w-0.5 flex-1 mt-0 ${completed ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`}
+                    />
+                  )}
+                </div>
+
+                {/* Content card */}
+                <div
+                  className={`flex-1 rounded-2xl p-5 border transition-all ${
+                    isCurrent
+                      ? 'bg-white dark:bg-slate-800 border-2 border-indigo-500'
+                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                  } ${isUpcoming ? 'opacity-70' : ''}`}
+                >
+                  {/* Header row */}
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white">{step.title}</h4>
+                    {completed ? (
+                      <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                        Mastered
+                      </span>
+                    ) : isCurrent ? (
+                      <span className="text-[11px] font-semibold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-2.5 py-1 rounded-full">
+                        In Progress
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">
+                        Upcoming
+                      </span>
+                    )}
                   </div>
-                  
-                  <div className="grow min-w-0">
-                    <h4 className={`font-black text-base sm:text-lg tracking-tight transition-colors truncate ${completed ? 'text-emerald-900 dark:text-emerald-100' : 'text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>{step.title}</h4>
-                    <p className="text-slate-400 dark:text-slate-500 text-[10px] sm:text-sm font-bold truncate">{step.description}</p>
-                  </div>
-                  
-                  <div className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-slate-50 dark:border-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-600 group-hover:border-indigo-200 dark:group-hover:border-indigo-900/50 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg>
+
+                  {/* Description */}
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3">{step.description}</p>
+
+                  {/* Bottom row */}
+                  <div className="flex items-center gap-3">
+                    {isCurrent && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onStepAction(step.title); }}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-500 text-white text-[13px] font-semibold hover:bg-indigo-600 transition-colors active:scale-95"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        Active Recall Lab
+                      </button>
+                    )}
+                    {flashcardCount > 0 && (
+                      <span className="text-xs font-medium text-slate-400 dark:text-slate-500">{flashcardCount} Flashcards</span>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -262,7 +389,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session,  onViewFlashcard
         .dark .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
+
         @keyframes slideUp {
           from { transform: translateY(100px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }

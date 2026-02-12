@@ -157,7 +157,7 @@ const renderMathSegment = (segment: string, displayMode: boolean) => {
 
 export const renderMathToHtml = (text: string) => {
   const input = text ?? "";
-  const regex = /(\$\$[\s\S]+?\$\$|\$[^$]+\$|\\\[[\s\S]+?\\\]|\\\([^\)]+\\\))/g;
+  const regex = /(\$\$[\s\S]+?\$\$|\$[^$]+\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))/g;
   let lastIndex = 0;
   let result = "";
   let match: RegExpExecArray | null;

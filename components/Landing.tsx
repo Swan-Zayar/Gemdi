@@ -1,67 +1,160 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 
 interface LandingProps {
   onGetStarted: () => void;
+  onLoginClick: () => void;
 }
 
-const Landing: React.FC<LandingProps> = ({ onGetStarted }) => {
+const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const howItWorksRef = useRef<HTMLDivElement>(null);
+
+  const scrollTo = (ref: React.RefObject<HTMLDivElement | null>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center py-8 sm:py-16 lg:py-24 text-center relative overflow-hidden px-4">
-      
-      {/* Background Decorative Shapes */}
-      <div className="absolute top-0 right-0 w-32 sm:w-64 h-32 sm:h-64 border-15 sm:border-30 border-slate-100 dark:border-slate-800/30 rounded-4xl sm:rounded-[4rem] rotate-12 -z-10 opacity-30 translate-x-1/2"></div>
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+      {/* ── Nav Bar ── */}
+      <nav className="sticky top-0 z-50 w-full h-18 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-6 md:px-12 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-rounded text-indigo-500 text-[28px]">diamond</span>
+          <span className="text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight">Gemdi</span>
+        </div>
 
-      <div className="inline-block px-4 py-1.5 mb-6 sm:mb-8 text-[9px] sm:text-[10px] font-black tracking-[0.2em] text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-50 dark:bg-indigo-900/30 rounded-xl border border-indigo-100 dark:border-indigo-800/50 relative z-10">
-        Neural Study Engine
-      </div>
-      
-      <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-slate-900 dark:text-white mb-6 sm:mb-8 tracking-tighter leading-[1.1] sm:leading-none relative z-10 max-w-5xl">
-        Master notes <br className="hidden sm:block" /> with
-        <span className="text-indigo-600 dark:text-indigo-400"> Gemdi.</span>
-      </h1>
-      
-      <p className="text-base sm:text-lg lg:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mb-10 sm:mb-14 leading-relaxed font-bold relative z-10">
-        Gemdi architecturally transforms course materials into deep-dive study plans 
-        and interactive sessions. Engineered with Gemini 3.
-      </p>
-      
-      <div className="flex flex-col sm:flex-row gap-4 mb-20 sm:mb-32 relative z-10 w-full sm:w-auto">
-        <button 
-          onClick={onGetStarted}
-          className="w-full sm:w-auto px-12 py-4 sm:py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl shadow-2xl transition-all text-lg hover:bg-indigo-600 dark:hover:bg-indigo-50 active:scale-95"
-        >
-          Get Started
-        </button>
-      </div>
+        <div className="hidden md:flex items-center gap-8">
+          <button onClick={() => scrollTo(featuresRef)} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Features</button>
+          <button onClick={() => scrollTo(howItWorksRef)} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">How It Works</button>
+          <button className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Pricing</button>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl relative z-10">
-        {[
-          {
-            icon: <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>,
-            title: "Deep Extraction",
-            desc: "Neural analysis that scans structure and logic, producing quality materials - powered by Gemini 3."
-          },
-          {
-            icon: <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>,
-            title: "Roadmap Logic",
-            desc: "Structured phases for feasible study steps."
-          },
-          {
-            icon: <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>,
-            title: "Recall Engine",
-            desc: "Flashcards that make memory testing tactile."
-          }
-        ].map((item, i) => (
-          <div key={i} className="group p-8 sm:p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] chic-shadow border border-slate-100 dark:border-slate-700 text-left transition-all hover:-translate-y-2">
-            <div className="w-14 h-14 bg-slate-50 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner">
-              {item.icon}
+        <div className="flex items-center gap-3">
+          <button onClick={onLoginClick} className="hidden sm:block text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-5 py-2.5 rounded-full transition-colors">Log In</button>
+          <button onClick={onGetStarted} className="text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-600 px-5 py-2.5 rounded-full transition-colors">Get Started</button>
+        </div>
+      </nav>
+
+      {/* ── Hero Section ── */}
+      <section className="flex flex-col items-center text-center px-6 md:px-12 pt-16 pb-12 md:pt-20 md:pb-16">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-1.5 rounded-full mb-8">
+          <span className="w-2 h-2 rounded-full bg-indigo-500" />
+          <span className="text-[13px] font-semibold text-indigo-500 dark:text-indigo-400">AI-Powered Study Companion</span>
+        </div>
+
+        {/* Title */}
+        <div className="flex flex-col items-center gap-1 mb-8">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight" style={{ letterSpacing: '-1.5px' }}>Master Your Notes</h1>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-indigo-500 dark:text-indigo-400 tracking-tight" style={{ letterSpacing: '-1.5px' }}>with Gemdi</h1>
+        </div>
+
+        {/* Subtitle */}
+        <p className="text-lg text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed mb-8" style={{ lineHeight: 1.6 }}>
+          Transform dense course materials into structured study plans, interactive flashcards, and adaptive quizzes — all powered by AI.
+        </p>
+
+        {/* CTAs */}
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <button onClick={onGetStarted} className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-base px-7 py-3.5 rounded-full transition-colors">
+            Start Learning Free
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+          <button onClick={() => scrollTo(howItWorksRef)} className="flex items-center gap-2 border-[1.5px] border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-semibold text-base px-7 py-3.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            See How It Works
+          </button>
+        </div>
+      </section>
+
+      {/* ── Features Section ── */}
+      <section ref={featuresRef} className="flex flex-col items-center px-6 md:px-12 py-16">
+        <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400 tracking-[2px] uppercase mb-4">WHY GEMDI</span>
+        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white text-center mb-12" style={{ letterSpacing: '-0.5px' }}>Built for how you actually study</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+          {/* Card 1 — Deep Extraction */}
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col gap-5">
+            <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.3 16.3 15 18"/></svg>
             </div>
-            <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white tracking-tight">{item.title}</h3>
-            <p className="text-slate-400 dark:text-slate-500 text-sm font-bold leading-relaxed">{item.desc}</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Deep Extraction</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed" style={{ lineHeight: 1.65 }}>Upload any PDF or DOCX. Our AI reads and understands your material, extracting key concepts, definitions, and relationships.</p>
           </div>
-        ))}
-      </div>
+
+          {/* Card 2 — Smart Roadmaps */}
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col gap-5">
+            <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Smart Roadmaps</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed" style={{ lineHeight: 1.65 }}>Get a structured study plan broken into phases. Each step builds on the last, guiding you from fundamentals to mastery.</p>
+          </div>
+
+          {/* Card 3 — Active Recall */}
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col gap-5">
+            <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M12 18v-5l-1.5 1"/></svg>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Recall</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed" style={{ lineHeight: 1.65 }}>Auto-generated flashcards and quizzes drill your knowledge. Rate your confidence and track mastery over time.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works ── */}
+      <section ref={howItWorksRef} className="flex flex-col items-center bg-white dark:bg-slate-800 px-6 md:px-12 py-16">
+        <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400 tracking-[2px] uppercase mb-4">HOW IT WORKS</span>
+        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white text-center mb-12" style={{ letterSpacing: '-0.5px' }}>From upload to mastery in 3 steps</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
+          {/* Step 1 */}
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-14 h-14 rounded-full bg-indigo-500 flex items-center justify-center">
+              <span className="text-[22px] font-extrabold text-white">1</span>
+            </div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Upload Material</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">Drop in your PDF or DOCX course files</p>
+          </div>
+
+          {/* Step 2 */}
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center">
+              <span className="text-[22px] font-extrabold text-white">2</span>
+            </div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">AI Generates Plan</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">Gemini AI creates a structured roadmap with flashcards and quizzes</p>
+          </div>
+
+          {/* Step 3 */}
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-14 h-14 rounded-full bg-amber-500 flex items-center justify-center">
+              <span className="text-[22px] font-extrabold text-white">3</span>
+            </div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Study & Master</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">Drill with active recall, track confidence, and achieve mastery</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA Banner ── */}
+      <section className="flex flex-col items-center text-center px-6 md:px-12 py-20" style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)' }}>
+        <h2 className="text-3xl md:text-[40px] font-extrabold text-white mb-6" style={{ letterSpacing: '-0.5px' }}>Ready to study smarter?</h2>
+        <p className="text-base text-white/80 max-w-md leading-relaxed mb-8" style={{ lineHeight: 1.5 }}>Join now to transform your study habits with Gemdi.</p>
+        <button onClick={onGetStarted} className="flex items-center gap-2 bg-white hover:bg-slate-50 text-indigo-600 font-bold text-base px-8 py-4 rounded-full transition-colors">
+          Get Started — It's Free
+          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="w-full h-16 bg-slate-900 flex items-center justify-between px-6 md:px-12">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-rounded text-indigo-400 text-[20px]">diamond</span>
+          <span className="text-base font-bold text-white">Gemdi</span>
+        </div>
+        <span className="text-[13px] text-white/50">2025 Gemdi. Built by Swan's Lab.</span>
+      </footer>
     </div>
   );
 };

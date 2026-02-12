@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { initializeFirestore } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
-import { getStorage } from 'firebase/storage';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 type AppConfigKey =
   | 'VITE_FIREBASE_API_KEY'
@@ -47,8 +47,14 @@ export const storage = getStorage(app);
 // so callable functions hit the local emulator instead of production.
 if (typeof import.meta !== 'undefined' && (import.meta.env?.DEV || import.meta.env?.VITE_USE_FIREBASE_EMULATOR === 'true')) {
   try {
-    connectFunctionsEmulator(functions, 'localhost', 5001);
-    console.log('Connected to Functions emulator at http://localhost:5001');
+    connectFunctionsEmulator(functions, 'localhost', 5002);
+    console.log('Connected to Functions emulator at http://localhost:5002');
+    try {
+      connectStorageEmulator(storage, 'localhost', 9199);
+      console.log('Connected to Storage emulator at http://localhost:9199');
+    } catch (e) {
+      // ignore if storage emulator helper not available in this environment
+    }
   } catch (e) {
     // ignore if emulator lib not available in this environment
   }

@@ -31,11 +31,13 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ image, onComplete, onCa
       imageElement.onload = resolve;
     });
 
-    // Set canvas size to cropped area
-    canvas.width = croppedAreaPixels.width;
-    canvas.height = croppedAreaPixels.height;
+    // Resize to max 256x256 for profile pictures
+    const MAX_SIZE = 256;
+    const scale = Math.min(MAX_SIZE / croppedAreaPixels.width, MAX_SIZE / croppedAreaPixels.height, 1);
+    canvas.width = Math.round(croppedAreaPixels.width * scale);
+    canvas.height = Math.round(croppedAreaPixels.height * scale);
 
-    // Draw the cropped image
+    // Draw the cropped and resized image
     ctx.drawImage(
       imageElement,
       croppedAreaPixels.x,
@@ -44,12 +46,12 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ image, onComplete, onCa
       croppedAreaPixels.height,
       0,
       0,
-      croppedAreaPixels.width,
-      croppedAreaPixels.height
+      canvas.width,
+      canvas.height
     );
 
-    // Convert to data URL
-    const croppedImageUrl = canvas.toDataURL('image/jpeg', 0.9);
+    // Convert to data URL with higher compression
+    const croppedImageUrl = canvas.toDataURL('image/jpeg', 0.8);
     onComplete(croppedImageUrl);
   };
 
@@ -57,7 +59,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ image, onComplete, onCa
     <div className="fixed inset-0 z-1003 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xl animate-fadeIn">
       <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-[3rem] chic-shadow border border-slate-100 dark:border-slate-700 relative animate-slideUp overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+        <div className="py-6 px-8 border-b border-slate-100 dark:border-slate-700">
           <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Adjust Your Photo</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Move and zoom to crop your image</p>
         </div>
@@ -78,10 +80,10 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ image, onComplete, onCa
         </div>
 
         {/* Controls */}
-        <div className="p-6 space-y-4">
+        <div className="py-6 px-8 flex flex-col gap-5">
           {/* Zoom Slider */}
-          <div className="space-y-2">
-            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Zoom</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[3px]">Zoom</label>
             <input
               type="range"
               min={1}
@@ -89,7 +91,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ image, onComplete, onCa
               step={0.1}
               value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-600 [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
             />
           </div>
 
@@ -97,13 +99,13 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ image, onComplete, onCa
           <div className="flex gap-3">
             <button
               onClick={onCancel}
-              className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all active:scale-95"
+              className="flex-1 h-12 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white font-black rounded-2xl tracking-[3px] uppercase text-xs hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
             >
               Cancel
             </button>
             <button
               onClick={createCroppedImage}
-              className="flex-1 py-3 bg-indigo-600 text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-indigo-700 transition-all active:scale-95"
+              className="flex-1 h-12 bg-indigo-500 text-white font-black rounded-2xl tracking-[3px] uppercase text-xs hover:bg-indigo-600 transition-all active:scale-95"
             >
               Apply
             </button>

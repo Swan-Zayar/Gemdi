@@ -8,6 +8,7 @@
 
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=diamond" rel="stylesheet">
     
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -16,6 +17,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 
+    <script>
+      // Apply saved theme instantly to prevent flash of wrong theme
+      (function() {
+        var theme = localStorage.getItem('gemdi_theme') || 'system';
+        var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (isDark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+      })();
+    </script>
     <style>
         :root {
             --primary: #6366f1;
@@ -23,7 +33,7 @@
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #fbfcfe;
+            background-color: #f8fafc;
             margin: 0;
             padding: 0;
             min-height: 100vh;
@@ -103,10 +113,12 @@
     </style>
 </head>
 <body class="text-slate-900 dark:text-slate-50 antialiased overflow-x-hidden">
-    <!-- Global 3D Background Elements -->
-    <div class="shape-3d w-64 h-64 sm:w-96 sm:h-96 bg-indigo-400/30 -top-20 -left-20 rounded-full"></div>
-    <div class="shape-3d w-64 h-64 sm:w-80 sm:h-80 bg-purple-300/30 bottom-0 -right-20 rounded-full" style="animation-delay: -2s;"></div>
-    
+    <!-- 3D Background Elements (Landing page only — hidden by default, shown via .show-bg-shapes on body) -->
+    <div id="bg-shapes" style="display:none;">
+      <div class="shape-3d w-64 h-64 sm:w-96 sm:h-96 bg-indigo-400/30 -top-20 -left-20 rounded-full"></div>
+      <div class="shape-3d w-64 h-64 sm:w-80 sm:h-80 bg-purple-300/30 bottom-0 -right-20 rounded-full" style="animation-delay: -2s;"></div>
+    </div>
+
     <div id="root" class="relative z-10"></div>
     <script src="/config.js"></script>
     <script type="module" src="/index.tsx"></script>

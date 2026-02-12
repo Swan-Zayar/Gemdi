@@ -10,7 +10,7 @@ export const geminiService = {
     customPrompt?: string,
     fileSize?: number
   ): Promise<{ studyPlan: StudyPlan; flashcards: Flashcard[]; isStudyMaterial: boolean; validityWarning: string }> {
-    const callable = httpsCallable(functions, "geminiProxy");
+    const callable = httpsCallable(functions, "geminiProxy", { timeout: 540_000 });
     const result = await callable({
       action: "processStudyContent",
       payload: { storagePath, fileName, fileMimeType, customPrompt, fileSize }
@@ -33,7 +33,7 @@ export const geminiService = {
   },
 
   async generateQuiz(studyPlan: StudyPlan): Promise<QuizQuestion[]> {
-    const callable = httpsCallable(functions, "geminiProxy");
+    const callable = httpsCallable(functions, "geminiProxy", { timeout: 540_000 });
     const result = await callable({
       action: "generateQuiz",
       payload: { studyPlan }

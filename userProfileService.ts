@@ -8,6 +8,7 @@ export interface UserProfile {
   createdAt: string;
   language?: string;
   customPrompt?: string;
+  loginDates?: string[];
 }
 
 const PROFILES_COLLECTION = 'userProfiles';
@@ -35,4 +36,43 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 export async function updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
   const ref = doc(db, PROFILES_COLLECTION, userId);
   await setDoc(ref, updates, { merge: true });
+}
+
+/** Record today's login and return the updated loginDates array */
+export async function recordLogin(userId: string, existing: string[] = []): Promise<string[]> {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  if (existing.includes(today)) return existing;
+
+  // Keep only last 90 days to avoid unbounded growth
+  const updated = [...existing, today].slice(-90);
+  await updateUserProfile(userId, { loginDates: updated } as Partial<UserProfile>);
+  return updated;
+}
+
+/** Calculate consecutive-day streak ending today (or yesterday) */
+export function calculateStreak(loginDates: string[]): number {
+  if (!loginDates || loginDates.length === 0) return 0;
+
+  const unique = [...new Set(loginDates)].sort().reverse();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const mostRecent = new Date(unique[0] + 'T00:00:00');
+  const diffFromToday = Math.round((today.getTime() - mostRecent.getTime()) / 86400000);
+
+  // Streak only counts if the user logged in today or yesterday
+  if (diffFromToday > 1) return 0;
+
+  let streak = 1;
+  for (let i = 1; i < unique.length; i++) {
+    const prev = new Date(unique[i - 1] + 'T00:00:00');
+    const curr = new Date(unique[i] + 'T00:00:00');
+    const gap = Math.round((prev.getTime() - curr.getTime()) / 86400000);
+    if (gap === 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
 }

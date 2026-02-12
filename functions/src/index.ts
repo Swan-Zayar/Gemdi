@@ -47,7 +47,7 @@ const handleGeminiRequest = async (data: unknown) => {
   }
 
   const ai = new GoogleGenAI({apiKey});
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-2.5-flash";
 
   if (action === "processStudyContent") {
     const {
@@ -80,57 +80,103 @@ const handleGeminiRequest = async (data: unknown) => {
 
     console.log(`Processing file: ${fileName}, type: ${fileMimeType}, size: ${fileSize || 'unknown'} bytes, storagePath: ${storagePath}`);
 
-    let fileBuffer: Buffer | null = null;
-    let fileBase64: string | null = null;
-
     try {
-      // Download file from Cloud Storage
-      const file = bucket.file(storagePath);
-      const [fileContent] = await file.download();
-      fileBuffer = fileContent;
-      fileBase64 = fileBuffer.toString('base64');
+      // Upload file to Gemini File API directly from Cloud Storage
+      // This avoids base64 bloat and is faster for large files
+      const storageFile = bucket.file(storagePath);
+      const [fileContent] = await storageFile.download();
 
-      console.log(`Downloaded file from Storage, size: ${fileBuffer.length} bytes`);
+      console.log(`Downloaded file from Storage, size: ${fileContent.length} bytes, uploading to Gemini File API...`);
+
+      const geminiFile = await ai.files.upload({
+        file: new Blob([fileContent], {type: fileMimeType}),
+        config: {mimeType: fileMimeType, displayName: fileName},
+      });
+
+      console.log(`Uploaded to Gemini File API: ${geminiFile.name}, state: ${geminiFile.state}`);
+
+      // Wait for file to be processed if needed
+      let currentFile = geminiFile;
+      while (currentFile.state === "PROCESSING") {
+        await new Promise((r) => setTimeout(r, 2000));
+        currentFile = await ai.files.get({name: currentFile.name!});
+      }
+
+      if (currentFile.state === "FAILED") {
+        throw new Error("Gemini File API processing failed");
+      }
 
       const prompt = `
-      You are a world-class Lead Professor. Perform an EXHAUSTIVE EXTRACTION of: ${fileName}.
-      
-      CRITICAL FORMATTING INSTRUCTION: 
-      - Use HIGHLY STRUCTURED BULLETED LISTS for all "detailedNotes". 
-      - Every distinch line inside "detailedNotes" MUST be a bullet point.
-      - Each bullet should contain a complete, technical thought.
+      You are an expert tutor creating a focused study guide from: ${fileName}.
 
-      STRICT CONSTRAINTS:
-      - NO QUESTIONS: Provide only declarative knowledge.
-      - NO SUMMARIZATION: Capture 100% of technical details, formulas, and
-        nuances.
-      - NO IMAGES: Do not describe or generate visual aids.
-      - NO TIME ESTIMATES: Do not calculate study durations.
+      YOUR GOAL: Produce a well-structured study plan that feels like a
+      mini-textbook — with clear headings, explanatory paragraphs, organized
+      bullet points, and highlighted formulas. A student should be able to
+      scan headings, read explanations, and reference key facts and formulas
+      at a glance.
 
-      TOPIC STRUCTURE RULES:
-      - Each unit/step must map to ONE main topic.
-      - Do not merge unrelated topics; split into separate units instead.
-      - Unit titles must be concise and unique (no duplicates).
-      - The studyPlan.topics array must list the main concepts in order of
-        appearance; no duplicates, no minor subtopics.
+      STUDY PLAN:
+      - "title": A clear, specific title for the material (not the filename).
+      - "overview": 2-3 sentences explaining what this material covers, why it
+        matters, and what the student will be able to do after studying it.
+      - "topics": Ordered list of the core concepts covered. Only major themes,
+        no minor subtopics.
 
-      MATH/SCIENCE NOTATION RULES:
-      - Do NOT use $ or $$ delimiters anywhere.
-      - Use KaTeX-friendly LaTeX with \( ... \) for inline math and
-        \[ ... \] for display math.
-      - Use standard LaTeX for subscripts (_), superscripts (^), and fractions
-        (\\frac).
+      STEPS (one per major topic):
+      - "title": Short, descriptive heading (e.g. "Functional Groups & Naming").
+      - "description": 1-2 sentences that answer "What is this topic and why
+        does it matter?" — written so a student immediately understands the
+        scope before reading the notes.
+      - "detailedNotes": An array of sections. Each section is an object with:
+          - "heading" (REQUIRED): A specific, descriptive section heading that
+            tells the student exactly what this section covers. Use meaningful
+            headings like "How Covalent Bonds Form", "Types of Chemical
+            Reactions", "Newton's Laws of Motion" — NOT generic labels like
+            "Overview", "Key Points", or "Summary".
+          - "body" (OPTIONAL): A short explanatory paragraph (2-4 sentences)
+            that gives context, explains the "why" behind the topic, connects
+            ideas, or walks through a process in plain language. Write as if
+            teaching a student face-to-face. Skip this field if the bullets
+            alone are sufficient — but use it for topics that benefit from
+            narrative explanation.
+          - "bullets" (REQUIRED): An array of concise, self-contained key
+            points — definitions, facts, key distinctions, or important
+            details. Each bullet should be one complete sentence or thought.
+            3-8 bullets per section. You may include inline math using
+            \\( ... \\) where relevant.
+          - "formulas" (OPTIONAL): An array of important formulas, equations,
+            or mathematical expressions relevant to this section. Each entry
+            should be a display-math LaTeX string wrapped in \\[ ... \\].
+            Only include this field when the section involves math, physics,
+            chemistry, or other formula-heavy content. Examples:
+            ["\\\\[ F = ma \\\\]", "\\\\[ E = mc^2 \\\\]"]
 
-      Deliverables:
-      1. Study Plan title and overview.
-      2. For EACH unit: "title", "description", and exhaustive "detailedNotes"
-         (dash-prefixed technical points).
-      3. CRITICAL - FLASHCARDS: For EACH unit, generate EXACTLY 3-5 flashcards
-         with "stepTitle" matching the unit title exactly. MINIMUM 3 flashcards
-         per unit is MANDATORY.
-      4. Key topics.
+        Break each step into 2-5 logical sections. Mix explanatory paragraphs
+        with bullet points and highlighted formulas for maximum clarity.
+
+      FLASHCARDS:
+      - Generate 3-5 flashcards PER step. "stepTitle" must exactly match
+        the step's "title".
+      - Questions should test understanding, not just recall. Good: "Why does
+        X cause Y?" or "How do A and B differ?" Bad: "Define X."
+      - Answers should be concise (1-3 sentences) but complete enough to
+        learn from.
+
+      CONSTRAINTS:
+      - Do NOT include questions in detailedNotes — only declarative knowledge.
+      - Do NOT describe images or generate visual aids.
+      - Do NOT include time estimates or study durations.
+      - One topic per step — split unrelated ideas into separate steps.
+      - No duplicate step titles or topic names.
+
+      MATH NOTATION (if applicable):
+      - Wrap inline math in \\( ... \\) and display math in \\[ ... \\].
+      - Do NOT use $ or $$ delimiters.
+      - Use standard LaTeX commands: \\frac, \\sum, \\int, \\alpha, etc.
+      - CRITICAL: Since the output is JSON, every backslash MUST be escaped.
+        Write \\\\frac not \\frac, \\\\( not \\(, \\\\alpha not \\alpha, etc.
       ${safeCustomPrompt ?
-        `\n\nADDITIONAL CUSTOM INSTRUCTIONS FROM USER:\n${safeCustomPrompt}` :
+        `\nADDITIONAL INSTRUCTIONS FROM USER:\n${safeCustomPrompt}` :
         ""}
     `;
 
@@ -139,12 +185,13 @@ const handleGeminiRequest = async (data: unknown) => {
           model,
           contents: {
             parts: [
-              {inlineData: {data: fileBase64, mimeType: fileMimeType}},
+              {fileData: {fileUri: currentFile.uri!, mimeType: fileMimeType}},
               {text: prompt},
             ],
           },
           config: {
             responseMimeType: "application/json",
+            maxOutputTokens: 65536,
             responseSchema: {
               type: Type.OBJECT,
               properties: {
@@ -163,7 +210,19 @@ const handleGeminiRequest = async (data: unknown) => {
                         properties: {
                           title: {type: Type.STRING},
                           description: {type: Type.STRING},
-                          detailedNotes: {type: Type.STRING},
+                          detailedNotes: {
+                            type: Type.ARRAY,
+                            items: {
+                              type: Type.OBJECT,
+                              properties: {
+                                heading: {type: Type.STRING},
+                                body: {type: Type.STRING},
+                                bullets: {type: Type.ARRAY, items: {type: Type.STRING}},
+                                formulas: {type: Type.ARRAY, items: {type: Type.STRING}},
+                              },
+                              required: ["heading", "bullets"],
+                            },
+                          },
                         },
                         required: ["title", "description", "detailedNotes"],
                       },
@@ -195,6 +254,18 @@ const handleGeminiRequest = async (data: unknown) => {
           },
         });
 
+        // Log response metadata for diagnostics
+        const candidate = response.candidates?.[0];
+        const finishReason = candidate?.finishReason;
+        const usage = response.usageMetadata;
+        console.log(`Response metadata — finishReason: ${finishReason}, ` +
+          `promptTokens: ${usage?.promptTokenCount}, ` +
+          `outputTokens: ${usage?.candidatesTokenCount}`);
+
+        if (finishReason === "MAX_TOKENS") {
+          console.error("WARNING: Response was truncated due to MAX_TOKENS");
+        }
+
         let text = response.text || "{}";
         if (text.includes("```")) {
           const match = text.match(/```(?:json)?([\s\S]*?)```/);
@@ -211,15 +282,59 @@ const handleGeminiRequest = async (data: unknown) => {
         try {
           parsedResult = JSON.parse(text);
         } catch (parseErr) {
-          console.error("Failed to parse JSON from model response. text length:",
-            typeof text === 'string' ? text.length : 'unknown');
-          console.error("Parsed snippet:",
-            typeof text === 'string' ? text.slice(0, 2000) : 'not a string');
-          throw new HttpsError(
-            "internal",
-            "Model returned malformed JSON. See function logs for snippet."
-          );
+          console.error("JSON parse failed, attempting LaTeX backslash repair...");
+          console.error("Raw text snippet:", text.slice(0, 1000));
+          try {
+            // Repair: double-escape lone backslashes that aren't valid JSON escapes.
+            // Valid JSON escapes after \: " \ / b f n r t u
+            // LaTeX commands like \alpha, \sum, \pi, \sigma start with invalid
+            // JSON escape chars and cause parse errors.
+            const repaired = text.replace(/\\(?!["\\/bfnrtu\\])/g, "\\\\");
+            parsedResult = JSON.parse(repaired);
+            console.log("JSON LaTeX repair succeeded");
+          } catch (repairErr) {
+            console.error("JSON repair also failed. text length:",
+              typeof text === "string" ? text.length : "unknown");
+            console.error("Parsed snippet:",
+              typeof text === "string" ? text.slice(0, 2000) : "not a string");
+            throw new HttpsError(
+              "internal",
+              finishReason === "MAX_TOKENS"
+                ? "Response was truncated (too many tokens). Try a smaller file."
+                : "Model returned malformed JSON. See function logs for snippet."
+            );
+          }
         }
+
+        // Repair silently corrupted LaTeX in parsed strings.
+        // When Gemini outputs \frac in JSON, \f becomes formfeed (valid JSON escape).
+        // Similarly \theta→\t+heta, \nu→\n+u, \beta→\b+eta, \rho→\r+ho.
+        // We detect these by looking for control chars followed by LaTeX command tails.
+        const repairLatex = (s: string): string => {
+          if (!s) return s;
+          return s
+            .replace(/\f(rac|lat|loor|orall)\b/g, "\\f$1")
+            .replace(/\t(heta|au|imes|ext|o(?:\s|$)|op|riangle)\b/g, "\\t$1")
+            .replace(/\n(u(?:\s|$)|abla|eg|eq|i(?:\s|$)|subset|parallel|rightarrow)/g, "\\n$1")
+            .replace(/\x08(eta|inom|ar|egin|ig|oldsymbol)\b/g, "\\b$1")
+            .replace(/\r(ho|ightarrow|Rightarrow)\b/g, "\\r$1");
+        };
+
+        // Apply latex repair recursively to all string values in the result
+        const deepRepairLatex = (obj: unknown): unknown => {
+          if (typeof obj === "string") return repairLatex(obj);
+          if (Array.isArray(obj)) return obj.map(deepRepairLatex);
+          if (obj && typeof obj === "object") {
+            const result: Record<string, unknown> = {};
+            for (const [k, v] of Object.entries(obj)) {
+              result[k] = deepRepairLatex(v);
+            }
+            return result;
+          }
+          return obj;
+        };
+
+        parsedResult = deepRepairLatex(parsedResult) as typeof parsedResult;
 
         console.log("Successfully processed file and generated study materials");
         return {
@@ -234,16 +349,22 @@ const handleGeminiRequest = async (data: unknown) => {
       } finally {
         // Delete the file from Storage after processing (success or failure)
         try {
-          const file = bucket.file(storagePath);
-          await file.delete();
+          const storageCleanup = bucket.file(storagePath);
+          await storageCleanup.delete();
           console.log(`Deleted file from Storage: ${storagePath}`);
         } catch (deleteErr) {
           console.error("Failed to delete file from Storage:", deleteErr);
         }
 
-        // Clear memory
-        fileBuffer = null;
-        fileBase64 = null;
+        // Delete the file from Gemini File API
+        try {
+          if (currentFile?.name) {
+            await ai.files.delete({name: currentFile.name});
+            console.log(`Deleted file from Gemini File API: ${currentFile.name}`);
+          }
+        } catch (geminiDeleteErr) {
+          console.error("Failed to delete Gemini file:", geminiDeleteErr);
+        }
       }
     } catch (error) {
       console.error("Error in processStudyContent:", error);
@@ -255,7 +376,7 @@ const handleGeminiRequest = async (data: unknown) => {
     const {studyPlan} = payload as {
       studyPlan?: {
         title?: string;
-        steps?: Array<{detailedNotes?: string}>;
+        steps?: Array<{detailedNotes?: unknown}>;
       };
     };
 
@@ -263,19 +384,41 @@ const handleGeminiRequest = async (data: unknown) => {
       throw new HttpsError("invalid-argument", "Missing study plan");
     }
 
+    // Convert detailedNotes to plain text regardless of format
+    const notesToText = (notes: unknown): string => {
+      if (typeof notes === "string") return notes;
+      if (!Array.isArray(notes)) return "";
+      return notes.map((sec: Record<string, unknown>) => {
+        const parts: string[] = [];
+        if (sec.heading) parts.push(String(sec.heading));
+        if (sec.body) parts.push(String(sec.body));
+        if (Array.isArray(sec.bullets)) {
+          parts.push(...sec.bullets.map((b: unknown) => `- ${b}`));
+        }
+        if (Array.isArray(sec.formulas)) {
+          parts.push(...sec.formulas.map((f: unknown) => String(f)));
+        }
+        return parts.join("\n");
+      }).join("\n\n");
+    };
+
     const context = `
       Title: ${studyPlan.title}
       Detailed Notes: ${studyPlan.steps
-    .map((s) => s.detailedNotes || "")
+    .map((s) => notesToText(s.detailedNotes))
     .join("\n\n")}
     `;
 
     const prompt = `
-      Generate a 10-question MCQ quiz for: "${studyPlan.title}".
-      - Use KaTeX-friendly LaTeX with \( ... \) for inline math and
-        \[ ... \] for display math.
+      Generate a 20-question MCQ quiz for: "${studyPlan.title}".
+      - Use KaTeX-friendly LaTeX with \\( ... \\) for inline math and
+        \\[ ... \\] for display math.
       - Do NOT use $ or $$ delimiters anywhere.
       - Ensure detailed explanations.
+      - IMPORTANT: The question text must NEVER reveal or contain the correct
+        answer. Do not repeat the answer verbatim in the question stem.
+        Questions should test understanding, not give away the answer.
+      - All four options should be plausible. Avoid obviously wrong distractors.
 
       CONTEXT:
       ${context}
@@ -287,6 +430,7 @@ const handleGeminiRequest = async (data: unknown) => {
         contents: prompt,
         config: {
           responseMimeType: "application/json",
+          maxOutputTokens: 32768,
           responseSchema: {
             type: Type.ARRAY,
             items: {
@@ -331,7 +475,7 @@ const handleGeminiRequest = async (data: unknown) => {
 export const geminiProxy = onCall({
   region: 'asia-northeast2',
   secrets: ["GEMINI_API_KEY"],
-  timeoutSeconds: 300,
+  timeoutSeconds: 540,
   memory: "1GiB",
 }, async (request) => {
   return handleGeminiRequest(request.data as unknown);

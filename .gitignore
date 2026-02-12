@@ -15,6 +15,7 @@ dist-ssr
 .env.local
 .env.*.local
 service.yaml
+.claude
 
 # Keep .env.example
 !.env.example
