@@ -152,7 +152,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="hidden sm:inline">How to Use</span>
+            <span className="hidden sm:inline">{t('dashboard.howToUse')}</span>
           </button>
           <button
             onClick={onProfileClick}
@@ -175,8 +175,8 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
           style={{ background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)' }}
         >
           <div>
-            <h2 className="text-2xl font-extrabold text-white mb-3">Upload New Material</h2>
-            <p className="text-white/60 text-sm">Drop in a PDF or DOCX to start a new study session</p>
+            <h2 className="text-2xl font-extrabold text-white mb-3">{t('dashboard.uploadNewMaterial')}</h2>
+            <p className="text-white/60 text-sm">{t('dashboard.dropPdfDocx')}</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -184,7 +184,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
               className="flex items-center gap-2 px-6 py-3 bg-white text-slate-900 rounded-full font-semibold text-sm hover:bg-slate-100 transition-colors active:scale-95"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" /></svg>
-              Choose File
+              {t('dashboard.chooseFile')}
             </button>
             <button
               onClick={handleOpenCustomPrompt}
@@ -194,7 +194,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              Customize AI
+              {t('dashboard.customizeAi')}
             </button>
           </div>
           <input
@@ -209,22 +209,22 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
         {/* Stats Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-            <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-2">Total Sessions</p>
+            <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-2">{t('dashboard.totalSessions')}</p>
             <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{sessions.length}</p>
           </div>
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-            <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-2">Cards Reviewed</p>
+            <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-2">{t('dashboard.cardsReviewed')}</p>
             <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{totalCards}</p>
           </div>
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-            <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-2">Quizzes Passed</p>
+            <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-2">{t('dashboard.quizzesPassed')}</p>
             <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{quizzesPassed}</p>
           </div>
           <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)' }}>
-            <p className="text-xs font-medium text-white/70 mb-2">Study Streak</p>
-            <p className="text-3xl font-extrabold text-white">{studyStreak} {studyStreak === 1 ? 'day' : 'days'}</p>
+            <p className="text-xs font-medium text-white/70 mb-2">{t('dashboard.studyStreak')}</p>
+            <p className="text-3xl font-extrabold text-white">{studyStreak} {studyStreak === 1 ? t('dashboard.day') : t('dashboard.days')}</p>
             <p className="text-xs font-medium text-white/80 mt-1">
-              {studyStreak >= 7 ? 'On fire!' : studyStreak >= 3 ? 'Keep it up!' : studyStreak >= 1 ? 'Great start!' : 'Log in daily to build your streak'}
+              {studyStreak >= 7 ? t('dashboard.streakFire') : studyStreak >= 3 ? t('dashboard.streakKeepUp') : studyStreak >= 1 ? t('dashboard.streakGreatStart') : t('dashboard.streakBuild')}
             </p>
           </div>
         </div>
@@ -232,7 +232,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
         {/* Study Vault */}
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight">Study Vault</h3>
+            <h3 className="text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight">{t('dashboard.studyVault')}</h3>
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
               <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -241,7 +241,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search sessions..."
+                placeholder={t('dashboard.searchSessions')}
                 className="bg-transparent text-sm text-slate-600 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 outline-none w-40"
               />
             </div>
@@ -253,10 +253,10 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
               </div>
               <p className="text-lg font-extrabold text-slate-900 dark:text-white mb-1">
-                {searchQuery ? 'No matching sessions' : t('dashboard.vaultEmpty')}
+                {searchQuery ? t('dashboard.noMatchingSessions') : t('dashboard.vaultEmpty')}
               </p>
               <p className="text-sm text-slate-400 dark:text-slate-500">
-                {searchQuery ? 'Try a different search term' : t('dashboard.startProcessing')}
+                {searchQuery ? t('dashboard.tryDifferentSearch') : t('dashboard.startProcessing')}
               </p>
             </div>
           ) : (
@@ -282,26 +282,26 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                           <button
                             onClick={(e) => startEditing(e, session)}
                             className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100"
-                            title="Rename"
+                            title={t('dashboard.rename')}
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                           </button>
                           <button
                             onClick={(e) => confirmDelete(e, session.id)}
                             className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                            title="Delete"
+                            title={t('common.delete')}
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                         </div>
                       </div>
                       <h4 className="text-base font-bold text-slate-900 dark:text-white truncate">{session.sessionName || session.fileName}</h4>
-                      <p className="text-xs text-slate-400 dark:text-slate-500">Created {new Date(session.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">{t('dashboard.created')} {new Date(session.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                       {/* Progress */}
                       {session.studyPlan && session.studyPlan.steps.length > 0 && (
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Progress</span>
+                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">{t('dashboard.progress')}</span>
                             <span className="text-[11px] font-bold text-indigo-500">{progress}%</span>
                           </div>
                           <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -314,7 +314,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                         const bestPct = Math.max(...session.quizHistory.map(q => Math.round((q.score / q.total) * 100)));
                         return (
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Quiz</span>
+                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">{t('dashboard.quiz')}</span>
                             <span className={`text-[11px] font-bold ${bestPct >= 80 ? 'text-emerald-500' : 'text-amber-500'}`}>
                               {bestPct}%
                             </span>
@@ -328,21 +328,21 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                         <>
                           <span className="flex items-center gap-1 text-xs font-semibold text-emerald-500">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            Mastered
+                            {t('dashboard.mastered')}
                           </span>
                           <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-xs font-semibold text-indigo-500">
-                            Review
+                            {t('dashboard.review')}
                           </span>
                         </>
                       ) : (
                         <>
                           <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-xs font-semibold text-indigo-500">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                            Study
+                            {t('dashboard.study')}
                           </span>
                           <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-xs font-semibold text-emerald-500">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                            Drill
+                            {t('dashboard.drill')}
                           </span>
                         </>
                       )}
@@ -413,16 +413,16 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                 </svg>
               </div>
             </div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-center mb-2">Delete Study Session?</h2>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-center mb-2">{t('dashboard.deleteSession')}</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-8">
-              This action cannot be undone. All study progress, flashcards, and quiz results will be permanently deleted.
+              {t('dashboard.deleteWarning')}
             </p>
             <div className="flex gap-3">
               <button onClick={cancelDelete} className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all active:scale-95">
-                Cancel
+                {t('common.cancel')}
               </button>
               <button onClick={handleDelete} className="flex-1 py-3 bg-red-600 text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-red-700 transition-all active:scale-95">
-                Delete
+                {t('common.delete')}
               </button>
             </div>
           </div>
@@ -441,8 +441,8 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                 </svg>
               </div>
             </div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-center mb-2">Rename Session</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">Enter a new name for this study session</p>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-center mb-2">{t('dashboard.renameSession')}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">{t('dashboard.enterNewName')}</p>
             <input
               type="text"
               value={renameName}
@@ -451,20 +451,20 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                 if (e.key === 'Enter') saveRename();
                 if (e.key === 'Escape') cancelRename();
               }}
-              placeholder="Session name..."
+              placeholder={t('dashboard.sessionName')}
               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-base text-slate-700 dark:text-slate-300 mb-6"
               autoFocus
             />
             <div className="flex gap-3">
               <button onClick={cancelRename} className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all active:scale-95">
-                Cancel
+                {t('common.cancel')}
               </button>
               <button onClick={saveRename} className="flex-1 py-3 bg-indigo-600 text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-indigo-700 transition-all active:scale-95">
-                Rename
+                {t('dashboard.rename')}
               </button>
             </div>
             <p className="text-xs text-slate-400 dark:text-slate-500 text-center mt-4">
-              Press <span className="font-bold text-indigo-600 dark:text-indigo-400">Enter</span> to confirm or <span className="font-bold">Esc</span> to cancel
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">Enter</span> / <span className="font-bold">Esc</span>
             </p>
           </div>
         </div>
@@ -488,7 +488,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black text-white tracking-tight">Customize AI</h2>
+                  <h2 className="text-2xl font-black text-white tracking-tight">{t('dashboard.customizeAi')}</h2>
                   <p className="text-sm text-white/50 mt-1 flex items-center gap-1.5">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -548,10 +548,10 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
             {/* Footer */}
             <div className="px-8 sm:px-10 pb-8 sm:pb-10 pt-4 flex gap-3 shrink-0">
               <button onClick={() => setShowCustomPromptModal(false)} className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95 border border-slate-200 dark:border-slate-700">
-                Cancel
+                {t('common.cancel')}
               </button>
               <button onClick={handleSaveCustomPrompt} className="flex-1 py-3.5 bg-indigo-600 text-white font-black rounded-2xl tracking-widest uppercase text-sm hover:bg-indigo-700 transition-all active:scale-95">
-                Save Changes
+                {t('common.save')}
               </button>
             </div>
           </div>

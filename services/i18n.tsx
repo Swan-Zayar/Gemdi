@@ -11,7 +11,18 @@ import my from '../locales/my.json';
 import ms from '../locales/ms.json';
 
 type Translations = typeof en;
-type Language = 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'my' | 'ms';
+export type Language = 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'my' | 'ms';
+
+export const LANGUAGE_OPTIONS: { code: Language; label: string; flag: string }[] = [
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'zh', label: '中文', flag: '🇨🇳' },
+  { code: 'ja', label: '日本語', flag: '🇯🇵' },
+  { code: 'my', label: 'မြန်မာ', flag: '🇲🇲' },
+  { code: 'ms', label: 'Bahasa Melayu', flag: '🇲🇾' },
+];
 
 const translations: Record<Language, Translations> = {
   en,

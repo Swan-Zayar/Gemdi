@@ -468,6 +468,7 @@ const App: React.FC = () => {
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
           onUpdate={handleProfileUpdate}
+          onLogout={handleLogout}
           themeMode={themeMode}
           onThemeChange={handleThemeChange}
         />

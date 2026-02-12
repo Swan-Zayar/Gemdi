@@ -1,5 +1,6 @@
 
 import React, { useRef } from 'react';
+import { GemdiLogo } from './GemdiLogo';
 
 interface LandingProps {
   onGetStarted: () => void;
@@ -19,7 +20,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
       {/* ── Nav Bar ── */}
       <nav className="sticky top-0 z-50 w-full h-18 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-6 md:px-12 border-b border-slate-200/50 dark:border-slate-700/50">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-rounded text-indigo-500 text-[28px]">diamond</span>
+          <GemdiLogo className="w-7 h-7" gradientId="navGrad" />
           <span className="text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight">Gemdi</span>
         </div>
 
@@ -150,7 +151,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
       {/* ── Footer ── */}
       <footer className="w-full h-16 bg-slate-900 flex items-center justify-between px-6 md:px-12">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-rounded text-indigo-400 text-[20px]">diamond</span>
+          <GemdiLogo className="w-5 h-5" gradientId="footLandGrad" />
           <span className="text-base font-bold text-white">Gemdi</span>
         </div>
         <span className="text-[13px] text-white/50">2025 Gemdi. Built by Swan's Lab.</span>
