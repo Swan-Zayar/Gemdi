@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { GemdiLogo } from './GemdiLogo';
 
@@ -166,15 +165,15 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
 
       {/* ── Nav Bar ── */}
       <nav className="sticky top-0 z-50 w-full h-18 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-6 md:px-12 border-b border-slate-200/50 dark:border-slate-700/50">
-        <div className="flex items-center gap-2">
-          <GemdiLogo className="w-7 h-7" gradientId="navGrad" />
-          <span className="text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight">Gemdi</span>
-        </div>
-
-        <div className="hidden md:flex items-center gap-8">
-          <button onClick={() => scrollTo(featuresRef)} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Features</button>
-          <button onClick={() => scrollTo(howItWorksRef)} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">How It Works</button>
-          <button className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Pricing</button>
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-2">
+            <GemdiLogo className="w-7 h-7" gradientId="navGrad" />
+            <span className="text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight">Gemdi</span>
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            <button onClick={() => scrollTo(featuresRef)} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Features</button>
+            <button onClick={() => scrollTo(howItWorksRef)} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">How It Works</button>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
@@ -241,7 +240,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
           </div>
 
           {/* Card 2 — Smart Roadmaps */}
-          <div className={`bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col gap-5 transition-all duration-500 delay-[350ms] hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 ${featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+          <div className={`bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col gap-5 transition-all duration-500 delay-350 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 ${featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
             <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
             </div>
@@ -267,12 +266,12 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
 
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
           {/* Connecting line between steps (desktop only) */}
-          <div className="hidden md:block absolute top-7 left-[16.67%] right-[16.67%] h-[2px] z-0">
-            <div className={`h-full bg-gradient-to-r from-indigo-500 via-emerald-500 to-amber-500 rounded-full ${howItWorksVisible ? 'anim-draw-line' : 'w-0'}`} />
+          <div className="hidden md:block absolute top-7 left-[16.67%] right-[16.67%] h-0.5 z-0">
+            <div className={`h-full bg-linear-to-r from-indigo-500 via-emerald-500 to-amber-500 rounded-full ${howItWorksVisible ? 'anim-draw-line' : 'w-0'}`} />
           </div>
 
           {/* Step 1 */}
-          <div className={`relative z-10 flex flex-col items-center gap-4 text-center transition-all duration-500 delay-200 ${howItWorksVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
+          <div className={`relative z-10 flex flex-col items-center gap-4 text-center transition-all duration-500 delay-400 ${howItWorksVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
             <div className="w-14 h-14 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
               <span className="text-[22px] font-extrabold text-white">1</span>
             </div>
@@ -281,7 +280,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
           </div>
 
           {/* Step 2 */}
-          <div className={`relative z-10 flex flex-col items-center gap-4 text-center transition-all duration-500 delay-[400ms] ${howItWorksVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
+          <div className={`relative z-10 flex flex-col items-center gap-4 text-center transition-all duration-500 delay-600 ${howItWorksVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
             <div className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
               <span className="text-[22px] font-extrabold text-white">2</span>
             </div>
@@ -290,7 +289,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
           </div>
 
           {/* Step 3 */}
-          <div className={`relative z-10 flex flex-col items-center gap-4 text-center transition-all duration-500 delay-[600ms] ${howItWorksVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
+          <div className={`relative z-10 flex flex-col items-center gap-4 text-center transition-all duration-500 delay-800 ${howItWorksVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
             <div className="w-14 h-14 rounded-full bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
               <span className="text-[22px] font-extrabold text-white">3</span>
             </div>

@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Flashcard } from '../types';
 import { renderMathToHtml } from '../services/mathRender';
@@ -180,7 +179,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
             onClick={onBack}
             className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-colors"
           >
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
       </header>
@@ -250,7 +249,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
                   QUESTION
                 </span>
                 <h3
-                  className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-relaxed max-w-[460px] text-center"
+                  className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-relaxed max-w-115 text-center"
                   style={{ letterSpacing: '-0.3px', lineHeight: 1.4 }}
                   dangerouslySetInnerHTML={{ __html: renderMathToHtml(card.question) }}
                 />
@@ -263,7 +262,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
               >
                 <div className="grow flex flex-col items-center justify-center">
                   <h3
-                    className="text-lg font-bold text-white leading-relaxed max-w-[460px] mb-8"
+                    className="text-lg font-bold text-white leading-relaxed max-w-115 mb-8"
                     dangerouslySetInnerHTML={{ __html: renderMathToHtml(card.answer) }}
                   />
 
