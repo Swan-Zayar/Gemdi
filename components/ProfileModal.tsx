@@ -232,6 +232,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                 ))}
               </select>
             </div>
+            <button
+              onClick={() => { revertTheme(); onClose(); onLogout(); }}
+              className="w-full h-12 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-extrabold rounded-3xl tracking-[3px] uppercase text-xs hover:bg-red-100 dark:hover:bg-red-900/30 transition-all active:scale-95 border border-red-100 dark:border-red-900/30 flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              Logout
+            </button>
           </div>
 
           {/* Right Column - Settings Section */}
@@ -294,13 +301,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
               className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold rounded-3xl tracking-[3px] uppercase text-xs hover:shadow-2xl transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Saving...' : t('profile.savePreferences')}
-            </button>
-            <button
-              onClick={() => { revertTheme(); onClose(); onLogout(); }}
-              className="w-full h-12 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-extrabold rounded-3xl tracking-[3px] uppercase text-xs hover:bg-red-100 dark:hover:bg-red-900/30 transition-all active:scale-95 border border-red-100 dark:border-red-900/30 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-              Logout
             </button>
           </div>
         </div>
