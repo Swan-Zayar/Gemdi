@@ -89,7 +89,7 @@ const handleGeminiRequest = async (data: unknown) => {
       console.log(`Downloaded file from Storage, size: ${fileContent.length} bytes, uploading to Gemini File API...`);
 
       const geminiFile = await ai.files.upload({
-        file: new Blob([fileContent], {type: fileMimeType}),
+        file: new Blob([new Uint8Array(fileContent)], {type: fileMimeType}),
         config: {mimeType: fileMimeType, displayName: fileName},
       });
 
@@ -452,8 +452,30 @@ const handleGeminiRequest = async (data: unknown) => {
         const match = text.match(/```(?:json)?([\s\S]*?)```/);
         if (match) text = match[1].trim();
       }
+      // Repair corrupted LaTeX in quiz results (same logic as processStudyContent)
+      const repairQuizLatex = (s: string): string => {
+        if (!s) return s;
+        return s
+          .replace(/\f(rac|lat|loor|orall)\b/g, "\\f$1")
+          .replace(/\t(ilde|heta|au|imes|ext|o(?:\s|$)|op|riangle)\b/g, "\\t$1")
+          .replace(/\n(u(?:\s|$)|abla|eg|eq|i(?:\s|$)|subset|parallel|rightarrow|ot)/g, "\\n$1")
+          .replace(/\x08(eta|inom|ar|egin|ig|oldsymbol)\b/g, "\\b$1")
+          .replace(/\r(ho|ightarrow|Rightarrow)\b/g, "\\r$1");
+      };
+      const deepRepairQuizLatex = (obj: unknown): unknown => {
+        if (typeof obj === "string") return repairQuizLatex(obj);
+        if (Array.isArray(obj)) return obj.map(deepRepairQuizLatex);
+        if (obj && typeof obj === "object") {
+          const r: Record<string, unknown> = {};
+          for (const [k, v] of Object.entries(obj)) r[k] = deepRepairQuizLatex(v);
+          return r;
+        }
+        return obj;
+      };
+
       try {
-        const parsed = JSON.parse(text);
+        let parsed = JSON.parse(text);
+        parsed = deepRepairQuizLatex(parsed);
         console.log("Successfully generated quiz");
         return parsed;
       } catch (parseErr) {

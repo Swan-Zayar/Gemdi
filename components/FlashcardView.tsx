@@ -39,7 +39,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
             </p>
             <button
               onClick={onBack}
-              className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-sm hover:bg-indigo-600 dark:hover:bg-indigo-100 transition-all active:scale-95"
+              className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-sm hover:bg-blue-600 dark:hover:bg-blue-100 transition-all active:scale-95"
             >
               Go Back
             </button>
@@ -96,8 +96,8 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
         <div className="max-w-xl w-full">
           <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] sm:rounded-[3rem] p-8 sm:p-12 border border-slate-100 dark:border-slate-700 shadow-lg text-center">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-6 sm:mb-8">
-              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-blue-50 dark:bg-blue-900/30 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-6 sm:mb-8">
+              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Drill Complete.</h2>
             <p className="text-slate-400 dark:text-slate-500 font-medium mb-8 sm:mb-10 text-sm sm:text-base">How confident are you with this specific material style?</p>
@@ -107,7 +107,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
                 <button
                   key={star}
                   onClick={() => setSelectedRating(star)}
-                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl font-black text-lg sm:text-xl transition-all ${selectedRating === star ? 'bg-indigo-600 text-white scale-110 shadow-xl' : 'bg-slate-50 dark:bg-slate-700 text-slate-300 dark:text-slate-500 hover:text-indigo-400'}`}
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl font-black text-lg sm:text-xl transition-all ${selectedRating === star ? 'bg-blue-600 text-white scale-110 shadow-xl' : 'bg-slate-50 dark:bg-slate-700 text-slate-300 dark:text-slate-500 hover:text-blue-400'}`}
                 >
                   {star}
                 </button>
@@ -116,7 +116,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
 
             <button
               onClick={() => onComplete(selectedRating || undefined)}
-              className="w-full py-4 sm:py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-extrabold text-base sm:text-lg hover:bg-indigo-600 dark:hover:bg-indigo-100 transition-all shadow-xl active:scale-95"
+              className="w-full py-4 sm:py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-extrabold text-base sm:text-lg hover:bg-blue-600 dark:hover:bg-blue-100 transition-all shadow-xl active:scale-95"
             >
               Update Neural Profile & Save
             </button>
@@ -197,7 +197,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
                   i < currentIndex
                     ? 'w-2 h-2 bg-emerald-500'
                     : i === currentIndex
-                    ? 'w-2.5 h-2.5 bg-indigo-500'
+                    ? 'w-2.5 h-2.5 bg-blue-500'
                     : 'w-2 h-2 bg-slate-200 dark:bg-slate-700'
                 }`}
               />
@@ -214,7 +214,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
             className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all shrink-0 ${
               isFirstCard
                 ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600 cursor-not-allowed'
-                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-900 dark:hover:bg-indigo-600 hover:text-white hover:border-transparent active:scale-95'
+                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-900 dark:hover:bg-blue-600 hover:text-white hover:border-transparent active:scale-95'
             }`}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
@@ -245,7 +245,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
                 style={{ boxShadow: '0 8px 32px -4px rgba(15, 23, 42, 0.08)' }}
               >
                 {/* QUESTION label */}
-                <span className="mb-6 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 text-[11px] font-bold rounded-full tracking-wider uppercase">
+                <span className="mb-6 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-500 text-[11px] font-bold rounded-full tracking-wider uppercase">
                   QUESTION
                 </span>
                 <h3
@@ -257,7 +257,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
               </div>
 
               {/* Card Back */}
-              <div className="absolute inset-0 bg-slate-900 dark:bg-black text-white rounded-xl p-12 flex flex-col items-center justify-center text-center rotate-y-180 backface-hidden border-4 border-indigo-500/20"
+              <div className="absolute inset-0 bg-slate-900 dark:bg-black text-white rounded-xl p-12 flex flex-col items-center justify-center text-center rotate-y-180 backface-hidden border-4 border-blue-500/20"
                 style={{ boxShadow: '0 8px 32px -4px rgba(15, 23, 42, 0.2)' }}
               >
                 <div className="grow flex flex-col items-center justify-center">
@@ -287,7 +287,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shrink-0 ${
               isLastCard
                 ? 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600 cursor-not-allowed'
-                : 'bg-indigo-500 text-white hover:bg-indigo-600 active:scale-95 shadow-lg'
+                : 'bg-blue-500 text-white hover:bg-blue-600 active:scale-95 shadow-lg'
             }`}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>

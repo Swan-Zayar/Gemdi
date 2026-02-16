@@ -17,6 +17,11 @@ dist-ssr
 service.yaml
 .claude
 CLAUDE.md
+.firebaserc
+firebase-debug.log
+firestore.indexes.json
+.vscode/*
+!.vscode/extensions.json
 
 # Keep .env.example
 !.env.example

@@ -91,7 +91,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ image, onComplete, onCa
               step={0.1}
               value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
             />
           </div>
 
@@ -105,7 +105,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ image, onComplete, onCa
             </button>
             <button
               onClick={createCroppedImage}
-              className="flex-1 h-12 bg-indigo-500 text-white font-black rounded-2xl tracking-[3px] uppercase text-xs hover:bg-indigo-600 transition-all active:scale-95"
+              className="flex-1 h-12 bg-blue-500 text-white font-black rounded-2xl tracking-[3px] uppercase text-xs hover:bg-blue-600 transition-all active:scale-95"
             >
               Apply
             </button>

@@ -155,8 +155,39 @@ const renderMathSegment = (segment: string, displayMode: boolean) => {
   }
 };
 
+/**
+ * Repair LaTeX escape sequences that were corrupted by JSON.parse.
+ * e.g. \tilde → \t + ilde → tab + ilde
+ */
+const repairLatexEscapes = (s: string): string => {
+  if (!s) return s;
+  return s
+    .replace(/\f(rac|lat|loor|orall)/g, '\\f$1')
+    .replace(/\t(ilde|heta|au|imes|ext|iny|extstyle|op|riangle|o(?=[\s)},.$^_|=+\-\d]|$))/g, '\\t$1')
+    .replace(/\n(u(?=[\s)},.$^_|=+\-\d]|$)|abla|eg|eq|ot|ewline|i(?=[\s)},.$^_|=+\-\d]|$)|subset|parallel|rightarrow)/g, '\\n$1')
+    .replace(/\x08(eta|inom|ar|egin|ig|oldsymbol|ullet|ackslash)/g, '\\b$1')
+    .replace(/\r(ho|ightarrow|Rightarrow|angle)/g, '\\r$1');
+};
+
+/**
+ * Convert bare-paren math delimiters ( \latex... ) → \( \latex... \).
+ * This handles the case where \( \) delimiters lose their backslashes
+ * during JSON parsing (\( is not a valid JSON escape → becomes just "(").
+ */
+const normalizeMathDelimiters = (s: string): string => {
+  // Match ( content ) where content contains at least one \command
+  return s.replace(/(?<!\\)\(\s*((?:[^()]*?\\[a-zA-Z])[^()]*?)\s*\)/g, '\\($1\\)');
+};
+
 export const renderMathToHtml = (text: string) => {
-  const input = text ?? "";
+  let input = text ?? "";
+
+  // Step 1: Repair corrupted escape sequences
+  input = repairLatexEscapes(input);
+
+  // Step 2: Normalise bare-paren delimiters to \( ... \)
+  input = normalizeMathDelimiters(input);
+
   const regex = /(\$\$[\s\S]+?\$\$|\$[^$]+\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))/g;
   let lastIndex = 0;
   let result = "";

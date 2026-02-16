@@ -141,14 +141,14 @@ const ProcessingOverlay: React.FC<ProcessingOverlayProps> = ({
             <circle
               cx="20" cy="20" r={radius} fill="none" strokeWidth="3"
               stroke="currentColor"
-              className="text-indigo-500"
+              className="text-blue-500"
               strokeDasharray={circumference}
               strokeDashoffset={offset}
               strokeLinecap="round"
               style={{ transition: 'stroke-dashoffset 0.5s ease-out' }}
             />
           </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-extrabold text-indigo-500 tabular-nums">{pct}%</span>
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-extrabold text-blue-500 tabular-nums">{pct}%</span>
         </div>
 
         {/* Text */}
@@ -196,7 +196,7 @@ const ProcessingOverlay: React.FC<ProcessingOverlayProps> = ({
 
           <button
             onClick={onDismiss}
-            className="w-full mt-2 py-3.5 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-colors text-sm"
+            className="w-full mt-2 py-3.5 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl transition-colors text-sm"
           >
             View Session
           </button>
@@ -289,7 +289,7 @@ const ProcessingOverlay: React.FC<ProcessingOverlayProps> = ({
 
         {/* Logo */}
         <div className="relative w-48 h-48 flex items-center justify-center">
-          <div className="absolute inset-0 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
+          <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
           <div className="relative w-28 h-28 animate-float-slow drop-shadow-2xl">
             <GemdiLogo className="w-full h-full" gradientId="gemGradientOverlay" />
           </div>
@@ -315,12 +315,12 @@ const ProcessingOverlay: React.FC<ProcessingOverlayProps> = ({
         <div className="w-full max-w-xs flex flex-col gap-3">
           <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
             <div
-              className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
+              className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out"
               style={{ width: `${displayProgress}%` }}
             />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-indigo-500 tabular-nums">{Math.round(displayProgress)}%</span>
+            <span className="text-xs font-bold text-blue-500 tabular-nums">{Math.round(displayProgress)}%</span>
             <span className="text-xs font-bold text-slate-400 dark:text-slate-500 tabular-nums">{formatTime(elapsed)}</span>
           </div>
         </div>
@@ -329,11 +329,11 @@ const ProcessingOverlay: React.FC<ProcessingOverlayProps> = ({
         <div className="max-w-xs px-5 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50">
           <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-relaxed text-center">
             {elapsed < 60 ? (
-              <>Typical processing time: <span className="text-indigo-500 dark:text-indigo-400">1-3 minutes</span></>
+              <>Typical processing time: <span className="text-blue-500 dark:text-blue-400">1-3 minutes</span></>
             ) : elapsed < 180 ? (
-              <>Larger documents take longer — <span className="text-indigo-500 dark:text-indigo-400">hang tight</span></>
+              <>Larger documents take longer — <span className="text-blue-500 dark:text-blue-400">hang tight</span></>
             ) : (
-              <>Still working on your <span className="text-indigo-500 dark:text-indigo-400">large document</span> — almost done</>
+              <>Still working on your <span className="text-blue-500 dark:text-blue-400">large document</span> — almost done</>
             )}
           </p>
         </div>

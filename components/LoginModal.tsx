@@ -233,7 +233,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                     setStep('EMAIL');
                     setError('');
                   }}
-                  className="w-full h-13 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-indigo-600 dark:hover:bg-indigo-400 transition-all"
+                  className="w-full h-13 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-blue-600 dark:hover:bg-blue-400 transition-all"
                 >
                   Log In
                 </button>
@@ -243,7 +243,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                     setStep('EMAIL');
                     setError('');
                   }}
-                  className="w-full h-13 bg-indigo-500 text-white font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-indigo-600 transition-all"
+                  className="w-full h-13 bg-blue-500 text-white font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-blue-600 transition-all"
                 >
                   Sign Up
                 </button>
@@ -278,11 +278,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleEmailNext()}
-                className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-sm"
+                className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
                 autoFocus
               />
 
-              <button onClick={handleEmailNext} className="w-full h-13 bg-indigo-500 text-white font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-indigo-600 transition-all">
+              <button onClick={handleEmailNext} className="w-full h-13 bg-blue-500 text-white font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-blue-600 transition-all">
                 Continue with Email
               </button>
 
@@ -307,7 +307,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
               <button 
                 onClick={() => setStep('MODE_SELECT')}
-                className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-500"
+                className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-blue-500"
               >
                 Back to Options
               </button>
@@ -316,8 +316,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
           {step === 'PASSWORD_ENTRY' && (
             <>
-              <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center gap-3 border border-indigo-100 dark:border-indigo-800/50">
-                <div className="w-8 h-8 rounded-full bg-indigo-500 shrink-0 flex items-center justify-center text-white font-extrabold text-xs">
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center gap-3 border border-blue-100 dark:border-blue-800/50">
+                <div className="w-8 h-8 rounded-full bg-blue-500 shrink-0 flex items-center justify-center text-white font-extrabold text-xs">
                   {email ? email[0].toUpperCase() : 'U'}
                 </div>
                 <div className="overflow-hidden">
@@ -333,10 +333,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handlePasswordLogin()}
-                className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-sm"
+                className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
               />
 
-              <button onClick={handlePasswordLogin} className="w-full h-13 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-indigo-600 transition-all">
+              <button onClick={handlePasswordLogin} className="w-full h-13 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-blue-600 transition-all">
                 Access Vault
               </button>
 
@@ -366,14 +366,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
               )}
 
               {providers.includes('password') && (
-                <button onClick={handlePasswordReset} className="w-full text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px] hover:text-indigo-500">Forgot Password?</button>
+                <button onClick={handlePasswordReset} className="w-full text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px] hover:text-blue-500">Forgot Password?</button>
               )}
 
               {providers.includes('google.com') && (
                 <button onClick={handleGoogleSignIn} className="w-full h-13 bg-white dark:bg-slate-700 text-slate-900 dark:text-white border-2 border-slate-200 dark:border-slate-600 font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-slate-50 transition-all flex items-center justify-center gap-3">Sign in with Google</button>
               )}
 
-              <button onClick={() => setStep('MODE_SELECT')} className="w-full text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px] hover:text-indigo-500">
+              <button onClick={() => setStep('MODE_SELECT')} className="w-full text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px] hover:text-blue-500">
                 {mode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
               </button>
             </>
@@ -388,7 +388,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                   autoFocus
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-sm"
+                  className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
                 />
 
                 {/* Vault Security Criteria */}
@@ -399,8 +399,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                     { met: requirements.number, label: "Contains a number (0-9)" },
                     { met: requirements.special, label: "Special symbol (!@#$)" }
                   ].map((req, i) => (
-                    <div key={i} className={`flex items-center gap-2 transition-all ${req.met ? 'text-indigo-500' : 'text-slate-300 dark:text-slate-600'}`}>
-                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border transition-all ${req.met ? 'bg-indigo-500 border-indigo-500' : 'border-slate-200 dark:border-slate-700'}`}>
+                    <div key={i} className={`flex items-center gap-2 transition-all ${req.met ? 'text-blue-500' : 'text-slate-300 dark:text-slate-600'}`}>
+                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border transition-all ${req.met ? 'bg-blue-500 border-blue-500' : 'border-slate-200 dark:border-slate-700'}`}>
                         {req.met && <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>}
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-wide">{req.label}</span>
@@ -410,7 +410,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
                 <div className="flex gap-1 h-1 px-2">
                   {[1, 2, 3].map(i => (
-                    <div key={i} className={`flex-1 rounded-full transition-colors ${getPasswordStrength() >= i ? 'bg-indigo-500' : 'bg-slate-100 dark:bg-slate-700'}`}></div>
+                    <div key={i} className={`flex-1 rounded-full transition-colors ${getPasswordStrength() >= i ? 'bg-blue-500' : 'bg-slate-100 dark:bg-slate-700'}`}></div>
                   ))}
                 </div>
 
@@ -420,15 +420,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSignup()}
-                  className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-sm"
+                  className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
                 />
               </div>
 
-              <button onClick={handleSignup} className="w-full h-13 bg-indigo-500 text-white font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-indigo-600 transition-all">
+              <button onClick={handleSignup} className="w-full h-13 bg-blue-500 text-white font-extrabold rounded-2xl tracking-[3px] text-[13px] uppercase hover:bg-blue-600 transition-all">
                 Create Account
               </button>
 
-              <button onClick={() => setStep('MODE_SELECT')} className="w-full text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px] hover:text-indigo-500">
+              <button onClick={() => setStep('MODE_SELECT')} className="w-full text-[10px] font-extrabold text-slate-400 uppercase tracking-[3px] hover:text-blue-500">
                 Already have an account? Log In
               </button>
             </>

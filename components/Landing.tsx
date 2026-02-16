@@ -178,7 +178,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
 
         <div className="flex items-center gap-3">
           <button onClick={onLoginClick} className="hidden sm:block text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-5 py-2.5 rounded-full transition-colors">Log In</button>
-          <button onClick={onGetStarted} className="text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-600 px-5 py-2.5 rounded-full transition-colors hover:scale-105 transform duration-200">Get Started</button>
+          <button onClick={onGetStarted} className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-full transition-colors hover:scale-105 transform duration-200">Get Started</button>
         </div>
       </nav>
 
@@ -186,24 +186,24 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
       <section className="relative flex flex-col items-center text-center px-6 md:px-12 pt-16 pb-12 md:pt-20 md:pb-16 overflow-hidden">
         {/* Floating decorative orbs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <div className="absolute -top-20 -left-24 w-72 h-72 bg-indigo-400/15 dark:bg-indigo-500/10 rounded-full blur-3xl anim-float-slow" />
-          <div className="absolute top-10 -right-20 w-56 h-56 bg-purple-400/15 dark:bg-purple-500/10 rounded-full blur-3xl anim-float-slower" />
+          <div className="absolute -top-20 -left-24 w-72 h-72 bg-blue-500/15 dark:bg-blue-600/10 rounded-full blur-3xl anim-float-slow" />
+          <div className="absolute top-10 -right-20 w-56 h-56 bg-slate-900/10 dark:bg-slate-950/30 rounded-full blur-3xl anim-float-slower" />
           <div className="absolute -bottom-16 left-1/3 w-64 h-64 bg-cyan-400/10 dark:bg-cyan-500/8 rounded-full blur-3xl anim-float-slow anim-delay-300" />
         </div>
 
         {/* Badge */}
-        <div className="relative inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-1.5 rounded-full mb-8 anim-fade-in-down">
-          <span className="w-2 h-2 rounded-full bg-indigo-500 anim-pulse-dot" />
-          <span className="text-[13px] font-semibold text-indigo-500 dark:text-indigo-400">AI-Powered Study Companion</span>
+        <div className="relative inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-4 py-1.5 rounded-full mb-8 anim-fade-in-down">
+          <span className="w-2 h-2 rounded-full bg-blue-500 anim-pulse-dot" />
+          <span className="text-[13px] font-semibold text-blue-600 dark:text-blue-400">AI-Powered Study Companion</span>
         </div>
 
         {/* Title */}
         <div className="relative flex flex-col items-center gap-1 mb-8">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight anim-fade-in-up anim-delay-100 whitespace-nowrap" style={{ letterSpacing: '-1.5px', minHeight: '1.2em' }}>
             {heroText}
-            <span className="anim-blink text-indigo-500 dark:text-indigo-400 font-light">|</span>
+            <span className="anim-blink text-blue-500 dark:text-blue-400 font-light">|</span>
           </h1>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-indigo-500 dark:text-indigo-400 tracking-tight anim-fade-in-up anim-delay-300" style={{ letterSpacing: '-1.5px' }}>with Gemdi</h1>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight anim-fade-in-up anim-delay-300" style={{ letterSpacing: '-1.5px' }}>with Gemdi</h1>
         </div>
 
         {/* Subtitle */}
@@ -213,7 +213,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
 
         {/* CTAs */}
         <div className="relative flex flex-col sm:flex-row items-center gap-4">
-          <button onClick={onGetStarted} className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-base px-7 py-3.5 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/25 anim-fade-in-up anim-delay-500">
+          <button onClick={onGetStarted} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-7 py-3.5 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-blue-600/25 anim-fade-in-up anim-delay-500">
             Start Learning Free
             <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </button>
@@ -226,14 +226,14 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
 
       {/* ── Features Section ── */}
       <section ref={mergeRefs(featuresRef, featuresInViewRef)} className="flex flex-col items-center px-6 md:px-12 py-16">
-        <span className={`text-xs font-bold text-indigo-500 dark:text-indigo-400 tracking-[2px] uppercase mb-4 transition-all duration-500 ${featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>WHY GEMDI</span>
+        <span className={`text-xs font-bold text-blue-600 dark:text-blue-400 tracking-[2px] uppercase mb-4 transition-all duration-500 ${featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>WHY GEMDI</span>
         <h2 className={`text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white text-center mb-12 transition-all duration-500 delay-100 ${featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ letterSpacing: '-0.5px' }}>Built for how you actually study</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
           {/* Card 1 — Deep Extraction */}
           <div className={`bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col gap-5 transition-all duration-500 delay-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 ${featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-            <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.3 16.3 15 18"/></svg>
+            <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.3 16.3 15 18"/></svg>
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Deep Extraction</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed" style={{ lineHeight: 1.65 }}>Upload any PDF or DOCX. Our AI reads and understands your material, extracting key concepts, definitions, and relationships.</p>
@@ -261,18 +261,18 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
 
       {/* ── How It Works ── */}
       <section ref={mergeRefs(howItWorksRef, howItWorksInViewRef)} className="flex flex-col items-center bg-white dark:bg-slate-800 px-6 md:px-12 py-16">
-        <span className={`text-xs font-bold text-indigo-500 dark:text-indigo-400 tracking-[2px] uppercase mb-4 transition-all duration-500 ${howItWorksVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>HOW IT WORKS</span>
+        <span className={`text-xs font-bold text-blue-600 dark:text-blue-400 tracking-[2px] uppercase mb-4 transition-all duration-500 ${howItWorksVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>HOW IT WORKS</span>
         <h2 className={`text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white text-center mb-12 transition-all duration-500 delay-100 ${howItWorksVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ letterSpacing: '-0.5px' }}>From upload to mastery in 3 steps</h2>
 
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
           {/* Connecting line between steps (desktop only) */}
           <div className="hidden md:block absolute top-7 left-[16.67%] right-[16.67%] h-0.5 z-0">
-            <div className={`h-full bg-linear-to-r from-indigo-500 via-emerald-500 to-amber-500 rounded-full ${howItWorksVisible ? 'anim-draw-line' : 'w-0'}`} />
+            <div className={`h-full bg-linear-to-r from-blue-600 via-cyan-400 to-emerald-400 rounded-full ${howItWorksVisible ? 'anim-draw-line' : 'w-0'}`} />
           </div>
 
           {/* Step 1 */}
           <div className={`relative z-10 flex flex-col items-center gap-4 text-center transition-all duration-500 delay-400 ${howItWorksVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
-            <div className="w-14 h-14 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
               <span className="text-[22px] font-extrabold text-white">1</span>
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">Upload Material</h3>
@@ -300,10 +300,10 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
       </section>
 
       {/* ── CTA Banner ── */}
-      <section ref={ctaInViewRef} className={`flex flex-col items-center text-center px-6 md:px-12 py-20 transition-all duration-700 ${ctaVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)' }}>
+      <section ref={ctaInViewRef} className={`flex flex-col items-center text-center px-6 md:px-12 py-20 transition-all duration-700 ${ctaVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} style={{ background: 'linear-gradient(135deg, #0b1020 0%, #2563eb 55%, #0b1020 100%)' }}>
         <h2 className="text-3xl md:text-[40px] font-extrabold text-white mb-6" style={{ letterSpacing: '-0.5px' }}>Ready to study smarter?</h2>
         <p className="text-base text-white/80 max-w-md leading-relaxed mb-8" style={{ lineHeight: 1.5 }}>Join now to transform your study habits with Gemdi.</p>
-        <button onClick={onGetStarted} className={`flex items-center gap-2 bg-white hover:bg-slate-50 text-indigo-600 font-bold text-base px-8 py-4 rounded-full transition-all duration-200 hover:scale-105 ${ctaVisible ? 'anim-pulse-glow' : ''}`}>
+        <button onClick={onGetStarted} className={`flex items-center gap-2 bg-white hover:bg-slate-50 text-blue-600 font-bold text-base px-8 py-4 rounded-full transition-all duration-200 hover:scale-105 ${ctaVisible ? 'anim-pulse-glow' : ''}`}>
           Get Started — It's Free
           <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </button>

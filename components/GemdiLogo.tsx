@@ -17,9 +17,9 @@ export const GemdiLogo: React.FC<GemdiLogoProps> = ({
   >
     <defs>
       <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#3b82f6" />
-        <stop offset="50%" stopColor="#8b5cf6" />
-        <stop offset="100%" stopColor="#2dd4bf" />
+        <stop offset="0%" stopColor="#0b1020" />
+        <stop offset="55%" stopColor="#2563eb" />
+        <stop offset="100%" stopColor="#38bdf8" />
       </linearGradient>
     </defs>
     <path d="M50 5 L90 35 L50 95 L10 35 Z" fill={`url(#${gradientId})`} />

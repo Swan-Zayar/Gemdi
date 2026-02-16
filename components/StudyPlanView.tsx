@@ -57,7 +57,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
       >
         <div className="p-6 sm:p-10 flex items-start justify-between shrink-0">
           <div className="flex items-start gap-4 sm:gap-6">
-            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-lg sm:text-2xl shrink-0">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-black text-lg sm:text-2xl shrink-0">
               {plan.steps.indexOf(selectedStep) + 1}
             </div>
             <div className="pt-0.5">
@@ -90,7 +90,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
                     <div key={sIndex}>
                       {/* Section Heading */}
                       <div className="mt-6 mb-4">
-                        <h4 className="text-slate-900 dark:text-white font-black text-xs sm:text-sm uppercase tracking-[0.25em] border-l-4 border-indigo-600 pl-5 py-2 bg-indigo-50/30 dark:bg-indigo-900/20 rounded-r-xl"
+                        <h4 className="text-slate-900 dark:text-white font-black text-xs sm:text-sm uppercase tracking-[0.25em] border-l-4 border-blue-600 pl-5 py-2 bg-blue-50/30 dark:bg-blue-900/20 rounded-r-xl"
                           dangerouslySetInnerHTML={{ __html: renderMathToHtml(section.heading) }} />
                       </div>
 
@@ -116,7 +116,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
                       {section.formulas && section.formulas.length > 0 && (
                         <div className="space-y-3">
                           {section.formulas.map((formula, fIndex) => (
-                            <div key={fIndex} className="py-4 px-6 bg-indigo-50/60 dark:bg-indigo-950/30 rounded-2xl border border-indigo-100 dark:border-indigo-800/40 text-center overflow-x-auto">
+                            <div key={fIndex} className="py-4 px-6 bg-blue-50/60 dark:bg-blue-950/30 rounded-2xl border border-blue-100 dark:border-blue-800/40 text-center overflow-x-auto">
                               <span className="text-slate-800 dark:text-slate-200"
                                 dangerouslySetInnerHTML={{ __html: renderMathToHtml(formula) }} />
                             </div>
@@ -151,7 +151,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
                       <div key={i} className="group/line">
                         {isHeader ? (
                           <div className="mt-8 mb-4">
-                            <h4 className="text-slate-900 dark:text-white font-black text-xs sm:text-sm uppercase tracking-[0.25em] border-l-4 border-indigo-600 pl-5 py-2 bg-indigo-50/30 dark:bg-indigo-900/20 rounded-r-xl"
+                            <h4 className="text-slate-900 dark:text-white font-black text-xs sm:text-sm uppercase tracking-[0.25em] border-l-4 border-blue-600 pl-5 py-2 bg-blue-50/30 dark:bg-blue-900/20 rounded-r-xl"
                               dangerouslySetInnerHTML={{ __html: renderMathToHtml(trimmed.replace(/:$/, '')) }} />
                           </div>
                         ) : (
@@ -167,15 +167,15 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
 
             <div className="py-10">
               <div className="bg-slate-900 dark:bg-black p-8 sm:p-14 rounded-[2.5rem] sm:rounded-[3.5rem] text-white text-center shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full -mr-32 -mt-32"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full -mr-32 -mt-32"></div>
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 dark:bg-slate-800 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 mx-auto border border-white/10">
-                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 </div>
                 <h4 className="font-black text-2xl sm:text-3xl mb-4 tracking-tight">Active Recall Lab</h4>
                 <p className="text-slate-400 font-bold text-base sm:text-lg mb-10 max-w-sm mx-auto">Verify your comprehension of this phase.</p>
                 <button
                   onClick={(e) => { e.stopPropagation(); onStepAction(selectedStep.title); setSelectedStep(null); }}
-                  className="w-full sm:w-auto px-12 py-5 bg-white text-slate-900 rounded-2xl font-black text-lg hover:bg-indigo-50 transition-all active:scale-95"
+                  className="w-full sm:w-auto px-12 py-5 bg-white text-slate-900 rounded-2xl font-black text-lg hover:bg-blue-50 transition-all active:scale-95"
                 >
                   {isStepCompleted(selectedStep.title) ? 'Restart Phase Drill' : 'Launch Phase Drill'}
                 </button>
@@ -209,7 +209,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
             {user?.avatar ? (
               <img src={user.avatar} alt="Profile" className="w-9 h-9 rounded-full object-cover" />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-bold">
+              <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">
                 {userInitials}
               </div>
             )}
@@ -253,14 +253,14 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
 
         {/* Unit Quiz Card */}
         <div className="mb-8 bg-slate-900 dark:bg-black p-8 rounded-[2.5rem] text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-600/10 rounded-full -mr-24 -mt-24"></div>
+          <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/10 rounded-full -mr-24 -mt-24"></div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 relative z-10">
             <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shrink-0">
-              <svg className="w-7 h-7 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+              <svg className="w-7 h-7 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
             </div>
             <div className="flex-1">
               <h4 className="font-extrabold text-xl tracking-tight mb-1">Unit Quiz</h4>
-              <p className="text-slate-400 font-medium text-sm">Test your understanding with 20 questions</p>
+              <p className="text-slate-400 font-medium text-sm">Test your understanding with 10-20 questions</p>
               {session.quizHistory && session.quizHistory.length > 0 && (
                 <p className="text-slate-500 text-xs font-medium mt-1.5">
                   Last score: {Math.round((session.quizHistory[0].score / session.quizHistory[0].total) * 100)}% &middot; {session.quizHistory.length} attempt{session.quizHistory.length !== 1 ? 's' : ''}
@@ -270,7 +270,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
             <button
               onClick={onStartQuiz}
               disabled={isQuizLoading}
-              className="px-8 py-3.5 bg-white text-slate-900 rounded-2xl font-extrabold text-sm hover:bg-indigo-50 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
+              className="px-8 py-3.5 bg-white text-slate-900 rounded-2xl font-extrabold text-sm hover:bg-blue-50 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
             >
               {isQuizLoading ? (
                 <>
@@ -311,7 +311,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
                     </div>
                   ) : isCurrent ? (
-                    <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-extrabold text-base shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-extrabold text-base shrink-0">
                       {index + 1}
                     </div>
                   ) : (
@@ -331,7 +331,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
                 <div
                   className={`flex-1 rounded-2xl p-5 border transition-all ${
                     isCurrent
-                      ? 'bg-white dark:bg-slate-800 border-2 border-indigo-500'
+                      ? 'bg-white dark:bg-slate-800 border-2 border-blue-500'
                       : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
                   } ${isUpcoming ? 'opacity-70' : ''}`}
                 >
@@ -344,7 +344,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
                         Mastered
                       </span>
                     ) : isCurrent ? (
-                      <span className="text-[11px] font-semibold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-2.5 py-1 rounded-full">
+                      <span className="text-[11px] font-semibold text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-full">
                         In Progress
                       </span>
                     ) : (
@@ -362,7 +362,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
                     {isCurrent && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onStepAction(step.title); }}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-500 text-white text-[13px] font-semibold hover:bg-indigo-600 transition-colors active:scale-95"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-500 text-white text-[13px] font-semibold hover:bg-blue-600 transition-colors active:scale-95"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         Active Recall Lab

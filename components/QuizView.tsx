@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { QuizQuestion } from '../types';
 import { renderMathToHtml } from '../services/mathRender';
 import { GemdiLogo } from './GemdiLogo';
@@ -16,6 +16,24 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [katexReady, setKatexReady] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if ((window as any).katex) {
+      setKatexReady(true);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      if ((window as any).katex) {
+        setKatexReady(true);
+        window.clearInterval(interval);
+      }
+    }, 50);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   if (isLoading && questions.length === 0) {
     return (
@@ -29,9 +47,9 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
             <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">10-20 unique questions based on your study material</p>
           </div>
           <div className="flex gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" style={{ animationDelay: '0ms' }} />
-            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" style={{ animationDelay: '300ms' }} />
-            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" style={{ animationDelay: '600ms' }} />
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '0ms' }} />
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '300ms' }} />
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '600ms' }} />
           </div>
           <button
             onClick={onBack}
@@ -83,10 +101,10 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center px-4 animate-fadeIn">
         <div className="bg-white dark:bg-slate-800 rounded-[3rem] p-12 text-center chic-shadow border border-slate-100 dark:border-slate-700 overflow-hidden relative w-full max-w-2xl">
-          <div className="absolute top-0 inset-x-0 h-2 bg-linear-to-r from-emerald-400 to-indigo-500"></div>
+          <div className="absolute top-0 inset-x-0 h-2 bg-linear-to-r from-emerald-400 to-blue-500"></div>
 
-          <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-             <span className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">{percentage}%</span>
+          <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+             <span className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">{percentage}%</span>
           </div>
 
           <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Unit Mastered.</h2>
@@ -103,7 +121,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
             </div>
             <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-700">
                <span className="block text-[10px] font-extrabold text-slate-300 dark:text-slate-600 uppercase tracking-[3px] mb-1">Rank</span>
-               <span className="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">
+               <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
                  {percentage === 100 ? 'Architect' : percentage >= 80 ? 'Senior' : 'Scholar'}
                </span>
             </div>
@@ -112,7 +130,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
           <div className="flex flex-col gap-4">
             <button
               onClick={() => onComplete(score, questions.length)}
-              className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-extrabold text-lg hover:bg-indigo-600 dark:hover:bg-indigo-100 transition-all shadow-xl active:scale-95"
+              className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-extrabold text-lg hover:bg-blue-600 dark:hover:bg-blue-100 transition-all shadow-xl active:scale-95"
             >
               Save Results to Vault
             </button>
@@ -129,7 +147,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col animate-fadeIn">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col animate-fadeIn" data-katex-ready={katexReady ? '1' : '0'}>
       {/* Full-width Header Bar */}
       <header className="h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-8 shrink-0">
         <div className="flex items-center gap-2.5">
@@ -142,7 +160,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
           <GemdiLogo className="w-7 h-7" gradientId="quizGrad" />
           <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Gemdi</span>
         </div>
-        <span className="text-[10px] font-extrabold text-indigo-500 uppercase tracking-[2px]">Unit Mastery Quiz</span>
+        <span className="text-[10px] font-extrabold text-blue-500 uppercase tracking-[2px]">Unit Mastery Quiz</span>
         <span className="text-xl font-extrabold text-slate-900 dark:text-white">
           {currentIndex + 1} <span className="text-slate-200 dark:text-slate-700">/</span> {questions.length}
         </span>
@@ -152,7 +170,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
       <div className="flex-1 flex items-center justify-center px-4 sm:px-12 md:px-50 py-12">
         <div className="bg-white dark:bg-slate-800 rounded-[3rem] py-12 px-8 sm:px-14 border border-slate-100 dark:border-slate-700 chic-shadow w-full flex flex-col gap-8">
           <div>
-            <div className="inline-block px-3.5 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-extrabold rounded-lg uppercase tracking-[2px] mb-8 border border-indigo-100 dark:border-indigo-800/50">
+            <div className="inline-block px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold rounded-lg uppercase tracking-[2px] mb-8 border border-blue-100 dark:border-blue-800/50">
               Conceptual Inquiry
             </div>
             <h3 className="text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.4]"
@@ -177,8 +195,8 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
                       : isAnsweredWrong
                       ? 'bg-red-50 dark:bg-red-900/20 border-red-500 text-red-900 dark:text-red-100'
                       : isSelected
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-900 dark:text-white'
-                      : 'border-slate-100 dark:border-slate-700 hover:border-indigo-200 bg-slate-50 dark:bg-slate-900/50'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-white'
+                      : 'border-slate-100 dark:border-slate-700 hover:border-blue-200 bg-slate-50 dark:bg-slate-900/50'
                   }`}
                 >
                   <span className="font-bold text-base" dangerouslySetInnerHTML={{ __html: renderMathToHtml(option) }}></span>
@@ -188,7 +206,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
                       : isAnsweredWrong
                       ? 'bg-red-500 border-red-500 text-white'
                       : isSelected
-                      ? 'border-indigo-500 bg-indigo-500 text-white'
+                      ? 'border-blue-500 bg-blue-500 text-white'
                       : 'border-slate-200 dark:border-slate-600'
                   }`}>
                     {(isAnsweredCorrect || (isSelected && !isAnswered)) && (
@@ -215,7 +233,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
               </div>
               <button
                 onClick={handleNext}
-                className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-extrabold text-lg hover:bg-indigo-600 dark:hover:bg-indigo-100 transition-all shadow-xl flex items-center justify-center gap-2"
+                className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-extrabold text-lg hover:bg-blue-600 dark:hover:bg-blue-100 transition-all shadow-xl flex items-center justify-center gap-2"
               >
                 {currentIndex < questions.length - 1 ? 'Next Phase' : 'Masterplan Finalized'}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -227,7 +245,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, isLoading, onBack, onCom
               disabled={!selectedOption}
               className={`w-full h-14 rounded-2xl font-extrabold text-lg transition-all shadow-xl active:scale-95 ${
                 selectedOption
-                  ? 'bg-indigo-500 text-white hover:bg-indigo-600'
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed'
               }`}
             >
