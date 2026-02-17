@@ -40,13 +40,14 @@ const ProcessingOverlay: React.FC<ProcessingOverlayProps> = ({
   const completionFromRef = useRef(0);
   const doneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Elapsed time ticker
+  // Elapsed time ticker — stop when processing completes
   useEffect(() => {
+    if (isComplete || error) return;
     const interval = setInterval(() => {
       setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
     }, 500);
     return () => clearInterval(interval);
-  }, []);
+  }, [isComplete, error]);
 
   // Asymptotic progress during processing phase
   useEffect(() => {

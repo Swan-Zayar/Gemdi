@@ -254,15 +254,19 @@ const App: React.FC = () => {
       customPrompt: userProfile?.customPrompt
     };
 
-    await userProfileService.saveUserProfile(profile);
-    
+    try {
+      await userProfileService.saveUserProfile(profile);
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+    }
+
     setUserProfile({
       id: user.uid,
       name: username,
       email: user.email || '',
       avatar
     });
-    
+
     setIsProfileSetupOpen(false);
     setAppState(AppState.DASHBOARD);
   };

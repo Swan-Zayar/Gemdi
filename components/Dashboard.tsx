@@ -475,7 +475,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sessions, onUpload, onOpenSession
         <div className="fixed inset-0 z-1002 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/80 backdrop-blur-md animate-fadeIn" onClick={() => setShowCustomPromptModal(false)}>
           <div className="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[92vh] sm:max-h-[85vh] rounded-t-[3rem] sm:rounded-[3rem] shadow-[0_32px_128px_-15px_rgba(0,0,0,0.5)] border border-slate-100 dark:border-slate-800 animate-slideUp flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
             {/* Gradient Header */}
-            <div className="px-8 sm:px-10 pt-8 sm:pt-10 pb-6 relative shrink-0" style={{ background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)' }}>
+            <div className="px-8 sm:px-10 pt-8 sm:pt-10 pb-6 relative shrink-0" style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0B1020 100%)' }}>
               <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-20 -mt-20"></div>
               <button onClick={() => setShowCustomPromptModal(false)} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all z-10">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>

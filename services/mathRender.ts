@@ -6,6 +6,10 @@ const escapeHtml = (text: string) =>
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+/** Convert markdown bold (**text**) to <strong> tags in already-escaped HTML */
+const renderInlineMarkdown = (html: string): string =>
+  html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
 const normalizeMathSymbols = (segment: string) => {
   const replacements: Array<[RegExp, string]> = [
     // Operators
@@ -170,25 +174,183 @@ const repairLatexEscapes = (s: string): string => {
 };
 
 /**
- * Convert bare-paren math delimiters ( \latex... ) → \( \latex... \).
- * This handles the case where \( \) delimiters lose their backslashes
- * during JSON parsing (\( is not a valid JSON escape → becomes just "(").
+ * Detect contiguous runs of bare LaTeX (not inside $ delimiters) and wrap them.
+ * Scans character-by-character so we can track $ nesting and brace depth.
+ */
+const wrapBareLaTeX = (s: string): string => {
+  // Split into segments: already-delimited ($...$, $$...$$) vs plain text
+  const parts: Array<{ text: string; isMath: boolean }> = [];
+  const delimRegex = /(\$\$[\s\S]+?\$\$|\$[^$]+?\$)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = delimRegex.exec(s)) !== null) {
+    if (m.index > last) parts.push({ text: s.slice(last, m.index), isMath: false });
+    parts.push({ text: m[0], isMath: true });
+    last = delimRegex.lastIndex;
+  }
+  if (last < s.length) parts.push({ text: s.slice(last), isMath: false });
+
+  // For each plain-text segment, find bare LaTeX runs and wrap them.
+  // Supports nested braces up to 3 levels and optional leading variable (e.g. x_i = \frac{...})
+  const nb = '\\{(?:[^{}]|\\{(?:[^{}]|\\{[^{}]*\\})*\\})*\\}';
+  const cmd = `\\\\[a-zA-Z]+(?:${nb})*(?:[_^](?:${nb}|[a-zA-Z0-9]))*`;
+  const varLead = `(?:[a-zA-Z][a-zA-Z0-9]*(?:[_^](?:${nb}|[a-zA-Z0-9]))*\\s*[=<>]\\s*)?`;
+  const conn = `(?:[=+\\-*/|<>.,;:^_]|${nb}|${cmd}|\\([^)]*\\)|\\d+)`;
+  const bareLatexRun = new RegExp(`${varLead}${cmd}(?:\\s*${conn})*\\s*`, 'g');
+
+  return parts.map(({ text, isMath }) => {
+    if (isMath) return text;
+    return text.replace(bareLatexRun, (run) => {
+      // Only wrap if it actually contains a \command (not just whitespace/operators)
+      if (!/\\[a-zA-Z]{2,}/.test(run)) return run;
+      return `$${run.trim()}$`;
+    });
+  }).join('');
+};
+
+/**
+ * Normalise all math delimiters to $ / $$ format.
+ *
+ * 1. Convert \( ... \) → $ ... $  and  \[ ... \] → $$ ... $$
+ *    (handles legacy content and model outputs that ignore the prompt).
+ * 2. Detect bare-paren groups that contain LaTeX commands or unicode
+ *    math symbols and wrap them in $ ... $.
  */
 const normalizeMathDelimiters = (s: string): string => {
-  // Match ( content ) where content contains at least one \command
-  return s.replace(/(?<!\\)\(\s*((?:[^()]*?\\[a-zA-Z])[^()]*?)\s*\)/g, '\\($1\\)');
+  // First: convert explicit \( \) and \[ \] to $ / $$
+  // \( and \) are ONLY used as math delimiters, never as grouping inside math
+  let result = s.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+  result = result.replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+
+  // Second: detect ( content ) where content has \commands or unicode math → $content$
+  const mathUnicodePattern = /[α-ωΑ-Ω∑∏∫∮∇∂√∞×·÷±∓≈≃≅≡≠≤≥≪≫⊂⊃⊆⊇∈∉∋∝∥∀∃∅∧∨¬⇒⇐⇔→←↔↦⋅⋆ℏℓ]/;
+  result = result.replace(/(?<!\$)(?<!\\)\(\s*((?:[^()]*?(?:\\[a-zA-Z]|[α-ωΑ-Ω∑∏∫∮∇∂√∞×·÷±∓≈≃≅≡≠≤≥≪≫⊂⊃⊆⊇∈∉∋∝∥∀∃∅∧∨¬⇒⇐⇔→←↔↦⋅⋆ℏℓ]))[^()]*?)\s*\)(?!\$)/g,
+    (match, inner) => {
+      if (/\\[a-zA-Z]/.test(inner) || mathUnicodePattern.test(inner)) {
+        return `$${inner}$`;
+      }
+      return match;
+    });
+
+  // Third: wrap bare LaTeX runs that aren't inside $ delimiters.
+  // A "bare run" starts with \command and extends through adjacent math-like
+  // content: more \commands, braces, subscripts, operators, parens, etc.
+  result = wrapBareLaTeX(result);
+
+  return result;
+};
+
+/**
+ * Strip LaTeX document preambles/postambles and convert LaTeX text
+ * formatting commands to markdown equivalents.
+ * Handles cases where the AI outputs full LaTeX document structure
+ * (e.g. \documentclass{article}\usepackage{amsmath}\begin{document}...\end{document})
+ */
+const stripLatexPreamble = (s: string): string => {
+  let result = s;
+
+  // Remove \documentclass{...}, \usepackage{...}, \title{...}, \maketitle, \date{...}, \author{...}
+  result = result.replace(/\\(?:documentclass|usepackage|title|author|date|maketitle)(?:\[[^\]]*\])?\{[^}]*\}/g, '');
+
+  // Remove \begin{document} and \end{document}
+  result = result.replace(/\\(?:begin|end)\{document\}/g, '');
+
+  // Remove common environment wrappers that aren't math (e.g. \begin{center}...\end{center})
+  // but keep math environments like \begin{align}, \begin{equation}, etc.
+  result = result.replace(/\\(?:begin|end)\{(?:center|flushleft|flushright|itemize|enumerate|description|figure|table|tabular|minipage|verbatim)\}/g, '');
+
+  // Convert \textbf{...} outside math mode to **...**
+  result = result.replace(/\\textbf\{([^}]*)\}/g, '**$1**');
+
+  // Convert \textit{...} and \emph{...} outside math mode to *...*
+  result = result.replace(/\\(?:textit|emph)\{([^}]*)\}/g, '*$1*');
+
+  // Remove \item markers
+  result = result.replace(/\\item\s*/g, '');
+
+  // Clean up any leftover multiple blank lines from removals
+  result = result.replace(/\n{3,}/g, '\n\n');
+
+  return result.trim();
+};
+
+/**
+ * Strip \mathbf{}, \boldsymbol{}, \textbf{} wrappers that the AI
+ * incorrectly uses to "bold" entire formulas. Uses character-by-character
+ * brace counting instead of regex to handle arbitrarily deep nesting.
+ */
+const stripBoldMathWrappers = (s: string): string => {
+  const cmdPattern = /\\(?:mathbf|boldsymbol|textbf)\{/g;
+  let result = s;
+  let match;
+
+  // Keep scanning until no more wrapper commands are found
+  while ((match = cmdPattern.exec(result)) !== null) {
+    const cmdStart = match.index;
+    const braceOpen = cmdStart + match[0].length - 1; // index of '{'
+    let depth = 1;
+    let i = braceOpen + 1;
+
+    // Walk forward counting braces to find the matching '}'
+    while (i < result.length && depth > 0) {
+      if (result[i] === '{') depth++;
+      else if (result[i] === '}') depth--;
+      i++;
+    }
+
+    if (depth === 0) {
+      // Found matching brace: remove \mathbf{ and the matching }
+      const inner = result.slice(braceOpen + 1, i - 1);
+      result = result.slice(0, cmdStart) + inner + result.slice(i);
+      cmdPattern.lastIndex = cmdStart; // re-scan from replacement point
+    } else {
+      // Unmatched braces: just remove the \mathbf{ prefix, leave content
+      result = result.slice(0, cmdStart) + result.slice(braceOpen + 1);
+      cmdPattern.lastIndex = cmdStart;
+    }
+  }
+
+  return result;
+};
+
+/**
+ * Fix malformed \left / \right usage that causes KaTeX to fail.
+ * - \left immediately followed by \command (e.g. \left\frac) → insert (
+ * - Orphaned \right at end without delimiter → append )
+ * - \left( ... \right without delimiter → \right)
+ */
+const fixLeftRight = (s: string): string => {
+  // \left followed directly by a \command (no delimiter between) → insert (
+  // e.g. \left\frac{a}{b}\right → \left(\frac{a}{b}\right)
+  let result = s.replace(/\\left\s*(?=\\[a-zA-Z])/g, '\\left(');
+
+  // \right at end of string or before non-delimiter → append )
+  // Valid delimiters after \right: ( ) [ ] | . \{ \} \| / \langle \rangle etc.
+  result = result.replace(/\\right\s*(?=[^()\[\]|./\\}{\s]|$)/g, '\\right)');
+
+  return result;
 };
 
 export const renderMathToHtml = (text: string) => {
   let input = text ?? "";
 
+  // Step 0: Strip LaTeX document preambles/postambles
+  input = stripLatexPreamble(input);
+
   // Step 1: Repair corrupted escape sequences
   input = repairLatexEscapes(input);
 
-  // Step 2: Normalise bare-paren delimiters to \( ... \)
+  // Step 1.5: Strip \mathbf{}, \boldsymbol{}, \textbf{} wrappers around formulas
+  input = stripBoldMathWrappers(input);
+
+  // Step 1.6: Fix malformed \left/\right usage
+  input = fixLeftRight(input);
+
+  // Step 2: Normalise all delimiters to $ / $$
   input = normalizeMathDelimiters(input);
 
-  const regex = /(\$\$[\s\S]+?\$\$|\$[^$]+\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))/g;
+  // After normalization, only $ and $$ delimiters remain
+  const regex = /(\$\$[\s\S]+?\$\$|\$[^$]+?\$)/g;
   let lastIndex = 0;
   let result = "";
   let match: RegExpExecArray | null;
@@ -197,18 +359,12 @@ export const renderMathToHtml = (text: string) => {
     const start = match.index;
     const end = regex.lastIndex;
     const before = input.slice(lastIndex, start);
-    result += escapeHtml(before);
+    result += renderInlineMarkdown(escapeHtml(before));
 
     const token = match[0];
     if (token.startsWith("$$")) {
       const content = token.slice(2, -2);
       result += renderMathSegment(content, true);
-    } else if (token.startsWith("\\[")) {
-      const content = token.slice(2, -2);
-      result += renderMathSegment(content, true);
-    } else if (token.startsWith("\\(")) {
-      const content = token.slice(2, -2);
-      result += renderMathSegment(content, false);
     } else {
       const content = token.slice(1, -1);
       result += renderMathSegment(content, false);
@@ -217,6 +373,6 @@ export const renderMathToHtml = (text: string) => {
     lastIndex = end;
   }
 
-  result += escapeHtml(input.slice(lastIndex));
+  result += renderInlineMarkdown(escapeHtml(input.slice(lastIndex)));
   return result;
 };

@@ -143,13 +143,13 @@ const handleGeminiRequest = async (data: unknown) => {
             points — definitions, facts, key distinctions, or important
             details. Each bullet should be one complete sentence or thought.
             3-8 bullets per section. You may include inline math using
-            \\( ... \\) where relevant.
+            $...$ where relevant.
           - "formulas" (OPTIONAL): An array of important formulas, equations,
             or mathematical expressions relevant to this section. Each entry
-            should be a display-math LaTeX string wrapped in \\[ ... \\].
+            should be a display-math LaTeX string wrapped in $$...$$.
             Only include this field when the section involves math, physics,
             chemistry, or other formula-heavy content. Examples:
-            ["\\\\[ F = ma \\\\]", "\\\\[ E = mc^2 \\\\]"]
+            ["$$ F = ma $$", "$$ E = mc^2 $$"]
 
         Break each step into 2-5 logical sections. Mix explanatory paragraphs
         with bullet points and highlighted formulas for maximum clarity.
@@ -170,11 +170,29 @@ const handleGeminiRequest = async (data: unknown) => {
       - No duplicate step titles or topic names.
 
       MATH NOTATION (if applicable):
-      - Wrap inline math in \\( ... \\) and display math in \\[ ... \\].
-      - Do NOT use $ or $$ delimiters.
+      - Use $...$ for inline math and $$...$$ for display math.
+      - Do NOT use \\( \\) or \\[ \\] delimiters — they break in JSON.
+      - EVERY LaTeX expression MUST be wrapped in $ or $$ delimiters.
+        Never output bare LaTeX like \\vert\\lambda\\vert — always write
+        $\\vert\\lambda\\vert$ instead.
+      - Do NOT use LaTeX text commands like \\textbf{}, \\textit{},
+        \\emph{}, or \\text{} outside of math mode. Use plain text instead.
+        Wrong: "\\textbf{Equality}" → Right: "Equality"
       - Use standard LaTeX commands: \\frac, \\sum, \\int, \\alpha, etc.
-      - CRITICAL: Since the output is JSON, every backslash MUST be escaped.
-        Write \\\\frac not \\frac, \\\\( not \\(, \\\\alpha not \\alpha, etc.
+      - NEVER output LaTeX document preambles or structure commands such as
+        \\documentclass, \\usepackage, \\begin{document}, \\end{document},
+        \\title, \\maketitle, or any \\begin{...}/\\end{...} environment
+        wrappers. Output ONLY the math content itself.
+      - To emphasise or highlight plain text, use **bold** markdown syntax.
+      - NEVER wrap formulas in \\mathbf{}, \\textbf{}, \\boldsymbol{},
+        or any bold command. Formulas must be plain LaTeX only.
+        Wrong: $\\mathbf{F = ma}$  Right: $F = ma$
+        Wrong: \\mathbf{\\frac{a}{b}}  Right: $\\frac{a}{b}$
+      - NEVER output bare LaTeX without dollar-sign delimiters.
+      - Always pair \\left and \\right with explicit delimiters:
+        \\left( ... \\right), \\left[ ... \\right], \\left| ... \\right|.
+        NEVER write \\left immediately followed by a command like
+        \\left\\frac — always include the delimiter: \\left(\\frac{a}{b}\\right).
       ${safeCustomPrompt ?
         `\nADDITIONAL INSTRUCTIONS FROM USER:\n${safeCustomPrompt}` :
         ""}
@@ -192,6 +210,7 @@ const handleGeminiRequest = async (data: unknown) => {
           config: {
             responseMimeType: "application/json",
             maxOutputTokens: 65536,
+            thinkingConfig: {thinkingBudget: 2048},
             responseSchema: {
               type: Type.OBJECT,
               properties: {
@@ -314,8 +333,8 @@ const handleGeminiRequest = async (data: unknown) => {
           if (!s) return s;
           return s
             .replace(/\f(rac|lat|loor|orall)\b/g, "\\f$1")
-            .replace(/\t(heta|au|imes|ext|o(?:\s|$)|op|riangle)\b/g, "\\t$1")
-            .replace(/\n(u(?:\s|$)|abla|eg|eq|i(?:\s|$)|subset|parallel|rightarrow)/g, "\\n$1")
+            .replace(/\t(ilde|heta|au|imes|ext|o(?:\s|$)|op|riangle)\b/g, "\\t$1")
+            .replace(/\n(u(?:\s|$)|abla|eg|eq|ot|i(?:\s|$)|subset|parallel|rightarrow)/g, "\\n$1")
             .replace(/\x08(eta|inom|ar|egin|ig|oldsymbol)\b/g, "\\b$1")
             .replace(/\r(ho|ightarrow|Rightarrow)\b/g, "\\r$1");
         };
@@ -411,9 +430,8 @@ const handleGeminiRequest = async (data: unknown) => {
 
     const prompt = `
       Generate a 20-question MCQ quiz for: "${studyPlan.title}".
-      - Use KaTeX-friendly LaTeX with \\( ... \\) for inline math and
-        \\[ ... \\] for display math.
-      - Do NOT use $ or $$ delimiters anywhere.
+      - Use $...$ for inline math and $$...$$ for display math.
+      - Do NOT use \\( \\) or \\[ \\] delimiters — they break in JSON.
       - Ensure detailed explanations.
       - IMPORTANT: The question text must NEVER reveal or contain the correct
         answer. Do not repeat the answer verbatim in the question stem.
@@ -431,6 +449,7 @@ const handleGeminiRequest = async (data: unknown) => {
         config: {
           responseMimeType: "application/json",
           maxOutputTokens: 32768,
+          thinkingConfig: {thinkingBudget: 1024},
           responseSchema: {
             type: Type.ARRAY,
             items: {

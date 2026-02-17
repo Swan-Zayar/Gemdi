@@ -337,7 +337,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
                 >
                   {/* Header row */}
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-base font-bold text-slate-900 dark:text-white">{step.title}</h4>
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white" dangerouslySetInnerHTML={{ __html: renderMathToHtml(step.title) }} />
                     {completed ? (
                       <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
@@ -355,7 +355,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3">{step.description}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3" dangerouslySetInnerHTML={{ __html: renderMathToHtml(step.description) }} />
 
                   {/* Bottom row */}
                   <div className="flex items-center gap-3">
