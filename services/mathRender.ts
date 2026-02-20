@@ -142,20 +142,39 @@ const normalizeMathSymbols = (segment: string) => {
   return normalized;
 };
 
+/**
+ * Balance unmatched braces in a LaTeX string so KaTeX doesn't choke on
+ * truncated formulas from the AI (e.g. \frac{f without closing }).
+ */
+const balanceBraces = (s: string): string => {
+  let depth = 0;
+  for (const ch of s) {
+    if (ch === '{') depth++;
+    else if (ch === '}') depth--;
+  }
+  // Append missing closing braces
+  if (depth > 0) return s + '}'.repeat(depth);
+  // Prepend missing opening braces (rare, but handle it)
+  if (depth < 0) return '{'.repeat(-depth) + s;
+  return s;
+};
+
 const renderMathSegment = (segment: string, displayMode: boolean) => {
   if (typeof window === "undefined" || !(window as any).katex) {
     return escapeHtml(segment);
   }
 
   try {
-    const normalized = normalizeMathSymbols(segment.trim());
+    let normalized = normalizeMathSymbols(segment.trim());
+    normalized = balanceBraces(normalized);
     return (window as any).katex.renderToString(normalized, {
       displayMode,
-      throwOnError: false,
+      throwOnError: true,
       strict: "ignore"
     });
-  } catch (error) {
-    return escapeHtml(segment);
+  } catch {
+    // KaTeX couldn't parse it — show as clean plain text, not red error markup
+    return `<span class="katex-fallback">${escapeHtml(segment)}</span>`;
   }
 };
 
@@ -217,14 +236,18 @@ const wrapBareLaTeX = (s: string): string => {
  *    math symbols and wrap them in $ ... $.
  */
 const normalizeMathDelimiters = (s: string): string => {
-  // First: convert explicit \( \) and \[ \] to $ / $$
-  // \( and \) are ONLY used as math delimiters, never as grouping inside math
-  let result = s.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
-  result = result.replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+  // First: convert \( ... \) → $ ... $ and \[ ... \] → $$ ... $$
+  // Use paired regex to avoid creating stray $ / $$ from unmatched delimiters
+  let result = s.replace(/\\\[([\s\S]*?)\\\]/g, (_, inner) => `$$${inner}$$`);
+  result = result.replace(/\\\(([\s\S]*?)\\\)/g, (_, inner) => `$${inner}$`);
+  // Handle any remaining unmatched \( and \) (inline, less likely to cause $$ issues)
+  result = result.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+  // Intentionally NOT converting unmatched \[ / \] to avoid stray display-math markers
 
   // Second: detect ( content ) where content has \commands or unicode math → $content$
+  // (?<![a-zA-Z]) prevents matching ( in \left(, \right(, \bigl(, etc.
   const mathUnicodePattern = /[α-ωΑ-Ω∑∏∫∮∇∂√∞×·÷±∓≈≃≅≡≠≤≥≪≫⊂⊃⊆⊇∈∉∋∝∥∀∃∅∧∨¬⇒⇐⇔→←↔↦⋅⋆ℏℓ]/;
-  result = result.replace(/(?<!\$)(?<!\\)\(\s*((?:[^()]*?(?:\\[a-zA-Z]|[α-ωΑ-Ω∑∏∫∮∇∂√∞×·÷±∓≈≃≅≡≠≤≥≪≫⊂⊃⊆⊇∈∉∋∝∥∀∃∅∧∨¬⇒⇐⇔→←↔↦⋅⋆ℏℓ]))[^()]*?)\s*\)(?!\$)/g,
+  result = result.replace(/(?<!\$)(?<!\\)(?<![a-zA-Z])\(\s*((?:[^()]*?(?:\\[a-zA-Z]|[α-ωΑ-Ω∑∏∫∮∇∂√∞×·÷±∓≈≃≅≡≠≤≥≪≫⊂⊃⊆⊇∈∉∋∝∥∀∃∅∧∨¬⇒⇐⇔→←↔↦⋅⋆ℏℓ]))[^()]*?)\s*\)(?!\$)/g,
     (match, inner) => {
       if (/\\[a-zA-Z]/.test(inner) || mathUnicodePattern.test(inner)) {
         return `$${inner}$`;

@@ -57,8 +57,8 @@
     "step4Desc": "Ambil kuiz yang dijana AI untuk menilai pemahaman anda. Gemdi menyesuaikan diri dengan gaya pembelajaran anda dari masa ke masa berdasarkan prestasi anda.",
     "step5Title": "Sesuaikan Pengalaman Anda",
     "step5Desc": "Klik profil anda untuk memperibadikan avatar, nama paparan dan pilihan tema anda (terang, gelap atau sistem).",
-    "proTip": "Petua Profesional:",
-    "proTipDesc": "Nilai sesi anda selepas setiap latihan untuk membantu AI Gemdi mempelajari pilihan anda dan mengoptimumkan bahan pembelajaran masa depan untuk gaya pembelajaran anda."
+    "step6Title": "Sesuaikan Arahan AI Anda",
+    "step6Desc": "Klik 'Sesuaikan AI' pada panel muat naik untuk menambah arahan anda sendiri — beritahu AI untuk fokus pada topik tertentu, menekankan contoh atau menyesuaikan kedalaman bahan pembelajaran anda."
   },
   "dashboard": {
     "poweredBy": "Dikuasakan Oleh Gemini",

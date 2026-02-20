@@ -49,7 +49,6 @@ Gemdi aligns with the United Nations Sustainable Development Goal (SDG) **4: Qua
 - **Firebase Storage:** A storage used for firebase functions to retrieve the PDF/DOCX files
 - **Google Gemini API:** Generative AI for extracting and structuring study materials. (Google AI Studio)
 - **Google Cloud Console:** Maintains the production-ready website of Gemdi
-- **Tensorflow:** Minimal usage of Tensorflow to learn what style of study material generation users like.
 
 ### Other Supporting Tools / Libraries
 

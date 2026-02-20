@@ -1,65 +1,10 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { GemdiLogo } from './GemdiLogo';
+import { useTypewriter, useInView } from '../hooks/useLandingAnimations';
 
 interface LandingProps {
   onGetStarted: () => void;
   onLoginClick: () => void;
-}
-
-/** Hook that cycles through phrases with a typewriter typing/deleting effect */
-function useTypewriter(phrases: string[], typingMs = 80, deletingMs = 40, pauseMs = 1500): string {
-  const [phraseIndex, setPhraseIndex] = useState(0);
-  const [charCount, setCharCount] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const current = phrases[phraseIndex];
-
-    if (!isDeleting && charCount < current.length) {
-      const id = setTimeout(() => setCharCount(c => c + 1), typingMs);
-      return () => clearTimeout(id);
-    }
-
-    if (!isDeleting && charCount === current.length) {
-      const id = setTimeout(() => setIsDeleting(true), pauseMs);
-      return () => clearTimeout(id);
-    }
-
-    if (isDeleting && charCount > 0) {
-      const id = setTimeout(() => setCharCount(c => c - 1), deletingMs);
-      return () => clearTimeout(id);
-    }
-
-    if (isDeleting && charCount === 0) {
-      setIsDeleting(false);
-      setPhraseIndex(i => (i + 1) % phrases.length);
-    }
-  }, [charCount, isDeleting, phraseIndex, phrases, typingMs, deletingMs, pauseMs]);
-
-  return phrases[phraseIndex].slice(0, charCount);
-}
-
-/** Hook that tracks whether the element is currently in view (toggles on scroll) */
-function useInView(threshold = 0.15): [React.RefObject<HTMLDivElement | null>, boolean] {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setVisible(entry.isIntersecting);
-      },
-      { threshold }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-
-  return [ref, visible];
 }
 
 const HERO_PHRASES = [
@@ -69,6 +14,99 @@ const HERO_PHRASES = [
   'Unlock Your Potential',
   'Study Without Limits',
 ];
+
+/** Soothing looping aurora canvas background */
+function AuroraBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Gemdi palette: blue, cyan, indigo, sky, violet
+    const PALETTE = [
+      { r: 59,  g: 130, b: 246 }, // blue-500
+      { r: 34,  g: 211, b: 238 }, // cyan-400
+      { r: 99,  g: 102, b: 241 }, // indigo-500
+      { r: 56,  g: 189, b: 248 }, // sky-400
+      { r: 139, g: 92,  b: 246 }, // violet-500
+    ];
+
+    interface Orb {
+      x: number; y: number; r: number;
+      color: { r: number; g: number; b: number };
+      vx: number; vy: number;
+      phase: number; speed: number;
+    }
+
+    const orbs: Orb[] = Array.from({ length: 7 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: 260 + Math.random() * 180,
+      color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
+      vx: (Math.random() - 0.5) * 0.28,
+      vy: (Math.random() - 0.5) * 0.28,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.00025 + Math.random() * 0.00025,
+    }));
+
+    let time = 0;
+    const isDark = () => document.documentElement.classList.contains('dark');
+
+    const animate = () => {
+      time++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const alpha = isDark() ? 0.20 : 0.09;
+
+      for (const orb of orbs) {
+        orb.x += orb.vx + Math.sin(time * orb.speed + orb.phase) * 0.38;
+        orb.y += orb.vy + Math.cos(time * orb.speed + orb.phase * 1.4) * 0.38;
+
+        // Wrap seamlessly at edges
+        if (orb.x < -orb.r) orb.x = canvas.width + orb.r;
+        else if (orb.x > canvas.width + orb.r) orb.x = -orb.r;
+        if (orb.y < -orb.r) orb.y = canvas.height + orb.r;
+        else if (orb.y > canvas.height + orb.r) orb.y = -orb.r;
+
+        const g = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.r);
+        g.addColorStop(0, `rgba(${orb.color.r},${orb.color.g},${orb.color.b},${alpha})`);
+        g.addColorStop(1, `rgba(${orb.color.r},${orb.color.g},${orb.color.b},0)`);
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, orb.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animId);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden="true"
+      style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none', display: 'block' }}
+    />
+  );
+}
 
 const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -80,6 +118,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
   const [ctaInViewRef, ctaVisible] = useInView(0.15);
 
   /** Merge two refs into one callback ref */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const mergeRefs = useCallback(
     (scrollRef: React.RefObject<HTMLDivElement | null>, inViewRef: React.RefObject<HTMLDivElement | null>) => {
       return (node: HTMLDivElement | null) => {
@@ -96,6 +135,9 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+      {/* ── Global Animated Background ── */}
+      <AuroraBackground />
+
       {/* ── Animation Keyframes ── */}
       <style>{`
         @keyframes fadeInDown {
@@ -183,7 +225,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
       </nav>
 
       {/* ── Hero Section ── */}
-      <section className="relative flex flex-col items-center text-center px-6 md:px-12 pt-16 pb-12 md:pt-20 md:pb-16 overflow-hidden">
+      <section className="relative z-10 flex flex-col items-center text-center px-6 md:px-12 pt-16 pb-12 md:pt-20 md:pb-16 overflow-hidden">
         {/* Floating decorative orbs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div className="absolute -top-20 -left-24 w-72 h-72 bg-blue-500/15 dark:bg-blue-600/10 rounded-full blur-3xl anim-float-slow" />
@@ -215,17 +257,17 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
         <div className="relative flex flex-col sm:flex-row items-center gap-4">
           <button onClick={onGetStarted} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-7 py-3.5 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-blue-600/25 anim-fade-in-up anim-delay-500">
             Start Learning Free
-            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </button>
           <button onClick={() => scrollTo(howItWorksRef)} className="flex items-center gap-2 border-[1.5px] border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-semibold text-base px-7 py-3.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 hover:scale-105 anim-fade-in-up anim-delay-700">
-            <svg className="w-4 h-4 anim-pulse-dot" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <svg className="w-4 h-4 anim-pulse-dot" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             See How It Works
           </button>
         </div>
       </section>
 
       {/* ── Features Section ── */}
-      <section ref={mergeRefs(featuresRef, featuresInViewRef)} className="flex flex-col items-center px-6 md:px-12 py-16">
+      <section ref={mergeRefs(featuresRef, featuresInViewRef)} className="relative z-10 flex flex-col items-center px-6 md:px-12 py-16">
         <span className={`text-xs font-bold text-blue-600 dark:text-blue-400 tracking-[2px] uppercase mb-4 transition-all duration-500 ${featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>WHY GEMDI</span>
         <h2 className={`text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white text-center mb-12 transition-all duration-500 delay-100 ${featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ letterSpacing: '-0.5px' }}>Built for how you actually study</h2>
 
@@ -260,7 +302,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
       </section>
 
       {/* ── How It Works ── */}
-      <section ref={mergeRefs(howItWorksRef, howItWorksInViewRef)} className="flex flex-col items-center bg-white dark:bg-slate-800 px-6 md:px-12 py-16">
+      <section ref={mergeRefs(howItWorksRef, howItWorksInViewRef)} className="relative z-10 flex flex-col items-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-6 md:px-12 py-16">
         <span className={`text-xs font-bold text-blue-600 dark:text-blue-400 tracking-[2px] uppercase mb-4 transition-all duration-500 ${howItWorksVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>HOW IT WORKS</span>
         <h2 className={`text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white text-center mb-12 transition-all duration-500 delay-100 ${howItWorksVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ letterSpacing: '-0.5px' }}>From upload to mastery in 3 steps</h2>
 
@@ -300,17 +342,17 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onLoginClick }) => {
       </section>
 
       {/* ── CTA Banner ── */}
-      <section ref={ctaInViewRef} className={`flex flex-col items-center text-center px-6 md:px-12 py-20 transition-all duration-700 ${ctaVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} style={{ background: 'linear-gradient(135deg, #0b1020 0%, #2563eb 55%, #0b1020 100%)' }}>
+      <section ref={ctaInViewRef} className={`relative z-10 flex flex-col items-center text-center px-6 md:px-12 py-20 transition-all duration-700 ${ctaVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} style={{ background: 'linear-gradient(135deg, #0b1020 0%, #2563eb 55%, #0b1020 100%)' }}>
         <h2 className="text-3xl md:text-[40px] font-extrabold text-white mb-6" style={{ letterSpacing: '-0.5px' }}>Ready to study smarter?</h2>
         <p className="text-base text-white/80 max-w-md leading-relaxed mb-8" style={{ lineHeight: 1.5 }}>Join now to transform your study habits with Gemdi.</p>
         <button onClick={onGetStarted} className={`flex items-center gap-2 bg-white hover:bg-slate-50 text-blue-600 font-bold text-base px-8 py-4 rounded-full transition-all duration-200 hover:scale-105 ${ctaVisible ? 'anim-pulse-glow' : ''}`}>
           Get Started — It's Free
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </button>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="w-full h-16 bg-slate-900 flex items-center justify-between px-6 md:px-12">
+      <footer className="relative z-10 w-full h-16 bg-slate-900 flex items-center justify-between px-6 md:px-12">
         <div className="flex items-center gap-2">
           <GemdiLogo className="w-5 h-5" gradientId="footLandGrad" />
           <span className="text-base font-bold text-white">Gemdi</span>

@@ -53,8 +53,8 @@
     "step4Desc": "Absolvieren Sie KI-generierte Quizze, um Ihr Verständnis zu bewerten. Gemdi passt sich im Laufe der Zeit basierend auf Ihrer Leistung an Ihren Lernstil an.",
     "step5Title": "Passen Sie Ihre Erfahrung An",
     "step5Desc": "Klicken Sie auf Ihr Profil, um Ihren Avatar, Anzeigenamen und Design-Präferenzen (hell, dunkel oder System) zu personalisieren.",
-    "proTip": "Profi-Tipp:",
-    "proTipDesc": "Bewerten Sie Ihre Sitzung nach jeder Übung, um Gemdis KI zu helfen, Ihre Präferenzen zu lernen und zukünftige Lernmaterialien für Ihren Lernstil zu optimieren."
+    "step6Title": "Passen Sie Ihre KI-Anweisungen An",
+    "step6Desc": "Klicken Sie auf 'KI Anpassen' im Upload-Bereich, um eigene Anweisungen hinzuzufügen — bitten Sie die KI, sich auf bestimmte Themen zu konzentrieren, Beispiele hervorzuheben oder die Tiefe Ihres Lernmaterials anzupassen."
   },
   "dashboard": {
     "poweredBy": "Unterstützt von Gemini",

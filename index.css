@@ -1,3 +1,32 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+@keyframes disappear {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    max-height: 500px;
+    margin-bottom: 0;
+  }
+  35% {
+    opacity: 0;
+    transform: scale(0.88) translateY(4px);
+    max-height: 500px;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.88) translateY(4px);
+    max-height: 0;
+    margin-bottom: -20px;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-width: 0;
+  }
+}
+
+.animate-disappear {
+  animation: disappear 600ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+  overflow: hidden;
+}

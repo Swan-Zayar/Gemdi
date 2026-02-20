@@ -5,13 +5,14 @@ import { validateUsername } from '../services/validation';
 
 interface ProfileSetupModalProps {
   isOpen: boolean;
-  onComplete: (username: string, avatar: string) => void;
+  onComplete: (username: string, avatar: string) => Promise<void>;
 }
 
 const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplete }) => {
   const [username, setUsername] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR || '');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -61,13 +62,21 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
     if (file) handleImageUpload(file);
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     const validation = validateUsername(username);
     if (!validation.valid) {
       setError(validation.error || 'Invalid username');
       return;
     }
-    onComplete(username.trim(), selectedAvatar);
+    setIsSubmitting(true);
+    setError('');
+    try {
+      await onComplete(username.trim(), selectedAvatar);
+    } catch {
+      setError('Failed to save profile. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -143,7 +152,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
                 setUsername(e.target.value);
                 setError('');
               }}
-              onKeyDown={e => e.key === 'Enter' && handleComplete()}
+              onKeyDown={e => e.key === 'Enter' && !isSubmitting && handleComplete()}
               placeholder="Enter a username..."
               className="w-full h-13 px-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-[15px] text-slate-900 dark:text-white placeholder:text-slate-400"
               autoFocus
@@ -155,9 +164,10 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ isOpen, onComplet
 
           <button
             onClick={handleComplete}
-            className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl tracking-[3px] uppercase text-xs hover:shadow-2xl transition-all active:scale-95"
+            disabled={isSubmitting}
+            className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl tracking-[3px] uppercase text-xs hover:shadow-2xl transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Complete Setup
+            {isSubmitting ? 'Saving...' : 'Complete Setup'}
           </button>
         </div>
       </div>

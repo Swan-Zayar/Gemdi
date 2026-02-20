@@ -53,8 +53,8 @@
     "step4Desc": "Take AI-generated quizzes to assess your understanding. Gemdi adapts to your learning style over time based on your performance.",
     "step5Title": "Customize Your Experience",
     "step5Desc": "Click your profile to personalize your avatar, display name, and theme preferences (light, dark, or system).",
-    "proTip": "Pro Tip:",
-    "proTipDesc": "Rate your session after each drill to help Gemdi's AI learn your preferences and optimize future study materials for your learning style."
+    "step6Title": "Customize Your AI Instructions",
+    "step6Desc": "Click 'Customize AI' on the upload panel to add your own instructions — tell the AI to focus on specific topics, emphasize examples, or adjust the depth of your study materials."
   },
   "dashboard": {
     "poweredBy": "Powered By Gemini",

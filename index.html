@@ -98,6 +98,20 @@
         .dark .katex {
             color: #f1f5f9;
         }
+        /* Fallback for LaTeX that KaTeX couldn't parse — show as muted monospace
+           instead of red KaTeX error markup */
+        .katex-fallback {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: #64748b;
+            background: #f1f5f9;
+            border-radius: 3px;
+            padding: 0 3px;
+        }
+        .dark .katex-fallback {
+            color: #94a3b8;
+            background: #1e293b;
+        }
 
         /* Base64 Image Mixin */
         .backface-hidden {

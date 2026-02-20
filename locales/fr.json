@@ -53,8 +53,8 @@
     "step4Desc": "Passez des quiz générés par l'IA pour évaluer votre compréhension. Gemdi s'adapte à votre style d'apprentissage au fil du temps en fonction de vos performances.",
     "step5Title": "Personnalisez Votre Expérience",
     "step5Desc": "Cliquez sur votre profil pour personnaliser votre avatar, nom d'affichage et préférences de thème (clair, sombre ou système).",
-    "proTip": "Astuce :",
-    "proTipDesc": "Évaluez votre session après chaque exercice pour aider l'IA de Gemdi à apprendre vos préférences et optimiser les futurs supports d'étude pour votre style d'apprentissage."
+    "step6Title": "Personnalisez vos Instructions IA",
+    "step6Desc": "Cliquez sur 'Personnaliser l'IA' dans le panneau de téléchargement pour ajouter vos propres instructions — demandez à l'IA de se concentrer sur des sujets spécifiques, de mettre l'accent sur des exemples ou d'ajuster la profondeur de vos supports d'étude."
   },
   "dashboard": {
     "poweredBy": "Propulsé par Gemini",

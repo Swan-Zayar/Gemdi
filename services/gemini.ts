@@ -1,5 +1,5 @@
 import { httpsCallable } from "firebase/functions";
-import { functions } from "../firebaseCLI";
+import { functions } from "./firebaseCLI";
 import { StudyPlan, Flashcard, QuizQuestion } from "../types";
 
 export const geminiService = {

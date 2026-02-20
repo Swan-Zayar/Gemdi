@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User } from 'firebase/auth';
-import { auth } from '../firebaseCLI';
+import { auth } from '../services/firebaseCLI';
 import { GemdiLogo } from './GemdiLogo';
 import {
   createUserWithEmailAndPassword,

@@ -11,8 +11,8 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, deleteObject } from 'firebase/storage';
 import type { StudySession } from './types';
-import { geminiService } from './services/gemini';
-import { validateUploadFile } from './services/fileValidation';
+import { geminiService } from './gemini';
+import { validateUploadFile } from './fileValidation';
 
 const SESSIONS_COLLECTION = 'studySessions';
 const STORAGE_TEMP_FOLDER = 'temp-pdfs';

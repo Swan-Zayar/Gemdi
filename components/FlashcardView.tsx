@@ -7,14 +7,12 @@ interface FlashcardViewProps {
   flashcards: Flashcard[];
   stepTitle?: string | null;
   onBack: () => void;
-  onComplete: (rating?: number) => void;
+  onComplete: () => void;
 }
 
 const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, onBack, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [showRating, setShowRating] = useState(false);
-  const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<number | null>(null);
@@ -67,7 +65,6 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
 
   // Keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (showRating) return;
     if (e.code === 'Space') {
       e.preventDefault();
       setIsFlipped(prev => !prev);
@@ -84,47 +81,12 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
         setTimeout(() => setCurrentIndex((prev) => prev + 1), 150);
       }
     }
-  }, [showRating, isFirstCard, isLastCard]);
+  }, [isFirstCard, isLastCard]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
-
-  if (showRating) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-        <div className="max-w-xl w-full">
-          <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] sm:rounded-[3rem] p-8 sm:p-12 border border-slate-100 dark:border-slate-700 shadow-lg text-center">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-blue-50 dark:bg-blue-900/30 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-6 sm:mb-8">
-              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Drill Complete.</h2>
-            <p className="text-slate-400 dark:text-slate-500 font-medium mb-8 sm:mb-10 text-sm sm:text-base">How confident are you with this specific material style?</p>
-
-            <div className="flex justify-center flex-wrap gap-2 sm:gap-3 mb-8 sm:mb-10">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => setSelectedRating(star)}
-                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl font-black text-lg sm:text-xl transition-all ${selectedRating === star ? 'bg-blue-600 text-white scale-110 shadow-xl' : 'bg-slate-50 dark:bg-slate-700 text-slate-300 dark:text-slate-500 hover:text-blue-400'}`}
-                >
-                  {star}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => onComplete(selectedRating || undefined)}
-              className="w-full py-4 sm:py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-extrabold text-base sm:text-lg hover:bg-blue-600 dark:hover:bg-blue-100 transition-all shadow-xl active:scale-95"
-            >
-              Update Neural Profile & Save
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (!card) return null;
 
@@ -268,7 +230,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcards, stepTitle, on
 
                   {isLastCard && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); setShowRating(true); }}
+                      onClick={(e) => { e.stopPropagation(); onComplete(); }}
                       className="group bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-extrabold text-lg shadow-2xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 animate-fadeIn"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
