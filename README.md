@@ -57,6 +57,8 @@ Gemdi aligns with the United Nations Sustainable Development Goal (SDG) **4: Qua
 - **KaTeX:** Safe rendering of mathematical/physics expressions.
 - **i18next:** Internationalization for multi-language support. (Hope to expand soon with Gemini)
 - **Pencil:** Extension used to plan the design of the project
+- **21st dev magic:** Design ideas
+- **Claude Code:** Assistance with API implementation, Design implementation and code review
 
 ---
 

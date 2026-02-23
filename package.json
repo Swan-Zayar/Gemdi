@@ -12,6 +12,7 @@
     "@tensorflow/tfjs": "^4.22.0",
     "@vitejs/plugin-rsc": "^0.5.17",
     "firebase": "^12.8.0",
+    "framer-motion": "^12.34.3",
     "mammoth": "^1.11.0",
     "pdfjs-dist": "^5.4.624",
     "react": "^19.2.4",

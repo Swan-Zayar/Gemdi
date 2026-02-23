@@ -169,12 +169,11 @@ const renderMathSegment = (segment: string, displayMode: boolean) => {
     normalized = balanceBraces(normalized);
     return (window as any).katex.renderToString(normalized, {
       displayMode,
-      throwOnError: true,
+      throwOnError: false,
       strict: "ignore"
     });
   } catch {
-    // KaTeX couldn't parse it — show as clean plain text, not red error markup
-    return `<span class="katex-fallback">${escapeHtml(segment)}</span>`;
+    return `<span class="katex-fallback">[math]</span>`;
   }
 };
 
@@ -186,81 +185,241 @@ const repairLatexEscapes = (s: string): string => {
   if (!s) return s;
   return s
     .replace(/\f(rac|lat|loor|orall)/g, '\\f$1')
-    .replace(/\t(ilde|heta|au|imes|ext|iny|extstyle|op|riangle|o(?=[\s)},.$^_|=+\-\d]|$))/g, '\\t$1')
+    .replace(/\t(ilde|heta|au|an(?!g)|imes|ext|iny|extstyle|op|riangle|anh|frac|o(?=[\s)},.$^_|=+\-\d]|$))/g, '\\t$1')
     .replace(/\n(u(?=[\s)},.$^_|=+\-\d]|$)|abla|eg|eq|ot|ewline|i(?=[\s)},.$^_|=+\-\d]|$)|subset|parallel|rightarrow)/g, '\\n$1')
     .replace(/\x08(eta|inom|ar|egin|ig|oldsymbol|ullet|ackslash)/g, '\\b$1')
     .replace(/\r(ho|ightarrow|Rightarrow|angle)/g, '\\r$1');
 };
 
 /**
- * Detect contiguous runs of bare LaTeX (not inside $ delimiters) and wrap them.
- * Scans character-by-character so we can track $ nesting and brace depth.
+ * Simple conversion of legacy delimiters to $ / $$ format.
+ * \[ ... \] → $$ ... $$
+ * \( ... \) → $ ... $
+ * Unmatched \( / \) → $
  */
-const wrapBareLaTeX = (s: string): string => {
-  // Split into segments: already-delimited ($...$, $$...$$) vs plain text
-  const parts: Array<{ text: string; isMath: boolean }> = [];
-  const delimRegex = /(\$\$[\s\S]+?\$\$|\$[^$]+?\$)/g;
-  let last = 0;
-  let m: RegExpExecArray | null;
-  while ((m = delimRegex.exec(s)) !== null) {
-    if (m.index > last) parts.push({ text: s.slice(last, m.index), isMath: false });
-    parts.push({ text: m[0], isMath: true });
-    last = delimRegex.lastIndex;
+const convertLegacyDelimiters = (s: string): string => {
+  let result = s.replace(/\\\[([\s\S]*?)\\\]/g, (_, inner) => `$$${inner}$$`);
+  result = result.replace(/\\\(([\s\S]*?)\\\)/g, (_, inner) => `$${inner}$`);
+  result = result.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+  return result;
+};
+
+interface MathToken {
+  type: 'text' | 'inline-math' | 'display-math';
+  content: string;
+}
+
+/**
+ * Single-pass character-by-character tokenizer for math delimiters.
+ *
+ * Key heuristic: when seeing a closing `$`, if the next non-space character
+ * is `\` (backslash), don't close — the formula continues past the premature `$`.
+ *
+ * This directly fixes:
+ * - `$S_n = a$\frac{r^n-1}{r-1}` → extends past `$` to include `\frac{...}{...}`
+ * - `$x \to $\pm\infty$` → extends past middle `$` to include `\pm\infty`
+ * - Normal `$x$ and $y$` → closes correctly (next char is ` `, not `\`)
+ */
+const tokenizeMath = (s: string): MathToken[] => {
+  const tokens: MathToken[] = [];
+  let i = 0;
+  let textBuf = '';
+
+  const flushText = () => {
+    if (textBuf.length === 0) return;
+    // Detect bare \command{...} runs in text and wrap as inline-math
+    // Detect bare \begin{env}...\end{env} and wrap as display-math
+    const processed = wrapBareLatexInText(textBuf);
+    tokens.push(...processed);
+    textBuf = '';
+  };
+
+  while (i < s.length) {
+    // Check for $$ (display math)
+    if (s[i] === '$' && i + 1 < s.length && s[i + 1] === '$') {
+      flushText();
+      i += 2; // skip opening $$
+      let content = '';
+      while (i < s.length) {
+        if (s[i] === '$' && i + 1 < s.length && s[i + 1] === '$') {
+          // Potential close — check if next non-space char is backslash
+          const afterClose = i + 2;
+          let peek = afterClose;
+          while (peek < s.length && s[peek] === ' ') peek++;
+          if (peek < s.length && s[peek] === '\\' && peek + 1 < s.length && /[a-zA-Z]/.test(s[peek + 1])) {
+            // Formula continues — consume the $$ and keep going
+            content += '$$';
+            i += 2;
+          } else {
+            // Real close
+            i += 2;
+            break;
+          }
+        } else {
+          content += s[i];
+          i++;
+        }
+      }
+      tokens.push({ type: 'display-math', content });
+      continue;
+    }
+
+    // Check for $ (inline math)
+    if (s[i] === '$') {
+      // Look ahead: is this actually the start of a math block?
+      // A $ followed immediately by another $ is handled above.
+      // A $ at end of string or followed by space/newline is likely just a dollar sign in text.
+      if (i + 1 >= s.length || s[i + 1] === ' ' || s[i + 1] === '\n') {
+        textBuf += s[i];
+        i++;
+        continue;
+      }
+
+      flushText();
+      i++; // skip opening $
+      let content = '';
+      let braceDepth = 0;
+      while (i < s.length) {
+        if (s[i] === '{') braceDepth++;
+        else if (s[i] === '}') braceDepth--;
+
+        if (s[i] === '$' && braceDepth <= 0) {
+          // Potential close — check if next non-space char is backslash
+          const afterClose = i + 1;
+          let peek = afterClose;
+          while (peek < s.length && s[peek] === ' ') peek++;
+          if (peek < s.length && s[peek] === '\\' && peek + 1 < s.length && /[a-zA-Z]/.test(s[peek + 1])) {
+            // Formula continues past this $ — the $ was premature
+            // Don't add the $ to content, just skip it and continue
+            i++;
+          } else {
+            // Real close
+            i++;
+            break;
+          }
+        } else {
+          content += s[i];
+          i++;
+        }
+      }
+      if (content.trim().length > 0) {
+        tokens.push({ type: 'inline-math', content });
+      }
+      continue;
+    }
+
+    textBuf += s[i];
+    i++;
   }
-  if (last < s.length) parts.push({ text: s.slice(last), isMath: false });
 
-  // For each plain-text segment, find bare LaTeX runs and wrap them.
-  // Supports nested braces up to 3 levels and optional leading variable (e.g. x_i = \frac{...})
-  const nb = '\\{(?:[^{}]|\\{(?:[^{}]|\\{[^{}]*\\})*\\})*\\}';
-  const cmd = `\\\\[a-zA-Z]+(?:${nb})*(?:[_^](?:${nb}|[a-zA-Z0-9]))*`;
-  const varLead = `(?:[a-zA-Z][a-zA-Z0-9]*(?:[_^](?:${nb}|[a-zA-Z0-9]))*\\s*[=<>]\\s*)?`;
-  const conn = `(?:[=+\\-*/|<>.,;:^_]|${nb}|${cmd}|\\([^)]*\\)|\\d+)`;
-  const bareLatexRun = new RegExp(`${varLead}${cmd}(?:\\s*${conn})*\\s*`, 'g');
-
-  return parts.map(({ text, isMath }) => {
-    if (isMath) return text;
-    return text.replace(bareLatexRun, (run) => {
-      // Only wrap if it actually contains a \command (not just whitespace/operators)
-      if (!/\\[a-zA-Z]{2,}/.test(run)) return run;
-      return `$${run.trim()}$`;
-    });
-  }).join('');
+  flushText();
+  return tokens;
 };
 
 /**
- * Normalise all math delimiters to $ / $$ format.
- *
- * 1. Convert \( ... \) → $ ... $  and  \[ ... \] → $$ ... $$
- *    (handles legacy content and model outputs that ignore the prompt).
- * 2. Detect bare-paren groups that contain LaTeX commands or unicode
- *    math symbols and wrap them in $ ... $.
+ * Process a text buffer (non-math) to detect and wrap bare LaTeX constructs.
+ * - Bare \begin{env}...\end{env} → display-math tokens
+ * - Bare \command{...} runs → inline-math tokens
+ * - ( content ) containing \commands or math Unicode → inline-math tokens
  */
-const normalizeMathDelimiters = (s: string): string => {
-  // First: convert \( ... \) → $ ... $ and \[ ... \] → $$ ... $$
-  // Use paired regex to avoid creating stray $ / $$ from unmatched delimiters
-  let result = s.replace(/\\\[([\s\S]*?)\\\]/g, (_, inner) => `$$${inner}$$`);
-  result = result.replace(/\\\(([\s\S]*?)\\\)/g, (_, inner) => `$${inner}$`);
-  // Handle any remaining unmatched \( and \) (inline, less likely to cause $$ issues)
-  result = result.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
-  // Intentionally NOT converting unmatched \[ / \] to avoid stray display-math markers
+const wrapBareLatexInText = (text: string): MathToken[] => {
+  const tokens: MathToken[] = [];
 
-  // Second: detect ( content ) where content has \commands or unicode math → $content$
-  // (?<![a-zA-Z]) prevents matching ( in \left(, \right(, \bigl(, etc.
-  const mathUnicodePattern = /[α-ωΑ-Ω∑∏∫∮∇∂√∞×·÷±∓≈≃≅≡≠≤≥≪≫⊂⊃⊆⊇∈∉∋∝∥∀∃∅∧∨¬⇒⇐⇔→←↔↦⋅⋆ℏℓ]/;
-  result = result.replace(/(?<!\$)(?<!\\)(?<![a-zA-Z])\(\s*((?:[^()]*?(?:\\[a-zA-Z]|[α-ωΑ-Ω∑∏∫∮∇∂√∞×·÷±∓≈≃≅≡≠≤≥≪≫⊂⊃⊆⊇∈∉∋∝∥∀∃∅∧∨¬⇒⇐⇔→←↔↦⋅⋆ℏℓ]))[^()]*?)\s*\)(?!\$)/g,
-    (match, inner) => {
-      if (/\\[a-zA-Z]/.test(inner) || mathUnicodePattern.test(inner)) {
-        return `$${inner}$`;
+  // First: extract \begin{env}...\end{env} environments
+  const envPattern = /\\begin\{(align\*?|equation\*?|gather\*?|multline\*?|alignat\*?|flalign\*?|split|cases|pmatrix|bmatrix|vmatrix|Vmatrix|matrix|smallmatrix|array)\}([\s\S]*?)\\end\{\1\}/g;
+  let lastEnv = 0;
+  let envMatch: RegExpExecArray | null;
+
+  const segments: Array<{ text: string; isMath: boolean; display: boolean }> = [];
+
+  while ((envMatch = envPattern.exec(text)) !== null) {
+    if (envMatch.index > lastEnv) {
+      segments.push({ text: text.slice(lastEnv, envMatch.index), isMath: false, display: false });
+    }
+    segments.push({ text: envMatch[0], isMath: true, display: true });
+    lastEnv = envPattern.lastIndex;
+  }
+  if (lastEnv < text.length) {
+    segments.push({ text: text.slice(lastEnv), isMath: false, display: false });
+  }
+
+  for (const seg of segments) {
+    if (seg.isMath) {
+      tokens.push({ type: seg.display ? 'display-math' : 'inline-math', content: seg.text });
+      continue;
+    }
+
+    // Now handle bare \command runs in this text segment
+    // Match contiguous LaTeX: \cmd{...} with optional subscripts, superscripts, operators, digits
+    const nb = '\\{(?:[^{}]|\\{(?:[^{}]|\\{[^{}]*\\})*\\})*\\}';
+    const cmd = `\\\\[a-zA-Z]+(?:${nb})*(?:[_^](?:${nb}|[a-zA-Z0-9]))*`;
+    const varLead = `(?:[a-zA-Z][a-zA-Z0-9]*(?:[_^](?:${nb}|[a-zA-Z0-9]))*\\s*[=<>]\\s*)?`;
+    const conn = `(?:[=+\\-*/|<>.,;:^_]|${nb}|${cmd}|\\([^)]*\\)|\\d+|d[a-z])`;
+    const bareLatexRun = new RegExp(`${varLead}${cmd}(?:\\s*${conn})*\\s*`, 'g');
+
+    let lastBare = 0;
+    let bareMatch: RegExpExecArray | null;
+    const subTokens: MathToken[] = [];
+
+    while ((bareMatch = bareLatexRun.exec(seg.text)) !== null) {
+      if (!/\\[a-zA-Z]{2,}/.test(bareMatch[0])) continue;
+
+      if (bareMatch.index > lastBare) {
+        const beforeText = seg.text.slice(lastBare, bareMatch.index);
+        if (beforeText.length > 0) {
+          subTokens.push(...wrapParenMath(beforeText));
+        }
       }
-      return match;
-    });
+      subTokens.push({ type: 'inline-math', content: bareMatch[0].trim() });
+      lastBare = bareLatexRun.lastIndex;
+    }
 
-  // Third: wrap bare LaTeX runs that aren't inside $ delimiters.
-  // A "bare run" starts with \command and extends through adjacent math-like
-  // content: more \commands, braces, subscripts, operators, parens, etc.
-  result = wrapBareLaTeX(result);
+    if (lastBare < seg.text.length) {
+      const remaining = seg.text.slice(lastBare);
+      if (remaining.length > 0) {
+        subTokens.push(...wrapParenMath(remaining));
+      }
+    } else if (lastBare === 0) {
+      // No bare LaTeX found — check for paren math
+      subTokens.push(...wrapParenMath(seg.text));
+    }
 
-  return result;
+    tokens.push(...subTokens);
+  }
+
+  return tokens;
+};
+
+/**
+ * Detect ( content ) containing \commands or math Unicode and wrap as inline-math.
+ * Otherwise return as text token.
+ */
+const wrapParenMath = (text: string): MathToken[] => {
+  const mathUnicodePattern = /[α-ωΑ-Ω∑∏∫∮∇∂√∞×·÷±∓≈≃≅≡≠≤≥≪≫⊂⊃⊆⊇∈∉∋∝∥∀∃∅∧∨¬⇒⇐⇔→←↔↦⋅⋆ℏℓ]/;
+  const parenPattern = /(?<!\$)(?<!\\)(?<![a-zA-Z])\(\s*((?:[^()]*?(?:\\[a-zA-Z]|[α-ωΑ-Ω∑∏∫∮∇∂√∞×·÷±∓≈≃≅≡≠≤≥≪≫⊂⊃⊆⊇∈∉∋∝∥∀∃∅∧∨¬⇒⇐⇔→←↔↦⋅⋆ℏℓ]))[^()]*?)\s*\)(?!\$)/g;
+
+  const tokens: MathToken[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+
+  while ((m = parenPattern.exec(text)) !== null) {
+    const inner = m[1];
+    if (/\\[a-zA-Z]/.test(inner) || mathUnicodePattern.test(inner)) {
+      if (m.index > last) {
+        tokens.push({ type: 'text', content: text.slice(last, m.index) });
+      }
+      tokens.push({ type: 'inline-math', content: inner });
+      last = parenPattern.lastIndex;
+    }
+  }
+
+  if (last < text.length) {
+    tokens.push({ type: 'text', content: text.slice(last) });
+  } else if (last === 0 && text.length > 0) {
+    tokens.push({ type: 'text', content: text });
+  }
+
+  return tokens;
 };
 
 /**
@@ -349,7 +508,7 @@ const fixLeftRight = (s: string): string => {
 
   // \right at end of string or before non-delimiter → append )
   // Valid delimiters after \right: ( ) [ ] | . \{ \} \| / \langle \rangle etc.
-  result = result.replace(/\\right\s*(?=[^()\[\]|./\\}{\s]|$)/g, '\\right)');
+  result = result.replace(/\\right(?![a-zA-Z])\s*(?=[^()\[\]|./\\}{\s]|$)/g, '\\right)');
 
   return result;
 };
@@ -363,39 +522,33 @@ export const renderMathToHtml = (text: string) => {
   // Step 1: Repair corrupted escape sequences
   input = repairLatexEscapes(input);
 
-  // Step 1.5: Strip \mathbf{}, \boldsymbol{}, \textbf{} wrappers around formulas
+  // Step 2: Strip \mathbf{}, \boldsymbol{}, \textbf{} wrappers around formulas
   input = stripBoldMathWrappers(input);
 
-  // Step 1.6: Fix malformed \left/\right usage
+  // Step 3: Fix malformed \left/\right usage
   input = fixLeftRight(input);
 
-  // Step 2: Normalise all delimiters to $ / $$
-  input = normalizeMathDelimiters(input);
+  // Step 4: Convert legacy delimiters (\(...\), \[...\]) to $ / $$
+  input = convertLegacyDelimiters(input);
 
-  // After normalization, only $ and $$ delimiters remain
-  const regex = /(\$\$[\s\S]+?\$\$|\$[^$]+?\$)/g;
-  let lastIndex = 0;
+  // Step 5: Tokenize using single-pass character-by-character scanner
+  const mathTokens = tokenizeMath(input);
+
+  // Step 6: Render each token
   let result = "";
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(input)) !== null) {
-    const start = match.index;
-    const end = regex.lastIndex;
-    const before = input.slice(lastIndex, start);
-    result += renderInlineMarkdown(escapeHtml(before));
-
-    const token = match[0];
-    if (token.startsWith("$$")) {
-      const content = token.slice(2, -2);
-      result += renderMathSegment(content, true);
-    } else {
-      const content = token.slice(1, -1);
-      result += renderMathSegment(content, false);
+  for (const token of mathTokens) {
+    switch (token.type) {
+      case 'display-math':
+        result += renderMathSegment(token.content, true);
+        break;
+      case 'inline-math':
+        result += renderMathSegment(token.content, false);
+        break;
+      case 'text':
+        result += renderInlineMarkdown(escapeHtml(token.content));
+        break;
     }
-
-    lastIndex = end;
   }
 
-  result += renderInlineMarkdown(escapeHtml(input.slice(lastIndex)));
   return result;
 };

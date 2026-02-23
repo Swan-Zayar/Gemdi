@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { StudySession, StudyStep, NoteSection, UserLocal } from '../types';
 import { renderMathToHtml } from '../services/mathRender';
@@ -17,6 +17,23 @@ interface StudyPlanViewProps {
 
 const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards, onStepAction, onStartQuiz, isQuizLoading, onBack, user, onProfileClick }) => {
   const [selectedStep, setSelectedStep] = useState<StudyStep | null>(null);
+  const [isModalFullscreen, setIsModalFullscreen] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  const toggleModalFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      modalRef.current?.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setIsModalFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
   const plan = session.studyPlan;
 
   const userInitials = user?.name
@@ -52,6 +69,7 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
       <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md"></div>
 
       <div
+        ref={modalRef}
         className="w-full max-w-4xl h-[95vh] sm:h-auto sm:max-h-[90vh] bg-white dark:bg-slate-900 rounded-t-[3rem] sm:rounded-[3rem] shadow-[0_32px_128px_-15px_rgba(0,0,0,0.5)] animate-slideUp flex flex-col relative border border-slate-100 dark:border-slate-800 z-10 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -72,12 +90,31 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setSelectedStep(null)}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shrink-0"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={toggleModalFullscreen}
+              title={isModalFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
+            >
+              {isModalFullscreen ? (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                    d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={() => setSelectedStep(null)}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
         </div>
 
         <div className="grow overflow-y-auto px-6 sm:px-10 pb-10 custom-scrollbar scroll-smooth">

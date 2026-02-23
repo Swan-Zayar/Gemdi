@@ -29,8 +29,11 @@ export function useFlipAnimation(
           htmlEl.style.transition = 'none';
           htmlEl.style.transform = `translate(${dx}px, ${dy}px)`;
           requestAnimationFrame(() => {
-            htmlEl.style.transition = 'transform 450ms cubic-bezier(0.4, 0, 0.2, 1)';
+            htmlEl.style.transition = 'transform 400ms cubic-bezier(0.4, 0, 0.2, 1)';
             htmlEl.style.transform = '';
+            htmlEl.addEventListener('transitionend', () => {
+              htmlEl.style.transition = '';
+            }, { once: true });
           });
         });
         setDeletingSession(null);
@@ -58,7 +61,7 @@ export function useFlipAnimation(
       // NOTE: do NOT clear deletingSession here — the useEffect above handles it
       // once the session is actually gone from state (after the async Firebase delete)
       onDelete(deletedId);
-    }, 600);
+    }, 500);
   };
 
   return { deletingSession, triggerDelete };

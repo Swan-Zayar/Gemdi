@@ -186,12 +186,10 @@ const App: React.FC = () => {
                   setActiveSession(s);
                   setAppState(AppState.STUDY_PLAN);
                 }}
-                onDeleteSession={async (id) => {
-                  await sessionStorageService.deleteSession(id);
+                onDeleteSession={(id) => {
                   setSessions(prev => prev.filter(session => session.id !== id));
-                  if (activeSession?.id === id) {
-                    setActiveSession(null);
-                  }
+                  if (activeSession?.id === id) setActiveSession(null);
+                  sessionStorageService.deleteSession(id).catch(console.error);
                 }}
                 onRenameSession={handleRenameSession}
                 customPrompt={userProfile?.customPrompt}

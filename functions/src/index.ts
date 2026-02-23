@@ -193,6 +193,26 @@ const handleGeminiRequest = async (data: unknown) => {
         \\left( ... \\right), \\left[ ... \\right], \\left| ... \\right|.
         NEVER write \\left immediately followed by a command like
         \\left\\frac — always include the delimiter: \\left(\\frac{a}{b}\\right).
+
+      MATH NOTATION — COMMON FAILURES (fix these exact patterns):
+      ❌  \\tilde{n} is the unit normal        (bare LaTeX — not wrapped)
+      ✓   $\\tilde{n}$ is the unit normal
+
+      ❌  \\frac{d}{dx} $\\ln x$ = \\frac{1}{x}  (mixing bare + delimited on same line)
+      ✓   $\\frac{d}{dx} \\ln x = \\frac{1}{x}$  (one unified $...$)
+
+      ❌  the limit as $x \\to $\\pm\\infty$      (opening $ not closed before next $)
+      ✓   the limit as $x \\to \\pm\\infty$       (one block, properly closed)
+
+      ❌  approaches $\\pm\\infty.              ($ not closed at all)
+      ✓   approaches $\\pm\\infty$.             (close $ before punctuation)
+
+      ❌  $S_n = a$\\frac{r^n-1}{r-1}          ($ closes too early before \\frac)
+      ✓   $S_n = a \\frac{r^n-1}{r-1}$         (entire formula in one $...$ block)
+
+      Rule: every LaTeX command — \\tilde, \\hat, \\vec, \\frac, \\pm, \\infty,
+      \\alpha, \\beta, etc. — MUST be inside exactly one $...$ or $$...$$ block.
+      Never leave a $ unclosed. Never write LaTeX outside $ delimiters.
       ${safeCustomPrompt ?
         `\nADDITIONAL INSTRUCTIONS FROM USER:\n${safeCustomPrompt}` :
         ""}
@@ -333,10 +353,10 @@ const handleGeminiRequest = async (data: unknown) => {
           if (!s) return s;
           return s
             .replace(/\f(rac|lat|loor|orall)\b/g, "\\f$1")
-            .replace(/\t(ilde|heta|au|imes|ext|o(?:\s|$)|op|riangle)\b/g, "\\t$1")
-            .replace(/\n(u(?:\s|$)|abla|eg|eq|ot|i(?:\s|$)|subset|parallel|rightarrow)/g, "\\n$1")
-            .replace(/\x08(eta|inom|ar|egin|ig|oldsymbol)\b/g, "\\b$1")
-            .replace(/\r(ho|ightarrow|Rightarrow)\b/g, "\\r$1");
+            .replace(/\t(ilde|heta|au|an(?!g)|imes|ext|o(?:\s|$)|op|riangle|anh|frac)\b/g, "\\t$1")
+            .replace(/\n(u(?:\s|$)|abla|eg|eq|ot|ewline|i(?:\s|$)|subset|parallel|rightarrow)/g, "\\n$1")
+            .replace(/\x08(eta|inom|ar|egin|ig|oldsymbol|ullet|ackslash)\b/g, "\\b$1")
+            .replace(/\r(ho|ightarrow|Rightarrow|angle)\b/g, "\\r$1");
         };
 
         // Apply latex repair recursively to all string values in the result
@@ -432,11 +452,33 @@ const handleGeminiRequest = async (data: unknown) => {
       Generate a 20-question MCQ quiz for: "${studyPlan.title}".
       - Use $...$ for inline math and $$...$$ for display math.
       - Do NOT use \\( \\) or \\[ \\] delimiters — they break in JSON.
+      - EVERY LaTeX expression MUST be wrapped in $ or $$ delimiters.
+        Never output bare LaTeX like \\alpha — always write $\\alpha$ instead.
       - Ensure detailed explanations.
       - IMPORTANT: The question text must NEVER reveal or contain the correct
         answer. Do not repeat the answer verbatim in the question stem.
         Questions should test understanding, not give away the answer.
       - All four options should be plausible. Avoid obviously wrong distractors.
+
+      MATH NOTATION — COMMON FAILURES (fix these exact patterns):
+      ❌  \\tilde{n} is the unit normal        (bare LaTeX — not wrapped)
+      ✓   $\\tilde{n}$ is the unit normal
+
+      ❌  \\frac{d}{dx} $\\ln x$ = \\frac{1}{x}  (mixing bare + delimited on same line)
+      ✓   $\\frac{d}{dx} \\ln x = \\frac{1}{x}$  (one unified $...$)
+
+      ❌  the limit as $x \\to $\\pm\\infty$      (opening $ not closed before next $)
+      ✓   the limit as $x \\to \\pm\\infty$       (one block, properly closed)
+
+      ❌  approaches $\\pm\\infty.              ($ not closed at all)
+      ✓   approaches $\\pm\\infty$.             (close $ before punctuation)
+
+      ❌  $S_n = a$\\frac{r^n-1}{r-1}          ($ closes too early before \\frac)
+      ✓   $S_n = a \\frac{r^n-1}{r-1}$         (entire formula in one $...$ block)
+
+      Rule: every LaTeX command — \\tilde, \\hat, \\vec, \\frac, \\pm, \\infty,
+      \\alpha, \\beta, etc. — MUST be inside exactly one $...$ or $$...$$ block.
+      Never leave a $ unclosed. Never write LaTeX outside $ delimiters.
 
       CONTEXT:
       ${context}
@@ -476,10 +518,10 @@ const handleGeminiRequest = async (data: unknown) => {
         if (!s) return s;
         return s
           .replace(/\f(rac|lat|loor|orall)\b/g, "\\f$1")
-          .replace(/\t(ilde|heta|au|imes|ext|o(?:\s|$)|op|riangle)\b/g, "\\t$1")
-          .replace(/\n(u(?:\s|$)|abla|eg|eq|i(?:\s|$)|subset|parallel|rightarrow|ot)/g, "\\n$1")
-          .replace(/\x08(eta|inom|ar|egin|ig|oldsymbol)\b/g, "\\b$1")
-          .replace(/\r(ho|ightarrow|Rightarrow)\b/g, "\\r$1");
+          .replace(/\t(ilde|heta|au|an(?!g)|imes|ext|o(?:\s|$)|op|riangle|anh|frac)\b/g, "\\t$1")
+          .replace(/\n(u(?:\s|$)|abla|eg|eq|ot|ewline|i(?:\s|$)|subset|parallel|rightarrow)/g, "\\n$1")
+          .replace(/\x08(eta|inom|ar|egin|ig|oldsymbol|ullet|ackslash)\b/g, "\\b$1")
+          .replace(/\r(ho|ightarrow|Rightarrow|angle)\b/g, "\\r$1");
       };
       const deepRepairQuizLatex = (obj: unknown): unknown => {
         if (typeof obj === "string") return repairQuizLatex(obj);

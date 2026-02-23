@@ -40,13 +40,19 @@ const ProcessingOverlay: React.FC<ProcessingOverlayProps> = ({
   const completionFromRef = useRef(0);
   const doneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Elapsed time ticker — stop when processing completes
+  // Elapsed time ticker — stop when processing completes.
+  // visibilitychange listener ensures the timer snaps to the correct value
+  // immediately when the user focuses back on the tab (setInterval is throttled
+  // by Chrome in background tabs).
   useEffect(() => {
     if (isComplete || error) return;
-    const interval = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
-    }, 500);
-    return () => clearInterval(interval);
+    const tick = () => setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
+    const interval = setInterval(tick, 500);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', tick);
+    };
   }, [isComplete, error]);
 
   // Asymptotic progress during processing phase
