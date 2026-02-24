@@ -266,10 +266,8 @@ const tokenizeMath = (s: string): MathToken[] => {
 
     // Check for $ (inline math)
     if (s[i] === '$') {
-      // Look ahead: is this actually the start of a math block?
-      // A $ followed immediately by another $ is handled above.
-      // A $ at end of string or followed by space/newline is likely just a dollar sign in text.
-      if (i + 1 >= s.length || s[i + 1] === ' ' || s[i + 1] === '\n') {
+      // A $ at end of string is just a stray dollar sign
+      if (i + 1 >= s.length) {
         textBuf += s[i];
         i++;
         continue;

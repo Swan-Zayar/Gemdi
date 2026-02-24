@@ -21,6 +21,17 @@ const StudyPlanView: React.FC<StudyPlanViewProps> = ({ session, onViewFlashcards
   const modalRef = useRef<HTMLDivElement>(null);
 
   const toggleModalFullscreen = useCallback(() => {
+    const isMobile = window.matchMedia('(max-width: 640px)').matches;
+    if (isMobile) {
+      console.log(
+        '%c📱 Fullscreen Unavailable %c\n' +
+        '%cFullscreen mode is not supported on mobile devices.',
+        'background: #3b82f6; color: white; font-weight: bold; padding: 4px 8px; border-radius: 4px 4px 0 0;',
+        '',
+        'color: #64748b; padding: 4px 8px;'
+      );
+      return;
+    }
     if (!document.fullscreenElement) {
       modalRef.current?.requestFullscreen();
     } else {
