@@ -44,9 +44,10 @@ export async function recordLogin(userId: string, existing: string[] = []): Prom
   return updated;
 }
 
-/** Calculate consecutive-day streak ending today (or yesterday) */
+/** Calculate consecutive-day streak ending before today (completed days only).
+ *  First login day = 0. Two consecutive days = 1, etc. */
 export function calculateStreak(loginDates: string[]): number {
-  if (!loginDates || loginDates.length === 0) return 0;
+  if (!loginDates || loginDates.length < 2) return 0;
 
   const unique = [...new Set(loginDates)].sort().reverse();
   const today = new Date();
@@ -58,7 +59,8 @@ export function calculateStreak(loginDates: string[]): number {
   // Streak only counts if the user logged in today or yesterday
   if (diffFromToday > 1) return 0;
 
-  let streak = 1;
+  // Count consecutive days before today (exclude today itself)
+  let streak = 0;
   for (let i = 1; i < unique.length; i++) {
     const prev = new Date(unique[i - 1] + 'T00:00:00');
     const curr = new Date(unique[i] + 'T00:00:00');
